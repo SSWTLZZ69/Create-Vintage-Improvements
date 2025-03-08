@@ -300,7 +300,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 				}
 			}
 
-			if (inputInv.getStackInSlot(0).isEmpty()) return;
+			if (inputInv.isEmpty()) return;
 
 			if (lastHammeringRecipe == null || !HammeringRecipe.match(this, lastHammeringRecipe)) {
 
@@ -658,13 +658,13 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 
 		switch (operatingMode) {
 			case 1 -> VintageLang.translate("gui.goggles.current_mode")
-						.add(Lang.text(" ")).add(VintageLang.translate("gui.goggles.hammering_mode"))
-						.style(ChatFormatting.DARK_AQUA).forGoggles(tooltip);
+					.add(Lang.text(" ")).add(VintageLang.translate("gui.goggles.hammering_mode"))
+					.style(ChatFormatting.DARK_AQUA).forGoggles(tooltip);
 			case 2 -> VintageLang.translate("gui.goggles.current_mode")
 					.add(Lang.text(" ")).add(VintageLang.translate("gui.goggles.smithing_mode"))
 					.style(ChatFormatting.DARK_PURPLE).forGoggles(tooltip);
 			default -> VintageLang.translate("gui.goggles.no_operating_block")
-							.style(ChatFormatting.DARK_RED).forGoggles(tooltip);
+					.style(ChatFormatting.DARK_RED).forGoggles(tooltip);
 
 		}
 

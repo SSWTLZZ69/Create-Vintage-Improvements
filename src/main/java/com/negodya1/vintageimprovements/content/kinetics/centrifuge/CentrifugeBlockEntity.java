@@ -231,6 +231,12 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 
 		if (inputInv.isEmpty() && inputTank.isEmpty()) return false;
 
+		for (int i = 0; i < outputInv.getSlots(); i++) {
+
+			if (!outputInv.getStackInSlot(i).isEmpty() && outputInv.getStackInSlot(i).getCount() >= outputInv.getStackInSlot(i).getMaxStackSize())
+				return false;
+		}
+
 		return CentrifugationRecipe.match(this, recipes.get(0));
 	}
 
@@ -274,8 +280,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 			}
 		}
 
-		if (inputInv.getStackInSlot(0)
-				.isEmpty() && inputTank.isEmpty())
+		if (inputInv.isEmpty() && inputTank.isEmpty())
 			return;
 
 		if (lastRecipe == null || !CentrifugationRecipe.match(this, lastRecipe)) {
@@ -439,7 +444,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 	}
 
 	private boolean acceptFluidOutputsIntoCentrifuge(List<FluidStack> outputFluids, boolean simulate,
-												IFluidHandler targetTank) {
+													 IFluidHandler targetTank) {
 		for (FluidStack fluidStack : outputFluids) {
 			IFluidHandler.FluidAction action = simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE;
 			int fill = targetTank instanceof SmartFluidTankBehaviour.InternalFluidHandler
@@ -486,7 +491,8 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 			if (!found) return;
 		}
 
-		if (CentrifugationRecipe.apply(this, lastRecipe) && lastRecipeIsAssembly) lastRecipe = null;
+		if (CentrifugationRecipe.apply(this, lastRecipe) && lastRecipeIsAssembly)
+			lastRecipe = null;
 		advancementBehaviour.awardVintageAdvancement(VintageAdvancements.USE_CENTRIFUGE);
 
 		sendData();
@@ -572,7 +578,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 
 			if (lastRecipe != null) if (lastRecipe.minimalRPM > Mth.abs(getSpeed()))
 				VintageLang.translate("gui.goggles.not_enough_rpm")
-					.add(Lang.text(" ")).add(Lang.number(lastRecipe.minimalRPM)).style(ChatFormatting.RED).forGoggles(tooltip);
+						.add(Lang.text(" ")).add(Lang.number(lastRecipe.minimalRPM)).style(ChatFormatting.RED).forGoggles(tooltip);
 
 
 			IItemHandlerModifiable items = capability.orElse(new ItemStackHandler());

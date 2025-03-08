@@ -8,7 +8,7 @@ import com.negodya1.vintageimprovements.content.kinetics.lathe.TurningRecipe;
 import com.simibubi.create.AllMenuTypes;
 import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
 import com.simibubi.create.foundation.gui.menu.GhostItemMenu;
-
+import java.util.Comparator;
 import com.simibubi.create.foundation.recipe.RecipeConditions;
 import com.simibubi.create.foundation.recipe.RecipeFinder;
 import net.minecraft.core.RegistryAccess;
@@ -147,6 +147,7 @@ public class RecipeCardMenu extends GhostItemMenu<ItemStack> {
 
 		startedSearch = startedSearch.stream().filter(RecipeConditions.firstIngredientMatches(ghostInventory.getStackInSlot(0)))
 				.filter(r -> !VintageRecipes.shouldIgnoreInAutomation(r))
+				.sorted(Comparator.comparing(r -> r.getResultItem(level.registryAccess()).getDescriptionId()))
 				.collect(Collectors.toList());
 
 		recipes = startedSearch;

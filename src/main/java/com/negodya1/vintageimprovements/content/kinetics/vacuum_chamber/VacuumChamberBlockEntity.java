@@ -25,6 +25,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.fluid.CombinedTankWrapper;
 import com.simibubi.create.foundation.fluid.FluidIngredient;
+import com.simibubi.create.foundation.item.SmartInventory;
 import com.simibubi.create.foundation.recipe.RecipeFinder;
 import com.simibubi.create.foundation.utility.*;
 
@@ -191,13 +192,13 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 					Optional<BasinBlockEntity> basin = getBasin();
 					if (basin.isPresent()) {
 						Couple<SmartFluidTankBehaviour> tanks = basin.get()
-							.getTanks();
+								.getTanks();
 						if (!tanks.getFirst()
-							.isEmpty()
-							|| !tanks.getSecond()
+								.isEmpty()
+								|| !tanks.getSecond()
 								.isEmpty())
 							level.playSound(null, worldPosition, SoundEvents.BUBBLE_COLUMN_WHIRLPOOL_AMBIENT,
-								SoundSource.BLOCKS, .75f, speed < 65 ? .75f : 1.5f);
+									SoundSource.BLOCKS, .75f, speed < 65 ? .75f : 1.5f);
 					}
 
 				} else {
@@ -235,7 +236,6 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		getProcessedRecipeTrigger().ifPresent(this::award);
 		basin.inputTank.sendDataImmediately();
 		advancementBehaviour.awardVintageAdvancement(VintageAdvancements.USE_COMPRESSOR);
-
 		// Continue mixing
 		if (wasEmpty && matchBasinRecipe(currentRecipe)) {
 			continueWithPreviousRecipe();
@@ -250,7 +250,6 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		Optional<BasinBlockEntity> basin = getBasin();
 
 		if (basin.isEmpty()) return null;
-
 		if (mode) {
 			for (int i = 0; i < basin.get().getInputInventory().getSlots(); i++) {
 				Optional<PressurizingRecipe> assemblyRecipe = SequencedAssemblyRecipe.
@@ -279,7 +278,6 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 
 						return getRecipes();
 					}
-
 					return ImmutableList.of(assemblyRecipe.get());
 				}
 			}
@@ -313,7 +311,6 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 
 						return getRecipes();
 					}
-
 					return ImmutableList.of(assemblyRecipe.get());
 				}
 			}
@@ -341,6 +338,13 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		if (!basin.isPresent())
 			return false;
 
+		SmartInventory outputInventory = basin.get().getOutputInventory();
+		for (int i = 0; i < outputInventory.getSlots(); i++) {
+			if (outputInventory.getStackInSlot(i).hasTag() &&
+					outputInventory.getStackInSlot(i).getTag().get("SequencedAssembly") != null) {
+				return false;
+			}
+		}
 		if (recipe instanceof VacuumizingRecipe r)
 			return r.match(basin.get(), recipe, this);
 		if (recipe instanceof PressurizingRecipe r)

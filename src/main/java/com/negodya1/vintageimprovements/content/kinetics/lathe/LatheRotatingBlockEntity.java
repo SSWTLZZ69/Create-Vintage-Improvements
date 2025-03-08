@@ -160,6 +160,7 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 
 		startedSearch = startedSearch.stream().filter(RecipeConditions.firstIngredientMatches(inputInv.getStackInSlot(0)))
 				.filter(r -> !VintageRecipes.shouldIgnoreInAutomation(r))
+				.sorted(Comparator.comparing(r -> r.getResultItem(getLevel().registryAccess()).getDescriptionId()))
 				.collect(Collectors.toList());
 
 		return startedSearch;
@@ -279,7 +280,7 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 			return;
 		}
 
-		if (inputInv.getStackInSlot(0).isEmpty()) return;
+		if (inputInv.isEmpty()) return;
 
 		if (lastRecipe == null) {
 			Optional<TurningRecipe> recipe = getRecipe();
@@ -493,8 +494,8 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 				if (lastRecipe == null) {
 					if (!getResultItem().is(Items.AIR))
 						VintageLang.translate("gui.goggles.current_recipe")
-							.add(Lang.text(" ")).add(Components.translatable(getResultItem().getDescriptionId()))
-							.style(ChatFormatting.GREEN).forGoggles(tooltip);
+								.add(Lang.text(" ")).add(Components.translatable(getResultItem().getDescriptionId()))
+								.style(ChatFormatting.GREEN).forGoggles(tooltip);
 					else VintageLang.translate("gui.goggles.current_recipe")
 							.add(Lang.text(" ")).add(VintageLang.translate("gui.goggles.no_recipe"))
 							.style(ChatFormatting.DARK_GRAY).forGoggles(tooltip);
