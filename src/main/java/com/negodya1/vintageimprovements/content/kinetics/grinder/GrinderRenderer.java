@@ -2,25 +2,25 @@ package com.negodya1.vintageimprovements.content.kinetics.grinder;
 
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
 
-import com.jozufozu.flywheel.backend.Backend;
-import com.jozufozu.flywheel.core.PartialModel;
-import com.jozufozu.flywheel.core.virtual.VirtualRenderWorld;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.negodya1.vintageimprovements.VintagePartialModels;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices;
-import com.simibubi.create.content.contraptions.render.ContraptionRenderDispatcher;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringRenderer;
 import com.simibubi.create.foundation.blockEntity.renderer.SafeBlockEntityRenderer;
-import com.simibubi.create.foundation.render.CachedBufferer;
-import com.simibubi.create.foundation.render.SuperByteBuffer;
-import com.simibubi.create.foundation.utility.AngleHelper;
-import com.simibubi.create.foundation.utility.VecHelper;
 
+import com.simibubi.create.foundation.virtualWorld.VirtualRenderWorld;
+import dev.engine_room.flywheel.api.visualization.VisualizationManager;
+import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.math.VecHelper;
+import net.createmod.catnip.render.CachedBuffers;
+import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -44,7 +44,8 @@ public class GrinderRenderer extends SafeBlockEntityRenderer<GrinderBlockEntity>
 		renderItems(be, partialTicks, ms, buffer, light, overlay);
 		FilteringRenderer.renderOnBlockEntity(be, partialTicks, ms, buffer, light, overlay);
 
-		if (Backend.canUseInstancing(be.getLevel()))
+
+		if (VisualizationManager.supportsVisualization(be.getLevel()))
 			return;
 
 		renderShaft(be, ms, buffer, light, overlay);
@@ -81,7 +82,7 @@ public class GrinderRenderer extends SafeBlockEntityRenderer<GrinderBlockEntity>
 			};
 		}
 
-		SuperByteBuffer superBuffer = CachedBufferer.partialFacing(partial, blockState, blockState.getValue(HORIZONTAL_FACING)).rotateCentered(Direction.UP, blockState.getValue(HORIZONTAL_FACING) == Direction.WEST || blockState.getValue(HORIZONTAL_FACING) == Direction.NORTH ? 0 : (180*(float)Math.PI/180f));
+		SuperByteBuffer superBuffer = CachedBuffers.partialFacing(partial, blockState, blockState.getValue(HORIZONTAL_FACING)).rotateCentered(blockState.getValue(HORIZONTAL_FACING) == Direction.WEST || blockState.getValue(HORIZONTAL_FACING) == Direction.NORTH ? 0 : (180*(float)Math.PI/180f), Direction.UP);
 		superBuffer.color(0xFFFFFF)
 			.light(light)
 			.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()));
@@ -138,7 +139,7 @@ public class GrinderRenderer extends SafeBlockEntityRenderer<GrinderBlockEntity>
 	}
 
 	protected SuperByteBuffer getRotatedModel(KineticBlockEntity be) {
-		return CachedBufferer.block(KineticBlockEntityRenderer.KINETIC_BLOCK,
+		return CachedBuffers.block(KineticBlockEntityRenderer.KINETIC_BLOCK,
 			getRenderedBlockState(be));
 	}
 
@@ -166,12 +167,12 @@ public class GrinderRenderer extends SafeBlockEntityRenderer<GrinderBlockEntity>
 
 		SuperByteBuffer superBuffer;
 		if (shouldAnimate)
-			superBuffer = CachedBufferer.partial(VintagePartialModels.GRINDER_BELT_ACTIVE, state);
+			superBuffer = CachedBuffers.partial(VintagePartialModels.GRINDER_BELT_ACTIVE, state);
 		else
-			superBuffer = CachedBufferer.partial(VintagePartialModels.GRINDER_BELT_INACTIVE, state);
+			superBuffer = CachedBuffers.partial(VintagePartialModels.GRINDER_BELT_INACTIVE, state);
 
 		superBuffer.transform(matrices.getModel())
-			.centre()
+			.center()
 			.rotateY(AngleHelper.horizontalAngle(facing))
 			.rotateX(AngleHelper.verticalAngle(facing));
 
@@ -179,8 +180,8 @@ public class GrinderRenderer extends SafeBlockEntityRenderer<GrinderBlockEntity>
 			superBuffer.rotateZ(0);
 		}
 
-		superBuffer.unCentre()
-			.light(matrices.getWorld(), ContraptionRenderDispatcher.getContraptionWorldLight(context, renderWorld))
+		superBuffer.uncenter()
+			.light(LevelRenderer.getLightColor(renderWorld, context.localPos))
 			.renderInto(matrices.getViewProjection(), buffer.getBuffer(RenderType.cutoutMipped()));
 	}
 

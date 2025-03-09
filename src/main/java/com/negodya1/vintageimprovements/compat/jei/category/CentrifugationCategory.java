@@ -56,7 +56,7 @@ public class CentrifugationCategory extends CreateRecipeCategory<CentrifugationR
 					.addSlot(RecipeIngredientRole.INPUT, 10 + xOffset, 5 + yOffset)
 					.setBackground(getRenderedSlot(), -1, -1)
 					.addIngredients(ForgeTypes.FLUID_STACK, withImprovedVisibility(input.getMatchingFluidStacks()))
-					.addTooltipCallback(addFluidTooltip(input.getRequiredAmount()));
+					.addRichTooltipCallback(addFluidTooltip(input.getRequiredAmount()));
 			i++;
 		}
 
@@ -70,7 +70,7 @@ public class CentrifugationCategory extends CreateRecipeCategory<CentrifugationR
 					.addSlot(RecipeIngredientRole.OUTPUT, 128 + xOffset, 56 + yOffset)
 					.setBackground(getRenderedSlot(output), -1, -1)
 					.addItemStack(output.getStack())
-					.addTooltipCallback(addStochasticTooltip(output));
+					.addRichTooltipCallback(addStochasticTooltip(output));
 			i++;
 		}
 		for (FluidStack output : recipe.getFluidResults()) {
@@ -80,7 +80,7 @@ public class CentrifugationCategory extends CreateRecipeCategory<CentrifugationR
 					.addSlot(RecipeIngredientRole.OUTPUT, 128 + xOffset, 56 + yOffset)
 					.setBackground(getRenderedSlot(), -1, -1)
 					.addIngredient(ForgeTypes.FLUID_STACK, withImprovedVisibility(output))
-					.addTooltipCallback(addFluidTooltip(output.getAmount()));
+					.addRichTooltipCallback(addFluidTooltip(output.getAmount()));
 			i++;
 		}
 	}

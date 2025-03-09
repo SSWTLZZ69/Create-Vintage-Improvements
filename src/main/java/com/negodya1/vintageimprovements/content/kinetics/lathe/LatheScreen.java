@@ -2,14 +2,13 @@ package com.negodya1.vintageimprovements.content.kinetics.lathe;
 
 import com.google.common.collect.ImmutableList;
 import com.negodya1.vintageimprovements.VintageBlocks;
-import com.negodya1.vintageimprovements.VintageImprovements;
-import com.negodya1.vintageimprovements.content.kinetics.lathe.recipe_card.RecipeCardMenu;
+import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.foundation.gui.VintageGuiTextures;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
 import com.simibubi.create.foundation.gui.AllIcons;
-import com.simibubi.create.foundation.gui.element.GuiGameElement;
 import com.simibubi.create.foundation.gui.menu.AbstractSimiContainerScreen;
 import com.simibubi.create.foundation.gui.widget.IconButton;
+import com.simibubi.create.foundation.utility.CreateLang;
+import net.createmod.catnip.gui.element.GuiGameElement;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -47,7 +46,7 @@ public class LatheScreen extends AbstractSimiContainerScreen<LatheMenu> {
 
 	@Override
 	protected void init() {
-		setWindowSize(background.width, background.height + 4 + PLAYER_INVENTORY.height);
+		setWindowSize(background.width, background.height + 4 + PLAYER_INVENTORY.getHeight());
 		setWindowOffset(1, 0);
 		super.init();
 
@@ -66,7 +65,7 @@ public class LatheScreen extends AbstractSimiContainerScreen<LatheMenu> {
 
 	@Override
 	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
-		int invX = getLeftOfCentered(PLAYER_INVENTORY.width);
+		int invX = getLeftOfCentered(PLAYER_INVENTORY.getWidth());
 		int invY = topPos + background.height + 4;
 		renderPlayerInventory(graphics, invX, invY);
 

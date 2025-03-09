@@ -1,21 +1,21 @@
 package com.negodya1.vintageimprovements.content.kinetics.vibration;
 
-import com.jozufozu.flywheel.backend.Backend;
-import com.jozufozu.flywheel.core.virtual.VirtualRenderWorld;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.negodya1.vintageimprovements.VintagePartialModels;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices;
-import com.simibubi.create.content.contraptions.render.ContraptionRenderDispatcher;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.foundation.blockEntity.renderer.SafeBlockEntityRenderer;
-import com.simibubi.create.foundation.render.CachedBufferer;
-import com.simibubi.create.foundation.render.SuperByteBuffer;
-import com.simibubi.create.foundation.utility.AngleHelper;
-import com.simibubi.create.foundation.utility.VecHelper;
+import com.simibubi.create.foundation.virtualWorld.VirtualRenderWorld;
+import dev.engine_room.flywheel.api.visualization.VisualizationManager;
+import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.math.VecHelper;
+import net.createmod.catnip.render.CachedBuffers;
+import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -38,7 +38,8 @@ public class VibratingTableRenderer extends SafeBlockEntityRenderer<VibratingTab
 		renderTable(be, partialTicks, ms, buffer, light);
 		renderItems(be, partialTicks, ms, buffer, light, overlay);
 
-		if (Backend.canUseInstancing(be.getLevel()))
+
+		if (VisualizationManager.supportsVisualization(be.getLevel()))
 			return;
 
 		renderShaft(be, ms, buffer, light, overlay);
@@ -50,7 +51,7 @@ public class VibratingTableRenderer extends SafeBlockEntityRenderer<VibratingTab
 		float offset = 0.0f;
 		if (be.haveRecipe()) offset = be.getRenderedHeadOffset(partialTicks);
 
-		SuperByteBuffer superBuffer = CachedBufferer.partialFacing(VintagePartialModels.VIBRATING_TABLE, blockState, blockState.getValue(HORIZONTAL_FACING)); //.rotateCentered(Direction.UP, blockState.getValue(HORIZONTAL_FACING) == Direction.WEST || blockState.getValue(HORIZONTAL_FACING) == Direction.NORTH ? 0 : (180*(float)Math.PI/180f));
+		SuperByteBuffer superBuffer = CachedBuffers.partialFacing(VintagePartialModels.VIBRATING_TABLE, blockState, blockState.getValue(HORIZONTAL_FACING)); //.rotateCentered(Direction.UP, blockState.getValue(HORIZONTAL_FACING) == Direction.WEST || blockState.getValue(HORIZONTAL_FACING) == Direction.NORTH ? 0 : (180*(float)Math.PI/180f));
 		superBuffer.translate(.0, offset, .0);
 
 		superBuffer.color(0xFFFFFF)
@@ -171,7 +172,7 @@ public class VibratingTableRenderer extends SafeBlockEntityRenderer<VibratingTab
 	}
 
 	protected SuperByteBuffer getRotatedModel(KineticBlockEntity be) {
-		return CachedBufferer.block(KineticBlockEntityRenderer.KINETIC_BLOCK,
+		return CachedBuffers.block(KineticBlockEntityRenderer.KINETIC_BLOCK,
 			getRenderedBlockState(be));
 	}
 
@@ -197,10 +198,10 @@ public class VibratingTableRenderer extends SafeBlockEntityRenderer<VibratingTab
 		boolean shouldAnimate =
 			(context.contraption.stalled && horizontal) || (!context.contraption.stalled && !backwards && moving);
 
-		SuperByteBuffer superBuffer = CachedBufferer.partial(VintagePartialModels.VIBRATING_TABLE, state);
+		SuperByteBuffer superBuffer = CachedBuffers.partial(VintagePartialModels.VIBRATING_TABLE, state);
 
 		superBuffer.transform(matrices.getModel())
-			.centre()
+			.center()
 			.rotateY(AngleHelper.horizontalAngle(facing))
 			.rotateX(AngleHelper.verticalAngle(facing));
 
@@ -208,8 +209,8 @@ public class VibratingTableRenderer extends SafeBlockEntityRenderer<VibratingTab
 			superBuffer.rotateZ(0);
 		}
 
-		superBuffer.unCentre()
-			.light(matrices.getWorld(), ContraptionRenderDispatcher.getContraptionWorldLight(context, renderWorld))
+		superBuffer.uncenter()
+			.light(LevelRenderer.getLightColor(renderWorld, context.localPos))
 			.renderInto(matrices.getViewProjection(), buffer.getBuffer(RenderType.cutoutMipped()));
 	}
 

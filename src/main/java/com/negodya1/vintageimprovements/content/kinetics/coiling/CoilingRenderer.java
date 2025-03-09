@@ -3,9 +3,6 @@ package com.negodya1.vintageimprovements.content.kinetics.coiling;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_AXIS;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
 
-import com.jozufozu.flywheel.backend.Backend;
-import com.jozufozu.flywheel.core.PartialModel;
-import com.jozufozu.flywheel.core.virtual.VirtualRenderWorld;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.negodya1.vintageimprovements.VintageImprovements;
@@ -14,17 +11,17 @@ import com.negodya1.vintageimprovements.VintageRecipes;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices;
-import com.simibubi.create.content.contraptions.render.ContraptionRenderDispatcher;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringRenderer;
 import com.simibubi.create.foundation.blockEntity.renderer.SafeBlockEntityRenderer;
-import com.simibubi.create.foundation.render.CachedBufferer;
-import com.simibubi.create.foundation.render.SuperByteBuffer;
-import com.simibubi.create.foundation.utility.AngleHelper;
-import com.simibubi.create.foundation.utility.AnimationTickHolder;
-import com.simibubi.create.foundation.utility.VecHelper;
 
+import dev.engine_room.flywheel.api.visualization.VisualizationManager;
+import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import net.createmod.catnip.animation.AnimationTickHolder;
+import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.render.CachedBuffers;
+import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -46,7 +43,8 @@ public class CoilingRenderer extends KineticBlockEntityRenderer<CoilingBlockEnti
 		renderSpring(be, partialTicks, ms, buffer, light, overlay);
 		FilteringRenderer.renderOnBlockEntity(be, partialTicks, ms, buffer, light, overlay);
 
-		if (Backend.canUseInstancing(be.getLevel()))
+
+		if (VisualizationManager.supportsVisualization(be.getLevel()))
 			return;
 
 		renderShaft(be, ms, buffer, light, overlay);
@@ -60,7 +58,7 @@ public class CoilingRenderer extends KineticBlockEntityRenderer<CoilingBlockEnti
 		BlockState blockState = be.getBlockState();
 		PartialModel partial = VintagePartialModels.COILING_WHEEL;
 
-		SuperByteBuffer superBuffer = CachedBufferer.partial(partial, blockState);
+		SuperByteBuffer superBuffer = CachedBuffers.partial(partial, blockState);
 		rotateWheel(superBuffer, angle, blockState.getValue(HORIZONTAL_FACING));
 
 		superBuffer.color(0xFFFFFF)
@@ -72,9 +70,9 @@ public class CoilingRenderer extends KineticBlockEntityRenderer<CoilingBlockEnti
 		float pivotX = 5 / 16f;
 		float pivotY = 10.5f / 16f;
 		float pivotZ = 11.5f / 16f;
-		buffer.rotateCentered(Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.getCounterClockWise())));
+		buffer.rotateCentered(AngleHelper.rad(AngleHelper.horizontalAngle(facing.getCounterClockWise())), Direction.UP);
 		buffer.translate(pivotX, pivotY, pivotZ);
-		buffer.rotate(Direction.EAST, AngleHelper.rad(angle));
+		buffer.rotate(AngleHelper.rad(angle), Direction.EAST);
 		buffer.translate(-pivotX, -pivotY, -pivotZ);
 		return buffer;
 	}
@@ -83,9 +81,9 @@ public class CoilingRenderer extends KineticBlockEntityRenderer<CoilingBlockEnti
 		float pivotX = 17 / 16f;
 		float pivotY = 9.5f / 16f;
 		float pivotZ = 7.5f / 16f;
-		buffer.rotateCentered(Direction.UP, AngleHelper.rad(AngleHelper.horizontalAngle(facing.getCounterClockWise())));
+		buffer.rotateCentered(AngleHelper.rad(AngleHelper.horizontalAngle(facing.getCounterClockWise())), Direction.UP);
 		buffer.translate(pivotX, pivotY, pivotZ);
-		buffer.rotate(Direction.EAST, AngleHelper.rad(angle));
+		buffer.rotate(AngleHelper.rad(angle), Direction.EAST);
 		buffer.translate(-pivotX, -pivotY, -pivotZ);
 		return buffer;
 	}
@@ -96,12 +94,12 @@ public class CoilingRenderer extends KineticBlockEntityRenderer<CoilingBlockEnti
 
 		VertexConsumer vb = buffer.getBuffer(RenderType.solid());
 
-		SuperByteBuffer superBuffer = CachedBufferer.partial(partial, blockState);
+		SuperByteBuffer superBuffer = CachedBuffers.partial(partial, blockState);
 		standardKineticRotationTransform(superBuffer, be, light);
-		superBuffer.rotateCentered(Direction.UP,
-				AngleHelper.rad(be.getBlockState().getValue(HORIZONTAL_FACING) == Direction.NORTH ? 0 :
-						be.getBlockState().getValue(HORIZONTAL_FACING) == Direction.SOUTH ? 180 :
-								be.getBlockState().getValue(HORIZONTAL_FACING) == Direction.EAST ? 270 : 90));
+		superBuffer.rotateCentered(AngleHelper.rad(be.getBlockState().getValue(HORIZONTAL_FACING) == Direction.NORTH ? 0 :
+                                be.getBlockState().getValue(HORIZONTAL_FACING) == Direction.SOUTH ? 180 :
+                                        be.getBlockState().getValue(HORIZONTAL_FACING) == Direction.EAST ? 270 : 90),
+                Direction.UP);
 
 		superBuffer.renderInto(ms, vb);
 	}
@@ -130,7 +128,7 @@ public class CoilingRenderer extends KineticBlockEntityRenderer<CoilingBlockEnti
 				BlockState blockState = be.getBlockState();
 				PartialModel partial = VintagePartialModels.COILING_SPRING;
 
-				SuperByteBuffer superBuffer = CachedBufferer.partial(partial, blockState);
+				SuperByteBuffer superBuffer = CachedBuffers.partial(partial, blockState);
 
 				float speed = -Math.abs(be.getSpeed());
 				float time = AnimationTickHolder.getRenderTime(be.getLevel());
@@ -138,7 +136,7 @@ public class CoilingRenderer extends KineticBlockEntityRenderer<CoilingBlockEnti
 
 				rotateSpring(superBuffer, angle, blockState.getValue(HORIZONTAL_FACING));
 
-				superBuffer.rotateCentered(Direction.UP, (180*(float)Math.PI/180f));
+				superBuffer.rotateCentered((180*(float)Math.PI/180f), Direction.UP);
 
 				superBuffer.translate(offset, 0, 0);
 

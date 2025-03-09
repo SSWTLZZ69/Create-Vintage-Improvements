@@ -1,7 +1,5 @@
 package com.negodya1.vintageimprovements.content.kinetics.lathe;
 
-import com.jozufozu.flywheel.backend.Backend;
-import com.jozufozu.flywheel.core.PartialModel;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -14,10 +12,10 @@ import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
-import com.simibubi.create.foundation.render.CachedBufferer;
-import com.simibubi.create.foundation.render.SuperByteBuffer;
-
-import com.simibubi.create.foundation.utility.AngleHelper;
+import dev.engine_room.flywheel.api.visualization.VisualizationManager;
+import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import net.createmod.catnip.render.CachedBuffers;
+import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -28,16 +26,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.state.BlockState;
 
-import com.jozufozu.flywheel.util.transform.TransformStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour.TankSegment;
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
 import com.simibubi.create.foundation.fluid.FluidRenderer;
-import com.simibubi.create.foundation.utility.AngleHelper;
-import com.simibubi.create.foundation.utility.AnimationTickHolder;
-import com.simibubi.create.foundation.utility.IntAttached;
-import com.simibubi.create.foundation.utility.VecHelper;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -75,7 +68,8 @@ public class LatheMovingRenderer extends KineticBlockEntityRenderer<LatheMovingB
 	protected void renderSafe(LatheMovingBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
 		renderSlot(be, ms, buffer, light, overlay);
 
-		if (Backend.canUseInstancing(be.getLevel()))
+
+		if (VisualizationManager.supportsVisualization(be.getLevel()))
 			return;
 
 		renderShaft(be, ms, buffer, light, overlay);
@@ -91,16 +85,16 @@ public class LatheMovingRenderer extends KineticBlockEntityRenderer<LatheMovingB
 
 		PartialModel partial = (be.recipeSlot.isEmpty() ? VintagePartialModels.LATHE_SLOT : VintagePartialModels.LATHE_SLOT_FULL);
 
-		SuperByteBuffer superBuffer = CachedBufferer.partial(partial, blockState);
-		superBuffer.rotateCentered(Direction.UP,
-				blockState.getValue(FACING) == Direction.SOUTH ? (180*(float)Math.PI/180f) :
-						blockState.getValue(FACING) == Direction.WEST ? (90*(float)Math.PI/180f) :
-								blockState.getValue(FACING) == Direction.EAST ? (270*(float)Math.PI/180f) : 0)
+		SuperByteBuffer superBuffer = CachedBuffers.partial(partial, blockState);
+		superBuffer.rotateCentered(blockState.getValue(FACING) == Direction.SOUTH ? (180*(float)Math.PI/180f) :
+                                blockState.getValue(FACING) == Direction.WEST ? (90*(float)Math.PI/180f) :
+                                        blockState.getValue(FACING) == Direction.EAST ? (270*(float)Math.PI/180f) : 0,
+                        Direction.UP)
 				.light(light).renderInto(ms, vb);
 	}
 
 	protected SuperByteBuffer getRotatedModel(LatheMovingBlockEntity be, BlockState state) {
-		return CachedBufferer.block(KineticBlockEntityRenderer.KINETIC_BLOCK,
+		return CachedBuffers.block(KineticBlockEntityRenderer.KINETIC_BLOCK,
 				getRenderedBlockState(be));
 	}
 

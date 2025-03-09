@@ -2,21 +2,19 @@ package com.negodya1.vintageimprovements;
 
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancements;
 import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
-import com.negodya1.vintageimprovements.infrastructure.ponder.VintagePonder;
+import com.negodya1.vintageimprovements.infrastructure.ponder.VintagePonderPlugin;
 import com.simibubi.create.AllItems;
-import com.simibubi.create.content.kinetics.saw.SawBlock;
-import com.simibubi.create.content.kinetics.saw.SawBlockEntity;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
+import com.simibubi.create.foundation.data.CreateRegistrate;
+import com.simibubi.create.foundation.ponder.CreatePonderPlugin;
+import net.createmod.catnip.lang.FontHelper;
+import net.createmod.ponder.foundation.PonderIndex;
 import net.minecraft.world.item.Rarity;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.loading.FMLPaths;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.KineticStats;
-import com.simibubi.create.foundation.item.TooltipHelper.Palette;
 import com.simibubi.create.foundation.item.TooltipModifier;
 
 import net.minecraft.resources.ResourceLocation;
@@ -28,7 +26,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-import com.negodya1.vintageimprovements.foundation.data.VintageRegistrate;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -37,7 +34,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -55,11 +51,11 @@ public class VintageImprovements {
         LOGGER.info(str);
     }
 
-    public static final VintageRegistrate MY_REGISTRATE = VintageRegistrate.create(MODID);
+    public static final CreateRegistrate MY_REGISTRATE = CreateRegistrate.create(MODID);
 
     static {
         MY_REGISTRATE.setTooltipModifierFactory(item -> {
-            return new ItemDescription.Modifier(item, Palette.STANDARD_CREATE)
+            return new ItemDescription.Modifier(item, FontHelper.Palette.STANDARD_CREATE)
                     .andThen(TooltipModifier.mapNull(KineticStats.create(item)));
         });
     }
@@ -652,7 +648,7 @@ public class VintageImprovements {
     public static class ClientModEvents {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
-            VintagePonder.register();
+            PonderIndex.addPlugin(new VintagePonderPlugin());
         }
     }
 

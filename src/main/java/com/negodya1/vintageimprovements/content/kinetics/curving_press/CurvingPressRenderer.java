@@ -2,16 +2,16 @@ package com.negodya1.vintageimprovements.content.kinetics.curving_press;
 
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
 
-import com.jozufozu.flywheel.backend.Backend;
-import com.jozufozu.flywheel.core.PartialModel;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.VintagePartialModels;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
-import com.simibubi.create.foundation.render.CachedBufferer;
-import com.simibubi.create.foundation.render.SuperByteBuffer;
 
+import dev.engine_room.flywheel.api.visualization.VisualizationManager;
+import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import net.createmod.catnip.render.CachedBuffers;
+import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -36,12 +36,14 @@ public class CurvingPressRenderer extends KineticBlockEntityRenderer<CurvingPres
 		int light, int overlay) {
 		super.renderSafe(be, partialTicks, ms, buffer, light, overlay);
 
+		if (!VisualizationManager.supportsVisualization(be.getLevel()))
+			return;
 		BlockState blockState = be.getBlockState();
 		CurvingBehaviour pressingBehaviour = be.getPressingBehaviour();
 		float renderedHeadOffset =
 			pressingBehaviour.getRenderedHeadOffset(partialTicks) * pressingBehaviour.mode.headOffset;
 
-		SuperByteBuffer poleRender = CachedBufferer.partialFacing(VintagePartialModels.CURVING_POLE, blockState,
+		SuperByteBuffer poleRender = CachedBuffers.partialFacing(VintagePartialModels.CURVING_POLE, blockState,
 			blockState.getValue(HORIZONTAL_FACING));
 		poleRender.translate(0, -renderedHeadOffset, 0)
 			.light(light)
@@ -68,7 +70,7 @@ public class CurvingPressRenderer extends KineticBlockEntityRenderer<CurvingPres
 				default -> partialModel = VintagePartialModels.CURVING_HEAD;
 			}
 
-			SuperByteBuffer headRender = CachedBufferer.partialFacing(partialModel, blockState,
+			SuperByteBuffer headRender = CachedBuffers.partialFacing(partialModel, blockState,
 					blockState.getValue(HORIZONTAL_FACING));
 			headRender.translate(0, -renderedHeadOffset, 0)
 					.light(light)
@@ -76,7 +78,7 @@ public class CurvingPressRenderer extends KineticBlockEntityRenderer<CurvingPres
 		}
 
 		if (be.redstoneModule) {
-			SuperByteBuffer redstone = CachedBufferer.partialFacing(VintagePartialModels.REDSTONE_MODULE_CURVING_PRESS, blockState,
+			SuperByteBuffer redstone = CachedBuffers.partialFacing(VintagePartialModels.REDSTONE_MODULE_CURVING_PRESS, blockState,
 					blockState.getValue(HORIZONTAL_FACING));
 			redstone.light(light)
 					.renderInto(ms, buffer.getBuffer(RenderType.solid()));

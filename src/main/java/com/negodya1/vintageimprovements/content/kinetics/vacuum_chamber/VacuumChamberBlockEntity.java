@@ -1,19 +1,13 @@
 package com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
+import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
-import com.negodya1.vintageimprovements.content.kinetics.centrifuge.CentrifugeBlock;
-import com.negodya1.vintageimprovements.content.kinetics.centrifuge.CentrifugeBlockEntity;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancementBehaviour;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancements;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
-import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllSoundEvents;
-import com.simibubi.create.content.fluids.FluidPropagator;
-import com.simibubi.create.content.fluids.FluidTransportBehaviour;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinOperatingBlockEntity;
@@ -26,13 +20,14 @@ import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTank
 import com.simibubi.create.foundation.fluid.CombinedTankWrapper;
 import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.item.SmartInventory;
-import com.simibubi.create.foundation.recipe.RecipeFinder;
-import com.simibubi.create.foundation.utility.*;
 
+import com.simibubi.create.foundation.utility.CreateLang;
+import net.createmod.catnip.data.Couple;
+import net.createmod.catnip.lang.LangBuilder;
+import net.createmod.catnip.math.VecHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -54,13 +49,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.level.PistonEvent;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
 
 public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 
@@ -471,25 +462,25 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		super.addToGoggleTooltip(tooltip, isPlayerSneaking);
 
 		if (mode) VintageLang.translate("gui.goggles.current_mode")
-				.add(Lang.text(" ")).add(VintageLang.translate("gui.goggles.pressurizing_mode"))
+				.add(VintageLang.text(" ")).add(VintageLang.translate("gui.goggles.pressurizing_mode"))
 				.style(ChatFormatting.DARK_PURPLE).forGoggles(tooltip);
 		else VintageLang.translate("gui.goggles.current_mode")
-				.add(Lang.text(" ")).add(VintageLang.translate("gui.goggles.vacuumizing_mode"))
+				.add(VintageLang.text(" ")).add(VintageLang.translate("gui.goggles.vacuumizing_mode"))
 				.style(ChatFormatting.DARK_AQUA).forGoggles(tooltip);
 
 		IFluidHandler fluids = fluidCapability.orElse(new FluidTank(0));
 		boolean isEmpty = true;
 
-		LangBuilder mb = Lang.translate("generic.unit.millibuckets");
+		LangBuilder mb = CreateLang.translate("generic.unit.millibuckets");
 		for (int i = 0; i < fluids.getTanks(); i++) {
 			FluidStack fluidStack = fluids.getFluidInTank(i);
 			if (fluidStack.isEmpty())
 				continue;
-			Lang.text("")
-					.add(Lang.fluidName(fluidStack)
-							.add(Lang.text(" "))
+			CreateLang.text("")
+					.add(CreateLang.fluidName(fluidStack)
+							.add(CreateLang.text(" "))
 							.style(ChatFormatting.GRAY)
-							.add(Lang.number(fluidStack.getAmount())
+							.add(CreateLang.number(fluidStack.getAmount())
 									.add(mb)
 									.style(ChatFormatting.BLUE)))
 					.forGoggles(tooltip, 1);

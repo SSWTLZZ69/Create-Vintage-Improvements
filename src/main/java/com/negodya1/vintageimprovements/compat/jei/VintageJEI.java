@@ -36,7 +36,6 @@ import com.simibubi.create.compat.jei.EmptyBackground;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.content.equipment.sandPaper.SandPaperPolishingRecipe;
 import com.simibubi.create.content.processing.basin.BasinRecipe;
-import com.simibubi.create.foundation.config.ConfigBase;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import com.simibubi.create.infrastructure.config.CRecipes;
 import mezz.jei.api.IModPlugin;
@@ -47,6 +46,7 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.runtime.IIngredientManager;
+import net.createmod.catnip.config.ConfigBase;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -225,7 +225,7 @@ public class VintageJEI implements IModPlugin {
 	public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
 		ALL.forEach(c -> c.registerCatalysts(registration));
 
-		registration.getJeiHelpers().getRecipeType(new ResourceLocation("minecraft", "smithing")).ifPresent(type -> {
+		registration.getJeiHelpers().getRecipeType(new ResourceLocation("minecraft", "smithing"), SmithingRecipe.class).ifPresent(type -> {
 			registration.addRecipeCatalyst(new ItemStack(VintageBlocks.HELVE.get()), type);
 		});
 	}

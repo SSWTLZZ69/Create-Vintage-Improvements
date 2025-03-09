@@ -43,7 +43,7 @@ public class VibratingCategory extends CreateRecipeCategory<VibratingRecipe> {
 					.addSlot(RecipeIngredientRole.OUTPUT, single ? 139 : 133 + xOffset, 27 + yOffset)
 					.setBackground(getRenderedSlot(output), -1, -1)
 					.addItemStack(output.getStack())
-					.addTooltipCallback(addStochasticTooltip(output));
+					.addRichTooltipCallback(addStochasticTooltip(output));
 
 			i++;
 		}

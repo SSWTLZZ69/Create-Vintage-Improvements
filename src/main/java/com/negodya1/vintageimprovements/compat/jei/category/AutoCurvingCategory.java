@@ -68,7 +68,7 @@ public class AutoCurvingCategory extends CreateRecipeCategory<CraftingRecipe> {
 			builder.addSlot(RecipeIngredientRole.OUTPUT, 131, 50)
 					.setBackground(getRenderedSlot(output), -1, -1)
 					.addItemStack(output.getStack())
-					.addTooltipCallback(addStochasticTooltip(output));
+					.addRichTooltipCallback(addStochasticTooltip(output));
 		}
 		else {
 			builder.addSlot(RecipeIngredientRole.INPUT, 27, 51)
@@ -80,7 +80,7 @@ public class AutoCurvingCategory extends CreateRecipeCategory<CraftingRecipe> {
 			builder.addSlot(RecipeIngredientRole.OUTPUT, 131, 50)
 					.setBackground(getRenderedSlot(output), -1, -1)
 					.addItemStack(output.getStack())
-					.addTooltipCallback(addStochasticTooltip(output));
+					.addRichTooltipCallback(addStochasticTooltip(output));
 		}
 
 	}

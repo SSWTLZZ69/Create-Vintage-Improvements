@@ -1,7 +1,5 @@
 package com.negodya1.vintageimprovements.content.kinetics.centrifuge;
 
-import com.jozufozu.flywheel.backend.Backend;
-import com.jozufozu.flywheel.core.PartialModel;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.negodya1.vintageimprovements.VintageImprovements;
@@ -13,10 +11,16 @@ import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
-import com.simibubi.create.foundation.render.CachedBufferer;
-import com.simibubi.create.foundation.render.SuperByteBuffer;
-
-import com.simibubi.create.foundation.utility.AngleHelper;
+import dev.engine_room.flywheel.api.backend.Backend;
+import dev.engine_room.flywheel.api.backend.BackendManager;
+import dev.engine_room.flywheel.api.visualization.VisualizationManager;
+import dev.engine_room.flywheel.lib.transform.TransformStack;
+import net.createmod.catnip.animation.AnimationTickHolder;
+import net.createmod.catnip.data.IntAttached;
+import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.math.VecHelper;
+import net.createmod.catnip.render.CachedBuffers;
+import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -26,16 +30,11 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
-import com.jozufozu.flywheel.util.transform.TransformStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour.TankSegment;
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
 import com.simibubi.create.foundation.fluid.FluidRenderer;
-import com.simibubi.create.foundation.utility.AngleHelper;
-import com.simibubi.create.foundation.utility.AnimationTickHolder;
-import com.simibubi.create.foundation.utility.IntAttached;
-import com.simibubi.create.foundation.utility.VecHelper;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -81,20 +80,22 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 	protected void renderSafe(CentrifugeBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer,
 		int light, int overlay) {
 
+		if (!VisualizationManager.supportsVisualization(be.getLevel()))
+			return;
 		BlockState blockState = be.getBlockState();
 
 		VertexConsumer vb = buffer.getBuffer(RenderType.solid());
 
-		SuperByteBuffer superBuffer = CachedBufferer.partial(VintagePartialModels.CENTRIFUGE_BEAMS, blockState);
+		SuperByteBuffer superBuffer = CachedBuffers.partial(VintagePartialModels.CENTRIFUGE_BEAMS, blockState);
 		standardKineticRotationTransform(superBuffer, be, light).renderInto(ms, vb);
 
 		if (be.getRedstoneApp()) {
-			SuperByteBuffer redstoneBuffer = CachedBufferer.partial(VintagePartialModels.REDSTONE_MODULE_CENTRIFUGE, blockState);
+			SuperByteBuffer redstoneBuffer = CachedBuffers.partial(VintagePartialModels.REDSTONE_MODULE_CENTRIFUGE, blockState);
 			standardKineticRotationTransform(redstoneBuffer, be, light).renderInto(ms, vb);
 		}
 
 		if (be.getBasins() > 0) {
-			superBuffer = CachedBufferer.partial(VintagePartialModels.BASIN, blockState);
+			superBuffer = CachedBuffers.partial(VintagePartialModels.BASIN, blockState);
 			standardKineticRotationTransform(superBuffer, be, light).translate(28 / 16f, 0, 0).renderInto(ms, vb);
 
 			if (be.getBasins() > 1) {
@@ -110,15 +111,15 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 							ms.pushPose();
 
 							BlockPos pos = be.getBlockPos();
-							TransformStack.cast(ms)
-									.rotateCentered(Direction.UP, getAngleForTe(be, pos, Axis.Y))
+							TransformStack.of(ms)
+									.rotateCentered(getAngleForBe(be, pos, Axis.Y), Direction.UP)
 									.translate(translate);
 
 							float fluidLevel = renderFluids(be, partialTicks, ms, buffer, light, overlay);
 							float level = Mth.clamp(fluidLevel - .3f, .125f, .6f);
 
 							ms.translate(.5, .2f, .5);
-							TransformStack.cast(ms)
+							TransformStack.of(ms)
 									.rotateY(be.ingredientRotation.getValue(partialTicks));
 
 							RandomSource r = RandomSource.create(pos.hashCode());
@@ -152,7 +153,7 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 
 								Vec3 itemPosition = VecHelper.rotate(baseVector, anglePartition * itemCount, Axis.Y);
 								ms.translate(itemPosition.x, itemPosition.y, itemPosition.z);
-								TransformStack.cast(ms)
+								TransformStack.of(ms)
 										.rotateY(anglePartition * itemCount + 35)
 										.rotateX(65);
 
@@ -192,7 +193,7 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 									continue;
 
 								ms.pushPose();
-								TransformStack.cast(ms)
+								TransformStack.of(ms)
 										.translate(outVec)
 										.translate(new Vec3(0, Math.max(-.55f, -(progress * progress * 2)), 0))
 										.translate(directionVec.scale(progress * .5f))
@@ -206,8 +207,7 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 				}
 			}
 		}
-
-		if (Backend.canUseInstancing(be.getLevel()))
+		if (VisualizationManager.supportsVisualization(be.getLevel()))
 			return;
 
 		renderShaft(be, ms, buffer, light, overlay);
@@ -253,8 +253,8 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 
 				float partial = Mth.clamp(units / totalUnits, 0, 1);
 				xMax += partial * 12 / 16f;
-				FluidRenderer.renderFluidBox(renderedFluid, xMin, yMin, zMin, xMax, yMax, zMax, buffer, ms, light,
-						false);
+				FluidRenderer.renderFluidBox(renderedFluid.getFluid(), renderedFluid.getAmount(), xMin, yMin, zMin, xMax, yMax, zMax, buffer, ms, light,
+						false, false, renderedFluid.getTag());
 
 				xMin = xMax;
 			}
@@ -268,7 +268,7 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 	}
 
 	protected SuperByteBuffer getRotatedModel(CentrifugeBlockEntity be, BlockState state) {
-		return CachedBufferer.block(KineticBlockEntityRenderer.KINETIC_BLOCK,
+		return CachedBuffers.block(KineticBlockEntityRenderer.KINETIC_BLOCK,
 				getRenderedBlockState(be));
 	}
 

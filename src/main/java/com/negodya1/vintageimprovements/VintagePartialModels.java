@@ -1,7 +1,6 @@
 package com.negodya1.vintageimprovements;
 
-import com.jozufozu.flywheel.core.PartialModel;
-import com.simibubi.create.Create;
+import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 
 import java.util.Map;
 
@@ -47,7 +46,7 @@ public class VintagePartialModels {
 		LASER_HEAD = block("laser/head"),
 		LASER_BEAM = block("laser/beam");
 	private static PartialModel block(String path) {
-		return new PartialModel(VintageImprovements.asResource("block/" + path));
+		return PartialModel.of(VintageImprovements.asResource("block/" + path));
 	}
 
 	public static void init() {

@@ -6,7 +6,6 @@ import com.simibubi.create.AllShapes;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.foundation.block.IBE;
-import com.simibubi.create.foundation.utility.VoxelShaper;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.DefaultedRegistry;

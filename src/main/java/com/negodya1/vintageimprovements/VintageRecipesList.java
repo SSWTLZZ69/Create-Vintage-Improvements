@@ -3,7 +3,6 @@ package com.negodya1.vintageimprovements;
 import com.negodya1.vintageimprovements.content.kinetics.curving_press.CurvingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.grinder.PolishingRecipe;
 import com.simibubi.create.content.equipment.sandPaper.SandPaperPolishingRecipe;
-import com.simibubi.create.foundation.utility.VecHelper;
 import mezz.jei.api.constants.RecipeTypes;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;

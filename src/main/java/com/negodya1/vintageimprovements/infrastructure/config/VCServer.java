@@ -1,7 +1,9 @@
 package com.negodya1.vintageimprovements.infrastructure.config;
 
-import com.simibubi.create.foundation.config.ConfigBase;
+import com.simibubi.create.infrastructure.config.CKinetics;
+import com.simibubi.create.infrastructure.config.CRecipes;
 import com.simibubi.create.infrastructure.config.CServer;
+import net.createmod.catnip.config.ConfigBase;
 
 public class VCServer extends ConfigBase {
 

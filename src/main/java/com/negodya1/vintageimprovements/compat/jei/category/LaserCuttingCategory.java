@@ -55,7 +55,7 @@ public class LaserCuttingCategory extends CreateRecipeCategory<LaserCuttingRecip
 					.addSlot(RecipeIngredientRole.OUTPUT, 148 - (10 * results.size()) + 19 * i, 48)
 					.setBackground(getRenderedSlot(result), -1, -1)
 					.addItemStack(result.getStack())
-					.addTooltipCallback(addStochasticTooltip(result));
+					.addRichTooltipCallback(addStochasticTooltip(result));
 			i++;
 		}
 	}

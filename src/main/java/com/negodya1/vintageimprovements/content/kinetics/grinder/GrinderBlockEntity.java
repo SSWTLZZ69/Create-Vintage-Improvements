@@ -10,15 +10,14 @@ import java.util.stream.Collectors;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.google.common.collect.ImmutableList;
-import com.negodya1.vintageimprovements.VintageImprovements;
+import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancementBehaviour;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancements;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
 import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
 import com.simibubi.create.AllRecipeTypes;
 import com.simibubi.create.AllSoundEvents;
-import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation;
+import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.content.equipment.sandPaper.SandPaperItem;
 import com.simibubi.create.content.equipment.sandPaper.SandPaperPolishingRecipe;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
@@ -30,9 +29,11 @@ import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringB
 import com.simibubi.create.foundation.item.ItemHelper;
 import com.simibubi.create.foundation.recipe.RecipeConditions;
 import com.simibubi.create.foundation.recipe.RecipeFinder;
-import com.simibubi.create.foundation.utility.*;
+import com.simibubi.create.foundation.utility.CreateLang;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 
+import net.createmod.catnip.lang.LangBuilder;
+import net.createmod.catnip.math.VecHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -44,20 +45,12 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.StonecutterRecipe;
-import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -68,9 +61,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.registries.ForgeRegistries;
 
-import static net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
 
 @ParametersAreNonnullByDefault
@@ -524,7 +515,7 @@ public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggl
 
 		if (getSpeed() == 0) return false;
 
-		LangBuilder reqSpd = VintageLang.translate("gui.goggles.current_speed").add(Lang.text(" "));
+		LangBuilder reqSpd = VintageLang.translate("gui.goggles.current_speed").add(CreateLang.text(" "));
 
 		int speedMode = Math.abs(getSpeed()) <= VintageConfig.server().recipes.lowSpeedValue.get() ? 1 : (Math.abs(getSpeed()) <= VintageConfig.server().recipes.mediumSpeedValue.get() ? 2 : 3);
 

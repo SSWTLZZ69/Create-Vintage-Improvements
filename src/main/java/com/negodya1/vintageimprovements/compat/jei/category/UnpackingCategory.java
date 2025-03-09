@@ -37,7 +37,7 @@ public class UnpackingCategory extends CreateRecipeCategory<CraftingRecipe> {
 				.addSlot(RecipeIngredientRole.OUTPUT, 139, 27)
 				.setBackground(getRenderedSlot(result), -1, -1)
 				.addItemStack(result.getStack())
-				.addTooltipCallback(addStochasticTooltip(result));
+				.addRichTooltipCallback(addStochasticTooltip(result));
 	}
 
 	@Override

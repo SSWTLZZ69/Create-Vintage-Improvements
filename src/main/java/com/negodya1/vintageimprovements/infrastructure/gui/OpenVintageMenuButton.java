@@ -7,13 +7,13 @@ import java.util.stream.Collectors;
 import com.negodya1.vintageimprovements.VintageBlocks;
 import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
-import com.simibubi.create.foundation.config.ui.BaseConfigScreen;
 import com.simibubi.create.infrastructure.gui.CreateMainMenuScreen;
+import net.createmod.catnip.config.ui.BaseConfigScreen;
+import net.createmod.catnip.gui.ScreenOpener;
+import net.minecraft.network.chat.Component;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.simibubi.create.AllItems;
-import com.simibubi.create.foundation.gui.ScreenOpener;
-import com.simibubi.create.foundation.utility.Components;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -36,7 +36,7 @@ public class OpenVintageMenuButton extends Button {
 	public static final ItemStack ICON = VintageBlocks.BELT_GRINDER.asStack();
 
 	public OpenVintageMenuButton(int x, int y) {
-		super(x, y, 20, 20, Components.immutableEmpty(), OpenVintageMenuButton::click, DEFAULT_NARRATION);
+		super(x, y, 20, 20, Component.empty(), OpenVintageMenuButton::click, DEFAULT_NARRATION);
 	}
 
 	@Override

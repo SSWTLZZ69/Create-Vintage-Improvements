@@ -1,6 +1,7 @@
 package com.negodya1.vintageimprovements.foundation.data.recipe;
 
-import com.simibubi.create.foundation.utility.Lang;
+
+import com.simibubi.create.foundation.utility.CreateLang;
 
 public enum VintageCompatMetals {
 	ALUMINUM(),
@@ -36,7 +37,7 @@ public enum VintageCompatMetals {
 	private final String name;
 
 	VintageCompatMetals(Mods... mods) {
-		this.name = Lang.asId(name());
+		this.name = CreateLang.asId(name());
 		this.mods = mods;
 	}
 

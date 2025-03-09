@@ -7,22 +7,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
-import com.negodya1.vintageimprovements.VintageImprovements;
+import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.content.kinetics.lathe.TurningRecipe;
 import com.negodya1.vintageimprovements.foundation.gui.VintageGuiTextures;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
-import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.foundation.gui.AllIcons;
-import com.simibubi.create.foundation.gui.element.GuiGameElement;
 import com.simibubi.create.foundation.gui.menu.AbstractSimiContainerScreen;
 import com.simibubi.create.foundation.gui.widget.IconButton;
-import com.simibubi.create.foundation.utility.ControlsUtil;
-import com.simibubi.create.foundation.utility.Lang;
 
+import net.createmod.catnip.gui.element.GuiGameElement;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.StonecutterScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.RegistryAccess;
@@ -30,8 +25,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.StonecutterRecipe;
 
 public class RecipeCardScreen extends AbstractSimiContainerScreen<RecipeCardMenu> {
 
@@ -54,7 +47,7 @@ public class RecipeCardScreen extends AbstractSimiContainerScreen<RecipeCardMenu
 
 	@Override
 	protected void init() {
-		setWindowSize(background.width, background.height + 4 + PLAYER_INVENTORY.height);
+		setWindowSize(background.width, background.height + 4 + PLAYER_INVENTORY.getHeight());
 		setWindowOffset(1, 0);
 		super.init();
 
@@ -79,7 +72,7 @@ public class RecipeCardScreen extends AbstractSimiContainerScreen<RecipeCardMenu
 
 	@Override
 	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
-		int invX = getLeftOfCentered(PLAYER_INVENTORY.width);
+		int invX = getLeftOfCentered(PLAYER_INVENTORY.getWidth());
 		int invY = topPos + background.height + 4;
 		renderPlayerInventory(graphics, invX, invY);
 

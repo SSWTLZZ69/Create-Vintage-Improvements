@@ -1,28 +1,22 @@
 package com.negodya1.vintageimprovements.content.kinetics.centrifuge;
 
-import com.negodya1.vintageimprovements.VintageBlocks;
-import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.VintageItems;
-import com.negodya1.vintageimprovements.content.kinetics.helve_hammer.HammeringRecipe;
+import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancementBehaviour;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancements;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
 import com.simibubi.create.AllBlocks;
-import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation;
-import com.simibubi.create.content.kinetics.base.IRotate;
-import com.simibubi.create.content.processing.basin.BasinBlockEntity;
-import com.simibubi.create.content.processing.basin.BasinRecipe;
+import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.fluid.CombinedTankWrapper;
-import com.simibubi.create.foundation.fluid.FluidHelper;
-import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.recipe.RecipeFinder;
-import com.simibubi.create.foundation.utility.*;
-import com.simibubi.create.foundation.utility.animation.LerpedFloat;
+import com.simibubi.create.foundation.utility.CreateLang;
+import net.createmod.catnip.animation.LerpedFloat;
+import net.createmod.catnip.data.Couple;
+import net.createmod.catnip.data.IntAttached;
+import net.createmod.catnip.lang.LangBuilder;
+import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Direction.Axis;
 import com.negodya1.vintageimprovements.VintageRecipes;
-import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.belt.behaviour.DirectBeltInputBehaviour;
 import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
@@ -32,7 +26,6 @@ import com.simibubi.create.foundation.item.SmartInventory;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -43,10 +36,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
@@ -58,7 +48,6 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
@@ -578,7 +567,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 
 			if (lastRecipe != null) if (lastRecipe.minimalRPM > Mth.abs(getSpeed()))
 				VintageLang.translate("gui.goggles.not_enough_rpm")
-						.add(Lang.text(" ")).add(Lang.number(lastRecipe.minimalRPM)).style(ChatFormatting.RED).forGoggles(tooltip);
+						.add(com.simibubi.create.foundation.utility.CreateLang.text(" ")).add(com.simibubi.create.foundation.utility.CreateLang.number(lastRecipe.minimalRPM)).style(ChatFormatting.RED).forGoggles(tooltip);
 
 
 			IItemHandlerModifiable items = capability.orElse(new ItemStackHandler());
@@ -589,25 +578,25 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 				ItemStack stackInSlot = items.getStackInSlot(i);
 				if (stackInSlot.isEmpty())
 					continue;
-				Lang.text("")
-						.add(Components.translatable(stackInSlot.getDescriptionId())
+				com.simibubi.create.foundation.utility.CreateLang.text("")
+						.add(Component.translatable(stackInSlot.getDescriptionId())
 								.withStyle(ChatFormatting.GRAY))
-						.add(Lang.text(" x" + stackInSlot.getCount())
+						.add(com.simibubi.create.foundation.utility.CreateLang.text(" x" + stackInSlot.getCount())
 								.style(ChatFormatting.GREEN))
 						.forGoggles(tooltip, 1);
 				isEmpty = false;
 			}
 
-			LangBuilder mb = Lang.translate("generic.unit.millibuckets");
+			LangBuilder mb = CreateLang.translate("generic.unit.millibuckets");
 			for (int i = 0; i < fluids.getTanks(); i++) {
 				FluidStack fluidStack = fluids.getFluidInTank(i);
 				if (fluidStack.isEmpty())
 					continue;
-				Lang.text("")
-						.add(Lang.fluidName(fluidStack)
-								.add(Lang.text(" "))
+				CreateLang.text("")
+						.add(CreateLang.fluidName(fluidStack)
+								.add(CreateLang.text(" "))
 								.style(ChatFormatting.GRAY)
-								.add(Lang.number(fluidStack.getAmount())
+								.add(CreateLang.number(fluidStack.getAmount())
 										.add(mb)
 										.style(ChatFormatting.BLUE)))
 						.forGoggles(tooltip, 1);
@@ -621,7 +610,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		}
 
 		VintageLang.translate("gui.goggles.not_enough_basins")
-				.add(Lang.text(" ")).add(Lang.number(4 - basins)).style(ChatFormatting.GOLD).forGoggles(tooltip);
+				.add(CreateLang.text(" ")).add(com.simibubi.create.foundation.utility.CreateLang.number(4 - basins)).style(ChatFormatting.GOLD).forGoggles(tooltip);
 		return true;
 	}
 

@@ -1,7 +1,7 @@
 package com.negodya1.vintageimprovements.infrastructure.config;
 
-import com.simibubi.create.foundation.config.ConfigBase;
-import com.simibubi.create.infrastructure.config.CRecipes;
+
+import net.createmod.catnip.config.ConfigBase;
 
 public class VCRecipes extends ConfigBase {
 

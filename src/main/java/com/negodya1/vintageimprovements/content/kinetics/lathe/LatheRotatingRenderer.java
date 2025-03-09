@@ -1,7 +1,5 @@
 package com.negodya1.vintageimprovements.content.kinetics.lathe;
 
-import com.jozufozu.flywheel.backend.Backend;
-import com.jozufozu.flywheel.core.PartialModel;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -15,10 +13,11 @@ import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
-import com.simibubi.create.foundation.render.CachedBufferer;
-import com.simibubi.create.foundation.render.SuperByteBuffer;
-
-import com.simibubi.create.foundation.utility.AngleHelper;
+import dev.engine_room.flywheel.api.visualization.VisualizationManager;
+import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.render.CachedBuffers;
+import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -29,16 +28,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.state.BlockState;
 
-import com.jozufozu.flywheel.util.transform.TransformStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour.TankSegment;
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
 import com.simibubi.create.foundation.fluid.FluidRenderer;
-import com.simibubi.create.foundation.utility.AngleHelper;
-import com.simibubi.create.foundation.utility.AnimationTickHolder;
-import com.simibubi.create.foundation.utility.IntAttached;
-import com.simibubi.create.foundation.utility.VecHelper;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -78,11 +72,11 @@ public class LatheRotatingRenderer extends KineticBlockEntityRenderer<LatheRotat
 		BlockState blockState = be.getBlockState();
 		VertexConsumer vb = buffer.getBuffer(RenderType.solid());
 
-		SuperByteBuffer superBuffer = CachedBufferer.partial(VintagePartialModels.LATHE_ROTATING_HEAD, blockState);
-		standardKineticRotationTransform(superBuffer, be, light).rotateCentered(Direction.UP,
-				blockState.getValue(HORIZONTAL_FACING) == Direction.SOUTH ? (180*(float)Math.PI/180f) :
-						blockState.getValue(HORIZONTAL_FACING) == Direction.WEST ? (90*(float)Math.PI/180f) :
-								blockState.getValue(HORIZONTAL_FACING) == Direction.EAST ? (270*(float)Math.PI/180f) : 0)
+		SuperByteBuffer superBuffer = CachedBuffers.partial(VintagePartialModels.LATHE_ROTATING_HEAD, blockState);
+		standardKineticRotationTransform(superBuffer, be, light).rotateCentered(blockState.getValue(HORIZONTAL_FACING) == Direction.SOUTH ? (180*(float)Math.PI/180f) :
+                                blockState.getValue(HORIZONTAL_FACING) == Direction.WEST ? (90*(float)Math.PI/180f) :
+                                        blockState.getValue(HORIZONTAL_FACING) == Direction.EAST ? (270*(float)Math.PI/180f) : 0,
+                        Direction.UP)
 				.light(light).renderInto(ms, vb);
 
 		if (!be.inputInv.isEmpty() || !be.outputInv.isEmpty()) {
@@ -121,9 +115,9 @@ public class LatheRotatingRenderer extends KineticBlockEntityRenderer<LatheRotat
 			}
 
 			if (blockState.getValue(HORIZONTAL_FACING) == Direction.SOUTH || blockState.getValue(HORIZONTAL_FACING) == Direction.NORTH)
-				ms.mulPose(Axis.ZP.rotationDegrees(AngleHelper.deg(getAngleForTe(be, be.getBlockPos(), Direction.Axis.Z))));
+				ms.mulPose(Axis.ZP.rotationDegrees(AngleHelper.deg(getAngleForBe(be, be.getBlockPos(), Direction.Axis.Z))));
 			else
-				ms.mulPose(Axis.XP.rotationDegrees(AngleHelper.deg(getAngleForTe(be, be.getBlockPos(), Direction.Axis.Z))));
+				ms.mulPose(Axis.XP.rotationDegrees(AngleHelper.deg(getAngleForBe(be, be.getBlockPos(), Direction.Axis.Z))));
 			ms.mulPose(Axis.YP.rotationDegrees(blockState.getValue(HORIZONTAL_FACING) == Direction.SOUTH ? 0 :
 					blockState.getValue(HORIZONTAL_FACING) == Direction.WEST ? 270 :
 							blockState.getValue(HORIZONTAL_FACING) == Direction.EAST ? 90 : 180));
@@ -134,14 +128,15 @@ public class LatheRotatingRenderer extends KineticBlockEntityRenderer<LatheRotat
 
 		VertexConsumer vb2 = buffer.getBuffer(RenderType.solid());
 
-		SuperByteBuffer superByteBuffer = CachedBufferer.partial(VintagePartialModels.LATHE_MOVING_HEAD, blockState);
-		superByteBuffer.rotateCentered(Direction.UP,
-				blockState.getValue(HORIZONTAL_FACING) == Direction.SOUTH ? (180*(float)Math.PI/180f) :
-						blockState.getValue(HORIZONTAL_FACING) == Direction.WEST ? (90*(float)Math.PI/180f) :
-								blockState.getValue(HORIZONTAL_FACING) == Direction.EAST ? (270*(float)Math.PI/180f) : 0)
+		SuperByteBuffer superByteBuffer = CachedBuffers.partial(VintagePartialModels.LATHE_MOVING_HEAD, blockState);
+		superByteBuffer.rotateCentered(blockState.getValue(HORIZONTAL_FACING) == Direction.SOUTH ? (180*(float)Math.PI/180f) :
+                                blockState.getValue(HORIZONTAL_FACING) == Direction.WEST ? (90*(float)Math.PI/180f) :
+                                        blockState.getValue(HORIZONTAL_FACING) == Direction.EAST ? (270*(float)Math.PI/180f) : 0,
+                        Direction.UP)
 				.translate(0, 0, -be.getRenderedHeadOffset()).light(light).renderInto(ms, vb2);
 
-		if (Backend.canUseInstancing(be.getLevel()))
+
+		if (VisualizationManager.supportsVisualization(be.getLevel()))
 			return;
 
 		renderShaft(be, ms, buffer, light, overlay);
@@ -153,18 +148,18 @@ public class LatheRotatingRenderer extends KineticBlockEntityRenderer<LatheRotat
 
 		VertexConsumer vb = buffer.getBuffer(RenderType.solid());
 
-		SuperByteBuffer superBuffer = CachedBufferer.partial(partial, blockState);
+		SuperByteBuffer superBuffer = CachedBuffers.partial(partial, blockState);
 		standardKineticRotationTransform(superBuffer, be, light);
-		superBuffer.rotateCentered(Direction.UP,
-				AngleHelper.rad(be.getBlockState().getValue(HORIZONTAL_FACING) == Direction.NORTH ? 180 :
-						be.getBlockState().getValue(HORIZONTAL_FACING) == Direction.SOUTH ? 0 :
-								be.getBlockState().getValue(HORIZONTAL_FACING) == Direction.EAST ? 90 : 270));
+		superBuffer.rotateCentered(AngleHelper.rad(be.getBlockState().getValue(HORIZONTAL_FACING) == Direction.NORTH ? 180 :
+                                be.getBlockState().getValue(HORIZONTAL_FACING) == Direction.SOUTH ? 0 :
+                                        be.getBlockState().getValue(HORIZONTAL_FACING) == Direction.EAST ? 90 : 270),
+                Direction.UP);
 
 		superBuffer.light(light).renderInto(ms, vb);
 	}
 
 	protected SuperByteBuffer getRotatedModel(LatheRotatingBlockEntity be, BlockState state) {
-		return CachedBufferer.block(KineticBlockEntityRenderer.KINETIC_BLOCK,
+		return CachedBuffers.block(KineticBlockEntityRenderer.KINETIC_BLOCK,
 				getRenderedBlockState(be));
 	}
 

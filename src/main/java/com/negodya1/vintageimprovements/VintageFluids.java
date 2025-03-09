@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
+import net.createmod.catnip.theme.Color;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -18,7 +19,6 @@ import com.simibubi.create.content.decoration.palettes.AllPaletteStoneTypes;
 import com.simibubi.create.content.fluids.VirtualFluid;
 import com.simibubi.create.content.fluids.potion.PotionFluid;
 import com.simibubi.create.content.fluids.potion.PotionFluid.PotionFluidType;
-import com.simibubi.create.foundation.utility.Color;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import com.tterrag.registrate.builders.FluidBuilder.FluidTypeFactory;
 import com.tterrag.registrate.util.entry.FluidEntry;

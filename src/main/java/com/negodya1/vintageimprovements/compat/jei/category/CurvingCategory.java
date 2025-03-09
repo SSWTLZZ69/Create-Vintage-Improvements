@@ -17,11 +17,11 @@ import com.simibubi.create.content.processing.recipe.ProcessingOutput;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 
 import com.simibubi.create.foundation.item.ItemHelper;
-import com.simibubi.create.foundation.utility.Pair;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
+import net.createmod.catnip.data.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -77,7 +77,7 @@ public class CurvingCategory extends CreateRecipeCategory<CurvingRecipe> {
 			builder.addSlot(RecipeIngredientRole.OUTPUT, 131 + 19 * i, 50)
 					.setBackground(getRenderedSlot(output), -1, -1)
 					.addItemStack(output.getStack())
-					.addTooltipCallback(addStochasticTooltip(output));
+					.addRichTooltipCallback(addStochasticTooltip(output));
 			i++;
 		}
 	}

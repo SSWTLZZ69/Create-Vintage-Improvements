@@ -19,13 +19,12 @@ import com.simibubi.create.content.processing.recipe.ProcessingOutput;
 import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.foundation.item.ItemHelper;
-import com.simibubi.create.foundation.utility.Lang;
-import com.simibubi.create.foundation.utility.Pair;
 import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
+import net.createmod.catnip.data.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
@@ -76,14 +75,14 @@ public class PressurizingCategory extends BasinCategory {
 						.addSlot(RecipeIngredientRole.INPUT, 21, 14)
 						.setBackground(getRenderedSlot(), -1, -1)
 						.addIngredients(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidIngredient.getMatchingFluidStacks()))
-						.addTooltipCallback(addFluidTooltip(fluidIngredient.getRequiredAmount()))
-						.addTooltipCallback(VintageRecipeUtil.addTooltip("jei.text.secondary_fluid_ingredient"));
+						.addRichTooltipCallback(addFluidTooltip(fluidIngredient.getRequiredAmount()))
+						.addRichTooltipCallback(VintageRecipeUtil.addTooltip("jei.text.secondary_fluid_ingredient"));
 			else
 				builder
 						.addSlot(RecipeIngredientRole.INPUT, 17 + xOffset + (i % 3) * 19, 51 - (i / 3) * 19)
 						.setBackground(getRenderedSlot(), -1, -1)
 						.addIngredients(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidIngredient.getMatchingFluidStacks()))
-						.addTooltipCallback(addFluidTooltip(fluidIngredient.getRequiredAmount()));
+						.addRichTooltipCallback(addFluidTooltip(fluidIngredient.getRequiredAmount()));
 
 			i++;
 			j++;
@@ -100,7 +99,7 @@ public class PressurizingCategory extends BasinCategory {
 					.addSlot(RecipeIngredientRole.OUTPUT, xPosition, yPosition)
 					.setBackground(getRenderedSlot(result), -1, -1)
 					.addItemStack(result.getStack())
-					.addTooltipCallback(addStochasticTooltip(result));
+					.addRichTooltipCallback(addStochasticTooltip(result));
 			i++;
 		}
 
@@ -119,8 +118,8 @@ public class PressurizingCategory extends BasinCategory {
 							.addSlot(RecipeIngredientRole.OUTPUT, xPosition, yPosition)
 							.setBackground(getRenderedSlot(), -1, -1)
 							.addIngredient(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidResult))
-							.addTooltipCallback(addFluidTooltip(fluidResult.getAmount()))
-							.addTooltipCallback(VintageRecipeUtil.addTooltip("jei.text.secondary_fluid_result"));
+							.addRichTooltipCallback(addFluidTooltip(fluidResult.getAmount()))
+							.addRichTooltipCallback(VintageRecipeUtil.addTooltip("jei.text.secondary_fluid_result"));
 				}
 				else {
 					xPosition = 142 - ((secondary >= 0 ? size - 1 : size) % 2 != 0 && i == (secondary >= 0 ? size - 1 : size) - 1 ? 0 : i % 2 == 0 ? 10 : -9);
@@ -130,7 +129,7 @@ public class PressurizingCategory extends BasinCategory {
 							.addSlot(RecipeIngredientRole.OUTPUT, xPosition, yPosition)
 							.setBackground(getRenderedSlot(), -1, -1)
 							.addIngredient(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidResult))
-							.addTooltipCallback(addFluidTooltip(fluidResult.getAmount()));
+							.addRichTooltipCallback(addFluidTooltip(fluidResult.getAmount()));
 				}
 
 				i++;

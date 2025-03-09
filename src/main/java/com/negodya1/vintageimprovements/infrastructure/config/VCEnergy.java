@@ -1,10 +1,10 @@
 package com.negodya1.vintageimprovements.infrastructure.config;
 
-import com.simibubi.create.foundation.config.ConfigBase;
+import net.createmod.catnip.config.ConfigBase;
 
 public class VCEnergy extends ConfigBase {
 
-	public final ConfigGroup energy = group(0, "energy",
+	public final ConfigBase.ConfigGroup energy = group(0, "energy",
 			Comments.energy);
 
 	public final ConfigBool forceEnergy =

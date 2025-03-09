@@ -15,9 +15,8 @@ import com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber.Pressuri
 import com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber.VacuumizingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.vibration.LeavesVibratingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingRecipe;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
 import com.simibubi.create.AllTags;
-import net.minecraft.world.item.ItemStack;
+import com.simibubi.create.foundation.utility.CreateLang;
 import net.minecraft.world.item.crafting.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +24,6 @@ import com.negodya1.vintageimprovements.content.kinetics.grinder.PolishingRecipe
 import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeFactory;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipeSerializer;
 import com.simibubi.create.foundation.recipe.IRecipeTypeInfo;
-import com.simibubi.create.foundation.utility.Lang;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -59,7 +57,7 @@ public enum VintageRecipes implements IRecipeTypeInfo {
     private final Supplier<RecipeType<?>> type;
 
     VintageRecipes(Supplier<RecipeSerializer<?>> serializerSupplier, Supplier<RecipeType<?>> typeSupplier, boolean registerType) {
-        String name = VintageLang.asId(name());
+        String name = CreateLang.asId(name());
         id = VintageImprovements.asResource(name);
         serializerObject = Registers.SERIALIZER_REGISTER.register(name, serializerSupplier);
         if (registerType) {
@@ -72,7 +70,7 @@ public enum VintageRecipes implements IRecipeTypeInfo {
     }
 
     VintageRecipes(Supplier<RecipeSerializer<?>> serializerSupplier) {
-        String name = VintageLang.asId(name());
+        String name = CreateLang.asId(name());
         id = VintageImprovements.asResource(name);
         serializerObject = Registers.SERIALIZER_REGISTER.register(name, serializerSupplier);
         typeObject = Registers.TYPE_REGISTER.register(name, () -> RecipeType.simple(id));
