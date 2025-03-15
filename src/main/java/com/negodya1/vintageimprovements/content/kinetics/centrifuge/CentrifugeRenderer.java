@@ -80,8 +80,8 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 	protected void renderSafe(CentrifugeBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer,
 		int light, int overlay) {
 
-		if (!VisualizationManager.supportsVisualization(be.getLevel()))
-			return;
+//		if (!VisualizationManager.supportsVisualization(be.getLevel()))
+//			return;
 		BlockState blockState = be.getBlockState();
 
 		VertexConsumer vb = buffer.getBuffer(RenderType.solid());

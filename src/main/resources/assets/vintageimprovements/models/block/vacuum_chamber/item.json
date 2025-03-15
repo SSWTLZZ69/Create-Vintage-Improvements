@@ -2,8 +2,8 @@
 	"credit": "Made with Blockbench",
 	"textures": {
 		"0": "create:block/millstone",
-		"1": "create:block/pipes",
-		"2": "create:block/pump",
+		"1": "vintageimprovements:block/pipes",
+		"2": "vintageimprovements:block/pump",
 		"3": "vintageimprovements:block/andesite_frame",
 		"4": "vintageimprovements:block/vacuum_base",
 		"5": "vintageimprovements:block/andesite_frame_2",

@@ -36,8 +36,8 @@ public class CurvingPressRenderer extends KineticBlockEntityRenderer<CurvingPres
 		int light, int overlay) {
 		super.renderSafe(be, partialTicks, ms, buffer, light, overlay);
 
-		if (!VisualizationManager.supportsVisualization(be.getLevel()))
-			return;
+//		if (!VisualizationManager.supportsVisualization(be.getLevel()))
+//			return;
 		BlockState blockState = be.getBlockState();
 		CurvingBehaviour pressingBehaviour = be.getPressingBehaviour();
 		float renderedHeadOffset =
