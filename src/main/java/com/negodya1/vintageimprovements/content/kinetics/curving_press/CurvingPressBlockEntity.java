@@ -464,7 +464,12 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 		Optional<CurvingRecipe> assemblyRecipe =
 			SequencedAssemblyRecipe.getRecipe(level, item, VintageRecipes.CURVING.getType(), CurvingRecipe.class);
 		if (assemblyRecipe.isPresent())
-			return assemblyRecipe;
+			if (mode == assemblyRecipe.get().getMode()) {
+				if (mode == 5) {
+					if (itemAsHead.getItem(0).is(assemblyRecipe.get().getItemAsHead())) return assemblyRecipe;
+				}
+				else return assemblyRecipe;
+			}
 
 		pressingInv.setItem(0, item);
 		assemblyRecipe = VintageRecipes.CURVING.find(pressingInv, level);
@@ -483,11 +488,15 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 		startedSearch = startedSearch.stream()
 				.filter(RecipeConditions.firstIngredientMatches(item))
 				.filter(r -> !VintageRecipes.shouldIgnoreInAutomation(r))
-				.filter(r -> {if (r instanceof CurvingRecipe curvingRecipe)
-						if (mode == curvingRecipe.mode) {
-							if (mode == 5)
-								return itemAsHead.getItem(0).is(curvingRecipe.getItemAsHead());
-							return true;}
+				.filter(r -> {
+					if (r instanceof CurvingRecipe curvingRecipe) {
+						if (r.getIngredients().contains(Ingredient.of(item)))
+							if (mode == curvingRecipe.mode) {
+								if (mode == 5)
+									return itemAsHead.getItem(0).is(curvingRecipe.getItemAsHead());
+								return true;
+							}
+					}
 					return false;})
 				.collect(Collectors.toList());
 
