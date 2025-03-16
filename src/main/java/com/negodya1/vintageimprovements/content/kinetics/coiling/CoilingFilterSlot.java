@@ -22,11 +22,14 @@ public class CoilingFilterSlot extends ValueBoxTransform {
 	}
 
 	@Override
-	public void rotate(LevelAccessor levelAccessor, BlockPos blockPos, BlockState blockState, PoseStack poseStack) {
-
-		int yRot = 180;
+	public void rotate(LevelAccessor levelAccessor, BlockPos blockPos, BlockState state, PoseStack poseStack) {
+		float yRot = 0;
+		if       (state.getValue(CoilingBlock.HORIZONTAL_FACING) == Direction.SOUTH) { yRot = (float) Math.PI;
+		} else if (state.getValue(CoilingBlock.HORIZONTAL_FACING) == Direction.WEST) { yRot = (float) Math.PI/2;
+		} else if (state.getValue(CoilingBlock.HORIZONTAL_FACING) == Direction.EAST) { yRot = (float) Math.PI*3/2;
+		}
 		TransformStack.of(poseStack)
 				.rotateY(yRot)
-				.rotateX(90);
+				.rotateX((float) Math.PI/2);
 	}
 }
