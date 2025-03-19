@@ -52,11 +52,7 @@ public class CentrifugationCategory extends CreateRecipeCategory<CentrifugationR
 		for (FluidIngredient input : recipe.getFluidIngredients()) {
 			int xOffset = i % 3 * 19;
 			int yOffset = (i / 3) * 19;
-			builder
-					.addSlot(RecipeIngredientRole.INPUT, 10 + xOffset, 5 + yOffset)
-					.setBackground(getRenderedSlot(), -1, -1)
-					.addIngredients(ForgeTypes.FLUID_STACK, withImprovedVisibility(input.getMatchingFluidStacks()))
-					.addRichTooltipCallback(addFluidTooltip(input.getRequiredAmount()));
+			CreateRecipeCategory.addFluidSlot(builder, 10 + xOffset, 5 + yOffset * 16, input);
 			i++;
 		}
 
@@ -76,11 +72,7 @@ public class CentrifugationCategory extends CreateRecipeCategory<CentrifugationR
 		for (FluidStack output : recipe.getFluidResults()) {
 			int xOffset = i % 2 * 19;
 			int yOffset = (i / 2) * 19;
-			builder
-					.addSlot(RecipeIngredientRole.OUTPUT, 128 + xOffset, 56 + yOffset)
-					.setBackground(getRenderedSlot(), -1, -1)
-					.addIngredient(ForgeTypes.FLUID_STACK, withImprovedVisibility(output))
-					.addRichTooltipCallback(addFluidTooltip(output.getAmount()));
+			CreateRecipeCategory.addFluidSlot(builder, 128 + xOffset, 56 + yOffset, output);
 			i++;
 		}
 	}

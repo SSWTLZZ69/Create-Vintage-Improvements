@@ -10,6 +10,7 @@ import com.negodya1.vintageimprovements.foundation.gui.VintageGuiTextures;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.compat.jei.category.BasinCategory;
+import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.compat.jei.category.animations.AnimatedBlazeBurner;
 import com.simibubi.create.content.processing.basin.BasinRecipe;
 
@@ -71,18 +72,10 @@ public class PressurizingCategory extends BasinCategory {
 		int j = 0;
 		for (FluidIngredient fluidIngredient : recipe.getFluidIngredients()) {
 			if (recipe instanceof PressurizingRecipe r && j == r.getSecondaryFluidInputs())
-				builder
-						.addSlot(RecipeIngredientRole.INPUT, 21, 14)
-						.setBackground(getRenderedSlot(), -1, -1)
-						.addIngredients(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidIngredient.getMatchingFluidStacks()))
-						.addRichTooltipCallback(addFluidTooltip(fluidIngredient.getRequiredAmount()))
+				CreateRecipeCategory.addFluidSlot(builder, 21, 14, fluidIngredient)
 						.addRichTooltipCallback(VintageRecipeUtil.addTooltip("jei.text.secondary_fluid_ingredient"));
 			else
-				builder
-						.addSlot(RecipeIngredientRole.INPUT, 17 + xOffset + (i % 3) * 19, 51 - (i / 3) * 19)
-						.setBackground(getRenderedSlot(), -1, -1)
-						.addIngredients(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidIngredient.getMatchingFluidStacks()))
-						.addRichTooltipCallback(addFluidTooltip(fluidIngredient.getRequiredAmount()));
+				CreateRecipeCategory.addFluidSlot(builder, 17 + xOffset + (i % 3) * 19, 51 - (i / 3) * 19, fluidIngredient);
 
 			i++;
 			j++;
@@ -113,23 +106,13 @@ public class PressurizingCategory extends BasinCategory {
 				if (j == secondary) {
 					xPosition = 140;
 					yPosition = 2;
-
-					builder
-							.addSlot(RecipeIngredientRole.OUTPUT, xPosition, yPosition)
-							.setBackground(getRenderedSlot(), -1, -1)
-							.addIngredient(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidResult))
-							.addRichTooltipCallback(addFluidTooltip(fluidResult.getAmount()))
+					CreateRecipeCategory.addFluidSlot(builder, xPosition, yPosition, fluidResult)
 							.addRichTooltipCallback(VintageRecipeUtil.addTooltip("jei.text.secondary_fluid_result"));
 				}
 				else {
 					xPosition = 142 - ((secondary >= 0 ? size - 1 : size) % 2 != 0 && i == (secondary >= 0 ? size - 1 : size) - 1 ? 0 : i % 2 == 0 ? 10 : -9);
 					yPosition = -19 * (i / 2) + 51;
-
-					builder
-							.addSlot(RecipeIngredientRole.OUTPUT, xPosition, yPosition)
-							.setBackground(getRenderedSlot(), -1, -1)
-							.addIngredient(ForgeTypes.FLUID_STACK, withImprovedVisibility(fluidResult))
-							.addRichTooltipCallback(addFluidTooltip(fluidResult.getAmount()));
+					CreateRecipeCategory.addFluidSlot(builder, xPosition, yPosition, fluidResult);
 				}
 
 				i++;

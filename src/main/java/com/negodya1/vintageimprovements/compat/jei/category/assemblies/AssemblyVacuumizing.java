@@ -41,11 +41,7 @@ public class AssemblyVacuumizing extends SequencedAssemblySubCategory {
         }
 
         for (FluidIngredient fluidIngredient : recipe.getRecipe().getFluidIngredients()) {
-            builder
-                    .addSlot(RecipeIngredientRole.INPUT, x + 4, 15 + offset * 16)
-                    .setBackground(CreateRecipeCategory.getRenderedSlot(), -1, -1)
-                    .addIngredients(ForgeTypes.FLUID_STACK, CreateRecipeCategory.withImprovedVisibility(fluidIngredient.getMatchingFluidStacks()))
-                    .addRichTooltipCallback(CreateRecipeCategory.addFluidTooltip(fluidIngredient.getRequiredAmount()));
+            CreateRecipeCategory.addFluidSlot(builder, x + 4, 15 + offset * 16, fluidIngredient);
         }
     }
 

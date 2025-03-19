@@ -1,7 +1,6 @@
 package com.negodya1.vintageimprovements;
 
 import static com.negodya1.vintageimprovements.VintageImprovements.MY_REGISTRATE;
-import static com.simibubi.create.Create.REGISTRATE;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
