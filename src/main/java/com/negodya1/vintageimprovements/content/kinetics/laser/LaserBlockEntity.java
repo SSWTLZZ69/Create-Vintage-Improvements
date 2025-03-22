@@ -184,14 +184,16 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 			chargeAccumulator += energyRemoved;
 			if(chargeAccumulator >= recipe.getEnergy()) {
 				TransportedItemStack remainingStack = transported.copy();
-				TransportedItemStack result = transported.copy();
+				int inputCount = recipe.getIngredients().get(0).getItems()[0].getCount();
 				List<ItemStack> outputs = RecipeApplier.applyRecipeOn(level,
-						ItemHandlerHelper.copyStackWithSize(transported.stack, 1), recipe);
-
-				result.stack = outputs.get(0);
-				remainingStack.stack.shrink(1);
+						ItemHandlerHelper.copyStackWithSize(transported.stack, inputCount), recipe);
 				List<TransportedItemStack> outList = new ArrayList<>();
-				outList.add(result);
+				outputs.forEach(itemStack -> {
+					TransportedItemStack tmp = transported.copy();
+					tmp.stack = itemStack;
+					outList.add(tmp);
+				});
+				remainingStack.stack.shrink(inputCount);
 				handler.handleProcessingOnItem(transported, TransportedItemStackHandlerBehaviour.TransportedResult.convertToAndLeaveHeld(outList, remainingStack));
 				chargeAccumulator = 0;
 				advancementBehaviour.awardVintageAdvancement(VintageAdvancements.USE_LASER);
