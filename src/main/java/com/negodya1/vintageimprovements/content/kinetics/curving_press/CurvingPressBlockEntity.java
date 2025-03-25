@@ -490,7 +490,7 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 				.filter(r -> !VintageRecipes.shouldIgnoreInAutomation(r))
 				.filter(r -> {
 					if (r instanceof CurvingRecipe curvingRecipe) {
-						if (r.getIngredients().contains(Ingredient.of(item)))
+						if (curvingRecipe.matches(pressingInv, level))
 							if (mode == curvingRecipe.mode) {
 								if (mode == 5)
 									return itemAsHead.getItem(0).is(curvingRecipe.getItemAsHead());
