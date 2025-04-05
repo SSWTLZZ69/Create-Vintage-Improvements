@@ -4,10 +4,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.VintagePartialModels;
+import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
+import com.simibubi.create.content.kinetics.mechanicalArm.ArmBlockEntity;
 import com.simibubi.create.foundation.blockEntity.renderer.SafeBlockEntityRenderer;
 import net.createmod.catnip.render.CachedBuffers;
 import net.createmod.catnip.render.SuperByteBuffer;
@@ -20,6 +22,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -35,10 +38,7 @@ public class LaserRenderer extends KineticBlockEntityRenderer<LaserBlockEntity> 
 	@Override
 	protected void renderSafe(LaserBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
 		renderHead(be, partialTicks, ms, buffer, light);
-
-
-		renderHead(be, partialTicks, ms, buffer, light);
-		renderShaft(be, ms, buffer, light, overlay);
+//		renderShaft(be, ms, buffer, light, overlay);
 	}
 
 	protected void renderHead(LaserBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light) {
@@ -63,9 +63,8 @@ public class LaserRenderer extends KineticBlockEntityRenderer<LaserBlockEntity> 
 		KineticBlockEntityRenderer.renderRotatingBuffer(be, getRotatedModel(be), ms, buffer.getBuffer(RenderType.solid()), light);
 	}
 
-	protected SuperByteBuffer getRotatedModel(LaserBlockEntity be) {
-		return CachedBuffers.block(KineticBlockEntityRenderer.KINETIC_BLOCK,
-			getRenderedBlockState(be));
+	protected SuperByteBuffer getRotatedModel(BlockEntity be) {
+		return CachedBuffers.partial(AllPartialModels.SHAFT_HALF, be.getBlockState());
 	}
 
 	protected BlockState getRenderedBlockState(LaserBlockEntity be) {

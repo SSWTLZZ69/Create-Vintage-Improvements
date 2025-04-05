@@ -16,6 +16,7 @@ import com.negodya1.vintageimprovements.content.kinetics.grinder.GrinderVisual;
 import com.negodya1.vintageimprovements.content.kinetics.helve_hammer.*;
 import com.negodya1.vintageimprovements.content.kinetics.laser.LaserBlockEntity;
 import com.negodya1.vintageimprovements.content.kinetics.laser.LaserRenderer;
+import com.negodya1.vintageimprovements.content.kinetics.laser.LaserVisual;
 import com.negodya1.vintageimprovements.content.kinetics.lathe.*;
 import com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber.VacuumChamberBlockEntity;
 import com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber.VacuumChamberVisual;
@@ -24,7 +25,6 @@ import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingTabl
 import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingTableRenderer;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.OrientedRotatingVisual;
-import com.simibubi.create.content.kinetics.base.ShaftVisual;
 import com.simibubi.create.content.kinetics.base.SingleAxisRotatingVisual;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 
@@ -90,7 +90,7 @@ public class VintageBlockEntity {
 
     public static final BlockEntityEntry<LatheRotatingBlockEntity> LATHE_ROTATING = MY_REGISTRATE
             .blockEntity("lathe_rotating", LatheRotatingBlockEntity::new)
-            .visual(() -> OrientedVisual.Horizontal(AllPartialModels.SHAFT_HALF))
+            .visual(() -> OrientedVisual.horizontal(AllPartialModels.SHAFT_HALF))
             .validBlocks(VintageBlocks.LATHE_ROTATING)
             .renderer(() -> LatheRotatingRenderer::new)
             .register();
@@ -104,7 +104,7 @@ public class VintageBlockEntity {
 
     public static final BlockEntityEntry<LaserBlockEntity> LASER = MY_REGISTRATE
             .blockEntity("laser", LaserBlockEntity::new)
-            .visual(() -> OrientedVisual.Horizontal(AllPartialModels.SHAFT_HALF))
+            .visual(() -> LaserVisual::new)
             .validBlocks(VintageBlocks.LASER)
             .renderer(() -> LaserRenderer::new)
             .register();
