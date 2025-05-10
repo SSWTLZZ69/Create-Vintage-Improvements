@@ -225,8 +225,13 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 			if (!outputInv.getStackInSlot(i).isEmpty() && outputInv.getStackInSlot(i).getCount() >= outputInv.getStackInSlot(i).getMaxStackSize())
 				return false;
 		}
-
-		return CentrifugationRecipe.match(this, recipes.get(0));
+		if (recipes.get(0) instanceof CentrifugationRecipe centrifugationRecipe) {
+			boolean res = this.acceptOutputs(centrifugationRecipe.getRollableResultsAsItemStacks(), centrifugationRecipe.getFluidResults(), true);
+			if (!res)
+				return false;
+			return CentrifugationRecipe.match(this, centrifugationRecipe);
+		}
+		return false;
 	}
 
 	@Override
@@ -240,10 +245,6 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 
 		if (getBasins() < 4)
 			return;
-		for (int i = 0; i < outputInv.getSlots(); i++)
-			if (outputInv.getStackInSlot(i)
-					.getCount() == outputInv.getSlotLimit(i))
-				return;
 
 		if (timer > 0) {
 			if (getSpeed() == 0) {
@@ -308,8 +309,9 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 
 			lastRecipeIsAssembly = false;
 
-			if (!getRecipes().isEmpty()) {
-				lastRecipe = (CentrifugationRecipe) getRecipes().get(0);
+			List<Recipe<?>> recipes = getRecipes();
+			if (!recipes.isEmpty()) {
+				lastRecipe = (CentrifugationRecipe) recipes.get(0);
 				timer = lastRecipe.getProcessingDuration();
 				sendData();
 				return;
