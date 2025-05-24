@@ -77,6 +77,8 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 	LerpedFloat ingredientRotation;
 	VintageAdvancementBehaviour advancementBehaviour;
 
+	private final CompoundTag nbtForAnim = new CompoundTag();
+
 	public CentrifugeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
 
@@ -151,7 +153,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		if (!clientPacket)
 			return;
 
-		NBTHelper.iterateCompoundList(compound.getList("VisualizedItems", Tag.TAG_COMPOUND),
+		NBTHelper.iterateCompoundList(nbtForAnim.getList("VisualizedItems", Tag.TAG_COMPOUND),
 				c -> visualizedOutputItems.add(IntAttached.with(OUTPUT_ANIMATION_TIME, ItemStack.of(c))));
 	}
 
@@ -168,7 +170,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		if (!clientPacket)
 			return;
 
-		compound.put("VisualizedItems", NBTHelper.writeCompoundList(visualizedOutputItems, ia -> ia.getValue()
+		nbtForAnim.put("VisualizedItems", NBTHelper.writeCompoundList(visualizedOutputItems, ia -> ia.getValue()
 				.serializeNBT()));
 		visualizedOutputItems.clear();
 	}
@@ -190,7 +192,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 	}
 
 	private List<Recipe<?>> getRecipes() {
-		List<Recipe<?>> list =  RecipeFinder.get(centrifugationRecipesKey, level, this::matchStaticFilters);
+		List<Recipe<?>> list = RecipeFinder.get(centrifugationRecipesKey, level, this::matchStaticFilters);
 
 		return list.stream()
 				.filter(this::matchCentrifugeRecipe)
