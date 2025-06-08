@@ -9,6 +9,8 @@ public class VCCommon extends ConfigBase {
 
 	public final ConfigInt defaultBeltGrinderSkin = i(0, 0, 4, "defaultBeltGrinderSkin", Comments.defaultBeltGrinderSkin);
 
+	public final ConfigBool easyCentrifuge = b(false, "easyCentrifuge", Comments.easyCentrifuge);
+
 	@Override
 	public String getName() {
 		return "common";
@@ -17,5 +19,6 @@ public class VCCommon extends ConfigBase {
 	private static class Comments {
 		static String common = "Client/server settings";
 		static String defaultBeltGrinderSkin = "Defines default Belt Grinder appearance";
+		static String easyCentrifuge = "You can insert and extract from the Centrifuge while it is working.";
 	}
 }

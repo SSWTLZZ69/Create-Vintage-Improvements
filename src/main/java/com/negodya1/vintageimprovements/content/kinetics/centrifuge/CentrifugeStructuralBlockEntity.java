@@ -85,7 +85,7 @@ public class CentrifugeStructuralBlockEntity extends SmartBlockEntity {
     }
 
     public boolean canProcess() {
-        if (cbe != null) return  cbe.canProcess();
+        if (cbe != null) return cbe.canProcess();
         return false;
     }
 

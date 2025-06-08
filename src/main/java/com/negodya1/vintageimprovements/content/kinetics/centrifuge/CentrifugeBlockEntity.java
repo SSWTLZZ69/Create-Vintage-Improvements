@@ -4,6 +4,7 @@ import com.negodya1.vintageimprovements.VintageItems;
 import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancementBehaviour;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancements;
+import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
@@ -363,7 +364,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 	}
 
 	public boolean canProcess() {
-		return getSpeed() == 0 && getBasins() >= 4;
+		return (getSpeed() == 0 || VintageConfig.common().easyCentrifuge.get()) && getBasins() >= 4;
 	}
 
 	public SmartInventory getInputInventory() {
