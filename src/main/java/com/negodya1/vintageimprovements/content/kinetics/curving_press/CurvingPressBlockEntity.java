@@ -394,16 +394,13 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 	@Override
 	public boolean tryProcessInWorld(ItemEntity itemEntity, boolean simulate) {
 		ItemStack item = itemEntity.getItem();
-		Optional<CurvingRecipe> recipe = getRecipe(item);
-		if (!recipe.isPresent())
+		Optional<CurvingRecipe> optionalRecipe = getRecipe(item);
+		if (!optionalRecipe.isPresent() || !checkToolHead.test(optionalRecipe.get()))
 			return tryToCurve(itemEntity, simulate);
-		if (recipe.get().getMode() != mode)
+
+		CurvingRecipe recipe = optionalRecipe.get();
+		if (itemEntity.getItem().getCount() < recipe.getIngredients().size())
 			return false;
-		if (mode == 5) {
-			if (itemAsHead.isEmpty()) return false;
-			if (!itemAsHead.getItem(0).is(recipe.get().itemAsHead)) return false;
-		}
-		if (itemEntity.getItem().getCount() < recipe.get().getIngredients().size()) return false;
 
 		if (simulate)
 			return true;
@@ -411,7 +408,7 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 		ItemStack itemCreated = ItemStack.EMPTY;
 		pressingBehaviour.particleItems.add(item.copy());
 		for (ItemStack result : RecipeApplier.applyRecipeOn(level, ItemHandlerHelper.copyStackWithSize(item, 1),
-				recipe.get())) {
+				recipe)) {
 			if (itemCreated.isEmpty())
 				itemCreated = result.copy();
 			ItemEntity created =
@@ -420,36 +417,33 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 			created.setDeltaMovement(VecHelper.offsetRandomly(Vec3.ZERO, level.random, .05f));
 			level.addFreshEntity(created);
 		}
-		item.shrink(recipe.get().getIngredients().size());
+		item.shrink(recipe.getIngredients().size());
 
 		if (!itemCreated.isEmpty())
-			onItemPressed(itemCreated, recipe.get().headDamage);
+			onItemPressed(itemCreated, recipe.headDamage);
 		return true;
 	}
 
 	@Override
 	public boolean tryProcessOnBelt(TransportedItemStack input, List<ItemStack> outputList, boolean simulate) {
-		Optional<CurvingRecipe> recipe = getRecipe(input.stack);
-		if (!recipe.isPresent())
+		Optional<CurvingRecipe> optionalRecipe = getRecipe(input.stack);
+		if (!optionalRecipe.isPresent() || !checkToolHead.test(optionalRecipe.get()))
 			return tryToCurve(outputList, input.stack, simulate);
-		if (recipe.get().getMode() != mode)
+
+		CurvingRecipe recipe = optionalRecipe.get();
+		if (input.stack.getCount() < recipe.getIngredients().size())
 			return false;
-		if (mode == 5) {
-			if (itemAsHead.isEmpty()) return false;
-			if (!itemAsHead.getItem(0).is(recipe.get().itemAsHead)) return false;
-		}
-		if (input.stack.getCount() < recipe.get().getIngredients().size()) return false;
 
 		if (simulate)
 			return true;
 		pressingBehaviour.particleItems.add(input.stack);
 		List<ItemStack> outputs = RecipeApplier.applyRecipeOn(level,
-			ItemHandlerHelper.copyStackWithSize(input.stack, 1), recipe.get());
-		input.stack.shrink(recipe.get().getIngredients().size() - 1);
+			ItemHandlerHelper.copyStackWithSize(input.stack, 1), recipe);
+		input.stack.shrink(recipe.getIngredients().size() - 1);
 
 		for (ItemStack created : outputs) {
 			if (!created.isEmpty()) {
-				onItemPressed(created, recipe.get().headDamage);
+				onItemPressed(created, recipe.headDamage);
 				break;
 			}
 		}
@@ -460,27 +454,28 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 
 	private static final RecipeWrapper pressingInv = new RecipeWrapper(new ItemStackHandler(1));
 
+	private final Predicate<CurvingRecipe> checkToolHead = recipe -> {
+		if (mode != recipe.getMode())
+			return false;
+
+		if (mode == 5)
+			return itemAsHead.getItem(0).is(recipe.getItemAsHead());
+		else
+			return true;
+	};
+
 	public Optional<CurvingRecipe> getRecipe(ItemStack item) {
 		Optional<CurvingRecipe> assemblyRecipe =
-			SequencedAssemblyRecipe.getRecipe(level, item, VintageRecipes.CURVING.getType(), CurvingRecipe.class);
+			SequencedAssemblyRecipe.getRecipes(level, item, VintageRecipes.CURVING.getType(), CurvingRecipe.class).filter(checkToolHead).findFirst();
+		
 		if (assemblyRecipe.isPresent())
-			if (mode == assemblyRecipe.get().getMode()) {
-				if (mode == 5) {
-					if (itemAsHead.getItem(0).is(assemblyRecipe.get().getItemAsHead())) return assemblyRecipe;
-				}
-				else return assemblyRecipe;
-			}
+			return assemblyRecipe;
 
 		pressingInv.setItem(0, item);
 		assemblyRecipe = VintageRecipes.CURVING.find(pressingInv, level);
 
-		if (assemblyRecipe.isPresent())
-			if (mode == assemblyRecipe.get().getMode()) {
-				if (mode == 5) {
-					if (itemAsHead.getItem(0).is(assemblyRecipe.get().getItemAsHead())) return assemblyRecipe;
-				}
-				else return assemblyRecipe;
-			}
+		if (assemblyRecipe.isPresent() && checkToolHead.test(assemblyRecipe.get()))
+			return assemblyRecipe;
 
 		Predicate<Recipe<?>> types = RecipeConditions.isOfType(VintageRecipes.CURVING.getType());
 
@@ -488,17 +483,8 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 		startedSearch = startedSearch.stream()
 				.filter(RecipeConditions.firstIngredientMatches(item))
 				.filter(r -> !VintageRecipes.shouldIgnoreInAutomation(r))
-				.filter(r -> {
-					if (r instanceof CurvingRecipe curvingRecipe) {
-						if (curvingRecipe.matches(pressingInv, level))
-							if (mode == curvingRecipe.mode) {
-								if (mode == 5)
-									return itemAsHead.getItem(0).is(curvingRecipe.getItemAsHead());
-								return true;
-							}
-					}
-					return false;})
-				.collect(Collectors.toList());
+				.filter(r -> r instanceof CurvingRecipe curvingRecipe && checkToolHead.test(curvingRecipe) && curvingRecipe.matches(pressingInv, level))
+				.toList();
 
 		for (Recipe recipe : startedSearch) {
 			if (recipe instanceof CurvingRecipe curvingRecipe)
