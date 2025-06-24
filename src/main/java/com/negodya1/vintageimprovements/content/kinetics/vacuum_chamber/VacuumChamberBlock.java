@@ -104,7 +104,7 @@ public class VacuumChamberBlock extends KineticBlock implements IBE<VacuumChambe
 		var pos = context.getClickedPos();
 
 		var be = this.getBlockEntity(worldIn, pos);
-		if (be != null)
+		if (be != null && be.runningTicks == 0)
 		{
 			be.changeMode();
 			if (worldIn.isClientSide()) {
