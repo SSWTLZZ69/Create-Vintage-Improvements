@@ -96,21 +96,22 @@ public class VacuumChamberBlock extends KineticBlock implements IBE<VacuumChambe
 	public void appendHoverText(ItemStack itemStack, @Nullable BlockGetter getter, List<Component> list, TooltipFlag flag) {
 		list.add(Component.translatable(VintageImprovements.MODID + ".item_description.machine_rpm_requirements").append(" " + SpeedLevel.MEDIUM.getSpeedValue()).withStyle(ChatFormatting.GOLD));
 	}
+	
+	@Override
+	public InteractionResult onWrenched(BlockState state, UseOnContext context)
+	{
+		var worldIn = context.getLevel();
+		var pos = context.getClickedPos();
 
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
-								 BlockHitResult hit) {
-		ItemStack heldItem = player.getItemInHand(handIn);
-
-		return onBlockEntityUse(worldIn, pos, be -> {
-			if (!heldItem.isEmpty()) {
-				if (heldItem.getItem() == AllItems.WRENCH.asItem() && be.runningTicks == 0) {
-					be.mode = !be.mode;
-					if (worldIn.isClientSide())
-						AllSoundEvents.WRENCH_ROTATE.playAt(worldIn, pos, 3, 1,true);
-				}
+		var be = this.getBlockEntity(worldIn, pos);
+		if (be != null && be.runningTicks == 0)
+		{
+			be.changeMode();
+			if (worldIn.isClientSide()) {
+				AllSoundEvents.WRENCH_ROTATE.playAt(worldIn, pos, 3, 1, true);
 			}
-
-			return InteractionResult.PASS;
-		});
+			return InteractionResult.SUCCESS;
+		}
+		return InteractionResult.PASS;
 	}
 }
