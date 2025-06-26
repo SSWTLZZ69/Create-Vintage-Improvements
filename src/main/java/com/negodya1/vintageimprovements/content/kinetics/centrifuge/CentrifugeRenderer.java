@@ -2,24 +2,15 @@ package com.negodya1.vintageimprovements.content.kinetics.centrifuge;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.VintagePartialModels;
-import com.negodya1.vintageimprovements.content.kinetics.coiling.CoilingBlockEntity;
-import com.negodya1.vintageimprovements.content.kinetics.grinder.GrinderBlockEntity;
-import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingTableBlockEntity;
-import com.simibubi.create.AllBlocks;
-import com.simibubi.create.AllPartialModels;
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
-import dev.engine_room.flywheel.api.backend.Backend;
-import dev.engine_room.flywheel.api.backend.BackendManager;
 import dev.engine_room.flywheel.api.visualization.VisualizationManager;
 import dev.engine_room.flywheel.lib.transform.TransformStack;
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.data.IntAttached;
 import net.createmod.catnip.math.AngleHelper;
 import net.createmod.catnip.math.VecHelper;
-import net.createmod.catnip.platform.ForgeCatnipServices;
+import net.createmod.catnip.render.BasicFluidRenderer;
 import net.createmod.catnip.render.CachedBuffers;
 import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.Minecraft;
@@ -31,22 +22,14 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour.TankSegment;
-import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -55,7 +38,6 @@ import net.minecraftforge.items.ItemStackHandler;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
 
 public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlockEntity> {
 
@@ -245,6 +227,8 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 				continue;
 			for (TankSegment tankSegment : behaviour.getTanks()) {
 				FluidStack renderedFluid = tankSegment.getRenderedFluid();
+				Fluid fluid = renderedFluid.getFluid();
+				long amount = renderedFluid.getAmount();
 				if (renderedFluid.isEmpty())
 					continue;
 				float units = tankSegment.getTotalUnits(partialTicks);
@@ -253,8 +237,8 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 
 				float partial = Mth.clamp(units / totalUnits, 0, 1);
 				xMax += partial * 12 / 16f;
-				ForgeCatnipServices.FLUID_RENDERER.renderFluidBox(renderedFluid, xMin, yMin, zMin, xMax, yMax, zMax, buffer, ms, light, false, false);
-
+//				ForgeCatnipServices.FLUID_RENDERER.renderFluidBox(renderedFluid, xMin, yMin, zMin, xMax, yMax, zMax, buffer, ms, light, false, false);
+				BasicFluidRenderer.renderFluidBox(fluid, amount, xMin, yMin, zMin, xMax, yMax, zMax, buffer, ms, light, false, false);
 				xMin = xMax;
 			}
 		}
