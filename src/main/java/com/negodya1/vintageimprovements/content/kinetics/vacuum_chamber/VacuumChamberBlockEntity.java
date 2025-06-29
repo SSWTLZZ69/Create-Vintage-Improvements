@@ -74,6 +74,7 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	}
 
 	public boolean changeMode() {
+		basinChecker.scheduleUpdate();
 		mode = !mode;
 		return mode;
 	}
