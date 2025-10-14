@@ -18,10 +18,13 @@ import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTank
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour.TankSegment;
 import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.item.SmartInventory;
+import com.simibubi.create.foundation.recipe.DummyCraftingContainer;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -34,7 +37,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-public class CentrifugationRecipe extends ProcessingRecipe<SmartInventory> implements IAssemblyRecipe {
+public class CentrifugationRecipe extends ProcessingRecipe<Container> implements IAssemblyRecipe {
 
 	int minimalRPM;
 
@@ -128,7 +131,11 @@ public class CentrifugationRecipe extends ProcessingRecipe<SmartInventory> imple
 				if (recipe instanceof CentrifugationRecipe centrifugeRecipe) {
 					recipeOutputItems.addAll(centrifugeRecipe.rollResults());
 					recipeOutputFluids.addAll(centrifugeRecipe.getFluidResults());
-					recipeOutputItems.addAll(centrifugeRecipe.getRemainingItems(centrifuge.getInputInventory()));
+					CraftingContainer remainderContainer = new DummyCraftingContainer(availableItems, extractedItemsFromSlot);
+
+					for (ItemStack stack : centrifugeRecipe.getRemainingItems(remainderContainer))
+						if (!stack.isEmpty())
+							recipeOutputItems.add(stack);
 				}
 			}
 
@@ -165,19 +172,6 @@ public class CentrifugationRecipe extends ProcessingRecipe<SmartInventory> imple
 
 	@Override
 	protected boolean canSpecifyDuration() {
-		return true;
-	}
-
-	@Override
-	public boolean matches(SmartInventory inv, @Nonnull Level worldIn) {
-		if (inv.isEmpty())
-			return false;
-		if (ingredients.isEmpty())
-			return !fluidIngredients.isEmpty();
-
-		for (Ingredient ingredient : ingredients)
-			if (inv.countItem(ingredient.getItems()[0].getItem()) < ingredient.getItems().length) return false;
-
 		return true;
 	}
 
@@ -260,5 +254,10 @@ public class CentrifugationRecipe extends ProcessingRecipe<SmartInventory> imple
 
 	public int getMinimalRPM() {
 		return minimalRPM;
+	}
+
+	@Override
+	public boolean matches(Container container, Level level) {
+		return false;
 	}
 }

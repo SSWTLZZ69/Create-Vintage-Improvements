@@ -8,7 +8,6 @@ import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemb
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
-import com.simibubi.create.foundation.utility.CreateLang;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -86,9 +85,8 @@ public class VibratingRecipe extends ProcessingRecipe<RecipeWrapper> implements 
 			}
 
 			if (simulate) {
-				if (recipe instanceof VibratingRecipe centrifugeRecipe) {
-					recipeOutputItems.addAll(centrifugeRecipe.rollResults());
-					recipeOutputItems.addAll(centrifugeRecipe.getRemainingItems(centrifuge.inputInv));
+				if (recipe instanceof VibratingRecipe vibratingRecipe) {
+					recipeOutputItems.addAll(vibratingRecipe.rollResults());
 				}
 			}
 

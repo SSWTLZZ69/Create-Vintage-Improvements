@@ -15,12 +15,14 @@ import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
 import com.simibubi.create.foundation.item.SmartInventory;
-import com.simibubi.create.foundation.utility.CreateLang;
+import com.simibubi.create.foundation.recipe.DummyCraftingContainer;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -35,7 +37,7 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.registries.ForgeRegistries;
 
-public class HammeringRecipe extends ProcessingRecipe<SmartInventory> implements IAssemblyRecipe {
+public class HammeringRecipe extends ProcessingRecipe<Container> implements IAssemblyRecipe {
 
 	int hammerBlows;
 	Item anvilBlock;
@@ -101,9 +103,14 @@ public class HammeringRecipe extends ProcessingRecipe<SmartInventory> implements
 			}
 
 			if (simulate) {
-				if (recipe instanceof HammeringRecipe centrifugeRecipe) {
-					recipeOutputItems.addAll(centrifugeRecipe.rollResults());
-					recipeOutputItems.addAll(centrifugeRecipe.getRemainingItems(centrifuge.getInputInventory()));
+				if (recipe instanceof HammeringRecipe hammeringRecipe) {
+					recipeOutputItems.addAll(hammeringRecipe.rollResults());
+
+					CraftingContainer remainderContainer = new DummyCraftingContainer(availableItems, extractedItemsFromSlot);
+
+					for (ItemStack stack : hammeringRecipe.getRemainingItems(remainderContainer))
+						if (!stack.isEmpty())
+							recipeOutputItems.add(stack);
 				}
 			}
 
@@ -124,18 +131,6 @@ public class HammeringRecipe extends ProcessingRecipe<SmartInventory> implements
 		return 3;
 	}
 
-	@Override
-	public boolean matches(SmartInventory inv, @Nonnull Level worldIn) {
-		if (inv.isEmpty())
-			return false;
-		if (ingredients.isEmpty())
-			return !fluidIngredients.isEmpty();
-
-		for (Ingredient ingredient : ingredients)
-			if (inv.countItem(ingredient.getItems()[0].getItem()) < ingredient.getItems().length) return false;
-
-		return true;
-	}
 
 	@Override
 	public void addAssemblyIngredients(List<Ingredient> list) {}
@@ -204,5 +199,10 @@ public class HammeringRecipe extends ProcessingRecipe<SmartInventory> implements
 
 	public int getHammerBlows() {
 		return hammerBlows;
+	}
+
+	@Override
+	public boolean matches(Container container, Level level) {
+		return false;
 	}
 }

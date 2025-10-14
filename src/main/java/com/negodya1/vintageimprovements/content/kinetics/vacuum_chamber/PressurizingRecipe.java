@@ -14,11 +14,13 @@ import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
 import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.fluid.FluidIngredient;
+import com.simibubi.create.foundation.recipe.DummyCraftingContainer;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -250,7 +252,11 @@ public class PressurizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 			if (simulate) {
 				if (recipe instanceof PressurizingRecipe basinRecipe) {
 					recipeOutputItems.addAll(basinRecipe.rollResults());
-					recipeOutputItems.addAll(basinRecipe.getRemainingItems(basin.getInputInventory()));
+					CraftingContainer remainderContainer = new DummyCraftingContainer(availableItems, extractedItemsFromSlot);
+
+					for (ItemStack stack : basinRecipe.getRemainingItems(remainderContainer))
+						if (!stack.isEmpty())
+							recipeOutputItems.add(stack);
 
 					NonNullList<FluidStack> fss = basinRecipe.getFluidResults();
 
