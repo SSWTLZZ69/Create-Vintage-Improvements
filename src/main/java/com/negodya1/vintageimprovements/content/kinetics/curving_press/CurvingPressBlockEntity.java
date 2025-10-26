@@ -408,7 +408,7 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 		ItemStack itemCreated = ItemStack.EMPTY;
 		pressingBehaviour.particleItems.add(item.copy());
 		for (ItemStack result : RecipeApplier.applyRecipeOn(level, ItemHandlerHelper.copyStackWithSize(item, 1),
-				recipe)) {
+				recipe, true)) {
 			if (itemCreated.isEmpty())
 				itemCreated = result.copy();
 			ItemEntity created =
@@ -438,7 +438,7 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 			return true;
 		pressingBehaviour.particleItems.add(input.stack);
 		List<ItemStack> outputs = RecipeApplier.applyRecipeOn(level,
-			ItemHandlerHelper.copyStackWithSize(input.stack, 1), recipe);
+			ItemHandlerHelper.copyStackWithSize(input.stack, 1), recipe, true);
 		input.stack.shrink(recipe.getIngredients().size() - 1);
 
 		for (ItemStack created : outputs) {

@@ -4,6 +4,7 @@ import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancemen
 import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
 import com.negodya1.vintageimprovements.infrastructure.ponder.VintagePonderPlugin;
 import com.simibubi.create.AllItems;
+import com.simibubi.create.api.registrate.CreateRegistrateRegistrationCallback;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.ponder.CreatePonderPlugin;
 import net.createmod.catnip.lang.FontHelper;

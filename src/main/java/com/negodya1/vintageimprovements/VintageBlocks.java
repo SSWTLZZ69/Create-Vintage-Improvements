@@ -26,16 +26,23 @@ import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.BlockStateGen;
 import com.simibubi.create.foundation.data.SharedProperties;
 
+import static com.simibubi.create.AllTags.NameSpace.FORGE;
 import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
 
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.common.Tags;
+import net.minecraftforge.common.data.ForgeBlockTagsProvider;
+import net.minecraftforge.common.data.ForgeItemTagsProvider;
 
 import java.util.LinkedList;
 
@@ -207,7 +214,7 @@ public class VintageBlocks {
             .tag(BlockTags.NEEDS_IRON_TOOL)
             .tag(Tags.Blocks.STORAGE_BLOCKS)
             .tag(BlockTags.BEACON_BASE_BLOCKS)
-            .transform(tagBlockAndItem("storage_blocks/vanadium"))
+            .transform(tagBlockAndItem(AllTags.forgeBlockTag("storage_blocks/vanadium"), AllTags.forgeItemTag("storage_blocks/vanadium")))
             .tag(Tags.Items.STORAGE_BLOCKS)
             .build()
             .lang("Block of Vanadium")
@@ -219,7 +226,7 @@ public class VintageBlocks {
             .transform(pickaxeOnly())
             .tag(BlockTags.NEEDS_STONE_TOOL)
             .tag(Tags.Blocks.STORAGE_BLOCKS)
-            .transform(tagBlockAndItem("storage_blocks/sulfur"))
+            .transform(tagBlockAndItem(AllTags.forgeBlockTag("storage_blocks/sulfur"), AllTags.forgeItemTag("storage_blocks/sulfur")))
             .tag(Tags.Items.STORAGE_BLOCKS)
             .build()
             .lang("Block of Sulfur")

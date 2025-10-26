@@ -186,7 +186,7 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 				TransportedItemStack remainingStack = transported.copy();
 				int inputCount = recipe.getIngredients().get(0).getItems()[0].getCount();
 				List<ItemStack> outputs = RecipeApplier.applyRecipeOn(level,
-						ItemHandlerHelper.copyStackWithSize(transported.stack, inputCount), recipe);
+						ItemHandlerHelper.copyStackWithSize(transported.stack, inputCount), recipe, true);
 				List<TransportedItemStack> outList = new ArrayList<>();
 				outputs.forEach(itemStack -> {
 					TransportedItemStack tmp = transported.copy();
@@ -227,7 +227,7 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 			if(chargeAccumulator >= recipe.getEnergy()) {
 				ItemStack itemCreated = ItemStack.EMPTY;
 				for (ItemStack result : RecipeApplier.applyRecipeOn(level, ItemHandlerHelper.copyStackWithSize(item, 1),
-						recipe)) {
+						recipe, true)) {
 					if (itemCreated.isEmpty())
 						itemCreated = result.copy();
 					ItemEntity created =
