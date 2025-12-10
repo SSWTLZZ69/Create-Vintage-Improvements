@@ -20,6 +20,7 @@ import com.simibubi.create.foundation.recipe.DummyCraftingContainer;
 import com.simibubi.create.foundation.utility.Iterate;
 import com.simibubi.create.foundation.utility.Lang;
 import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -110,7 +111,7 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 		return () -> AssemblyVacuumizing::new;
 	}
 
-	public static boolean match(BasinBlockEntity basin, Recipe<?> recipe, VacuumChamberBlockEntity be) {
+	public static boolean match(BasinBlockEntity basin, Recipe<?> recipe, VacuumChamberBlockEntity be, int step) {
 		FilteringBehaviour filter = basin.getFilter();
 		if (filter == null)
 			return false;
@@ -130,14 +131,14 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 		if (!filterTest)
 			return false;
 
-		return apply(basin, recipe, be, true);
+		return apply(basin, recipe, be, true, step);
 	}
 
-	public static boolean apply(BasinBlockEntity basin, Recipe<?> recipe, VacuumChamberBlockEntity be) {
-		return apply(basin, recipe, be, false);
+	public static boolean apply(BasinBlockEntity basin, Recipe<?> recipe, VacuumChamberBlockEntity be, int step) {
+		return apply(basin, recipe, be, false, step);
 	}
 
-	private static boolean apply(BasinBlockEntity basin, Recipe<?> recipe, VacuumChamberBlockEntity be, boolean test) {
+	private static boolean apply(BasinBlockEntity basin, Recipe<?> recipe, VacuumChamberBlockEntity be, boolean test, int step) {
 		boolean isBasinRecipe = recipe instanceof BasinRecipe;
 		IItemHandler availableItems = basin.getCapability(ForgeCapabilities.ITEM_HANDLER)
 				.orElse(null);
@@ -172,6 +173,9 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 			int[] extractedFluidsFromTank = new int[availableFluids.getTanks()];
 			int[] extractedSecondaryFluidsFromTank = new int[availableSecondaryFluids.getTanks()];
 
+			//记录是否发现可用的半成品原料
+			boolean incompleteItemFound = false;
+
 			Ingredients: for (int i = 0; i < ingredients.size(); i++) {
 				Ingredient ingredient = ingredients.get(i);
 
@@ -182,6 +186,22 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 					ItemStack extracted = availableItems.extractItem(slot, 1, true);
 					if (!ingredient.test(extracted))
 						continue;
+					//序列装配时，判断是否为对应半成品原料
+					if(step != 0){
+						int currentStep;
+						if (extracted.hasTag() && extracted.getTag().contains("SequencedAssembly")){
+							CompoundTag tag = extracted.getTag();
+							currentStep = tag.getCompound("SequencedAssembly")
+									.getInt("Step") + 1;
+							//不允许有序列装配标签且step不正确的原料
+							if(step != currentStep)
+								continue;
+							incompleteItemFound = true;
+						}else if(step == 1){
+							//特别地，simibubi的装配第一步原料可以不带序列装配标签
+							incompleteItemFound = true;
+						}
+					}
 					if (!simulate)
 						availableItems.extractItem(slot, 1, false);
 					extractedItemsFromSlot[slot]++;
@@ -189,6 +209,11 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 				}
 
 				// something wasn't found
+				return false;
+			}
+
+			//正在执行序列装配配方，但未找到可用半成品原料
+			if(step != 0 && !incompleteItemFound){
 				return false;
 			}
 

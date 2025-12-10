@@ -76,9 +76,14 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	boolean mode;
 	VintageAdvancementBehaviour advancementBehaviour;
 
+	//simibubi完全没留接口让机器知道自己在执行什么序列装配配方，因此额外设置一个变量存储当前配方序列信息
+	//0表示当前执行非序列配方，其他值表示产物的序列装配步骤数，其中1为装配开始
+	private int sequencedAssemblyStep;
+
 	public VacuumChamberBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
 		mode = false;
+		sequencedAssemblyStep = 0;
 	}
 
 	public boolean changeMode() {
@@ -114,9 +119,9 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		super.addBehaviours(behaviours);
 
 		inputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.INPUT, this, 2, 1000, true)
-				.whenFluidUpdates(() -> contentsChanged = true);
+				.whenFluidUpdates(() -> this.basinChecker.scheduleUpdate());
 		outputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.OUTPUT, this, 2, 1000, true)
-				.whenFluidUpdates(() -> contentsChanged = true)
+				.whenFluidUpdates(() -> this.basinChecker.scheduleUpdate())
 				.forbidInsertion();
 		behaviours.add(inputTank);
 		behaviours.add(outputTank);
@@ -147,6 +152,7 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		running = compound.getBoolean("Running");
 		runningTicks = compound.getInt("Ticks");
 		mode = compound.getBoolean("Mode");
+		sequencedAssemblyStep = compound.getInt("Step");
 		super.read(compound, clientPacket);
 
 		if (clientPacket && hasLevel())
@@ -158,6 +164,7 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		compound.putBoolean("Running", running);
 		compound.putInt("Ticks", runningTicks);
 		compound.putBoolean("Mode", mode);
+		compound.putInt("Step", sequencedAssemblyStep);
 		super.write(compound, clientPacket);
 	}
 
@@ -227,10 +234,10 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		BasinBlockEntity basin = optionalBasin.get();
 		boolean wasEmpty = basin.canContinueProcessing();
 		if (!mode)
-			if (!VacuumizingRecipe.apply(basin, currentRecipe, this))
+			if (!VacuumizingRecipe.apply(basin, currentRecipe, this, sequencedAssemblyStep))
 				return;
 		if (mode)
-			if (!PressurizingRecipe.apply(basin, currentRecipe, this))
+			if (!PressurizingRecipe.apply(basin, currentRecipe, this, sequencedAssemblyStep))
 				return;
 		getProcessedRecipeTrigger().ifPresent(this::award);
 		basin.inputTank.sendDataImmediately();
@@ -247,90 +254,81 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 
 	@Override
 	protected List<Recipe<?>> getMatchingRecipes() {
-		Optional<BasinBlockEntity> basin = getBasin();
-
-		if (basin.isEmpty()) return null;
-
-		if (mode) {
-			for (int i = 0; i < basin.get().getInputInventory().getSlots(); i++) {
-				Optional<PressurizingRecipe> assemblyRecipe = SequencedAssemblyRecipe.
-						getRecipe(level, basin.get().getInputInventory().getStackInSlot(i),
-								VintageRecipes.PRESSURIZING.getType(), PressurizingRecipe.class);
-				if (assemblyRecipe.isPresent() && basin.get().getFilter().test(assemblyRecipe.get()
-						.getResultItem(RegistryAccess.EMPTY))) {
-					if (!assemblyRecipe.get().getRequiredHeat().testBlazeBurner(BlazeBurnerBlock.getHeatLevelOf(level.getBlockState(getBlockPos().below(3)))))
-						return getRecipes();
-
-					for (Ingredient cur : assemblyRecipe.get().getIngredients()) {
-						boolean find = false;
-
-						for (ItemStack item : cur.getItems()) {
-							if (item.getCount() <= basin.get().getInputInventory().countItem(item.getItem())) {
-								find = true;
-								break;
-							}
-						}
-
-						if (!find) return getRecipes();
-					}
-
-					for (FluidIngredient cur : assemblyRecipe.get().getFluidIngredients()) {
-						if (cur.test(basin.get().inputTank.getPrimaryHandler().getFluid())) break;
-
-						return getRecipes();
-					}
-
-					return ImmutableList.of(assemblyRecipe.get());
-				}
-			}
-		}
-		else {
-			for (int i = 0; i < basin.get().getInputInventory().getSlots(); i++) {
-				Optional<VacuumizingRecipe> assemblyRecipe = SequencedAssemblyRecipe.
-						getRecipe(level, basin.get().getInputInventory().getStackInSlot(i),
-								VintageRecipes.VACUUMIZING.getType(), VacuumizingRecipe.class);
-				if (assemblyRecipe.isPresent() && basin.get().getFilter().test(assemblyRecipe.get()
-						.getResultItem(RegistryAccess.EMPTY))) {
-					if (!assemblyRecipe.get().getRequiredHeat().testBlazeBurner(BlazeBurnerBlock.getHeatLevelOf(level.getBlockState(getBlockPos().below(3)))))
-						return getRecipes();
-
-					for (Ingredient cur : assemblyRecipe.get().getIngredients()) {
-						boolean find = false;
-
-						for (ItemStack item : cur.getItems()) {
-							if (item.getCount() <= basin.get().getInputInventory().countItem(item.getItem())) {
-								find = true;
-								break;
-							}
-						}
-
-						if (!find) return getRecipes();
-					}
-
-					for (FluidIngredient cur : assemblyRecipe.get().getFluidIngredients()) {
-						if (cur.test(basin.get().inputTank.getPrimaryHandler().getFluid()))
-							break;
-
-						return getRecipes();
-					}
-
-					return ImmutableList.of(assemblyRecipe.get());
-				}
-			}
+		Optional<? extends Recipe<?>> assemblyRecipe = matchAssemblyRecipe();
+		if(assemblyRecipe.isPresent()){
+			return ImmutableList.of(assemblyRecipe.get());
 		}
 
-		return getRecipes();
-	}
+		//未匹配到序列配方
+		sequencedAssemblyStep = 0;
 
-	List<Recipe<?>> getRecipes() {
 		List<Recipe<?>> res = new ArrayList<>();
-
 		for (Recipe recipe : super.getMatchingRecipes()) {
 			if (mode && recipe instanceof PressurizingRecipe) res.add(recipe);
 			else if (!mode && recipe instanceof VacuumizingRecipe) res.add(recipe);
 		}
 
 		return res;
+	}
+
+	Optional<? extends Recipe<?>> matchAssemblyRecipe(){
+		//获取工作盆
+		Optional<BasinBlockEntity> basin = getBasin();
+		if (basin.isEmpty()) {
+			return Optional.empty();
+		}
+
+		//获取盆内物品
+		IItemHandler availableItems = basin.get().getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
+		if(availableItems == null){
+			return Optional.empty();
+		}
+
+		//遍历物品判断能否序列装配
+		Optional<? extends Recipe<?>> assemblyRecipe;
+		for(int slot = 0; slot < availableItems.getSlots(); slot++){
+			ItemStack  item = availableItems.getStackInSlot(slot);
+			if(mode){//加压模式
+				assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, item,
+						VintageRecipes.PRESSURIZING.getType(), PressurizingRecipe.class);
+				//判断序列步骤
+				if (item.hasTag() && item.getTag().contains("SequencedAssembly")){
+					CompoundTag tag = item.getTag();
+					int step = tag.getCompound("SequencedAssembly")
+							.getInt("Step");
+					sequencedAssemblyStep = step + 1;
+				}else{
+					sequencedAssemblyStep = 1;
+				}
+				//检查过滤、加热、盆内原料、机器副原料
+				if(assemblyRecipe.isPresent() &&
+						PressurizingRecipe.match(basin.get(), assemblyRecipe.get(), this, sequencedAssemblyStep)
+				){
+					return assemblyRecipe;
+				}
+			}else{//减压模式
+				assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, item,
+						VintageRecipes.VACUUMIZING.getType(), VacuumizingRecipe.class);
+
+				if (item.hasTag() && item.getTag().contains("SequencedAssembly")){
+					CompoundTag tag = item.getTag();
+					int step = tag.getCompound("SequencedAssembly")
+							.getInt("Step");
+					sequencedAssemblyStep = step + 1;
+				}else{
+					sequencedAssemblyStep = 1;
+				}
+
+				if(assemblyRecipe.isPresent() &&
+					VacuumizingRecipe.match(basin.get(), assemblyRecipe.get(), this, sequencedAssemblyStep)
+				){
+					return assemblyRecipe;
+				}
+			}
+		}
+
+		//无匹配序列装配配方
+		return Optional.empty();
 	}
 
 	@Override
@@ -342,9 +340,9 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 			return false;
 
 		if (recipe instanceof VacuumizingRecipe r)
-			return r.match(basin.get(), recipe, this);
+			return r.match(basin.get(), recipe, this, sequencedAssemblyStep);
 		if (recipe instanceof PressurizingRecipe r)
-			return r.match(basin.get(), recipe, this);
+			return r.match(basin.get(), recipe, this, sequencedAssemblyStep);
 
 		return BasinRecipe.match(basin.get(), recipe);
 	}

@@ -60,8 +60,8 @@ public class CentrifugeStructuralBlockEntity extends SmartBlockEntity {
             }
         }
 
-        sendData();
-        setChanged();
+        //sendData();
+        //setChanged();
     }
 
     @Override
