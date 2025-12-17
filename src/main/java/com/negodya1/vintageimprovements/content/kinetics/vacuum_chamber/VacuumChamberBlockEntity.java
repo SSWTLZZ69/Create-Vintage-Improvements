@@ -76,8 +76,9 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	boolean mode;
 	VintageAdvancementBehaviour advancementBehaviour;
 
-	//simibubi完全没留接口让机器知道自己在执行什么序列装配配方，因此额外设置一个变量存储当前配方序列信息
-	//0表示当前执行非序列配方，其他值表示产物的序列装配步骤数，其中1为装配开始
+	// 配方自身无法肯定是否为序列装配配方的一部分，也不能知道在处理装配的第几步
+	// 在不修改本体代码的前提下，只能让机器来记忆是否在执行序列装配配方
+	// 默认值为0，表示非序列装配，因此从1开始定为序列装配的步骤数
 	private int sequencedAssemblyStep;
 
 	public VacuumChamberBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -118,10 +119,11 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
 		super.addBehaviours(behaviours);
 
+		// 检测到副流体内容变化，需要让工作盆重新检查配方
 		inputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.INPUT, this, 2, 1000, true)
-				.whenFluidUpdates(() -> this.basinChecker.scheduleUpdate());
+				.whenFluidUpdates(() -> basinChecker.scheduleUpdate());
 		outputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.OUTPUT, this, 2, 1000, true)
-				.whenFluidUpdates(() -> this.basinChecker.scheduleUpdate())
+				.whenFluidUpdates(() -> basinChecker.scheduleUpdate())
 				.forbidInsertion();
 		behaviours.add(inputTank);
 		behaviours.add(outputTank);
@@ -152,7 +154,8 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		running = compound.getBoolean("Running");
 		runningTicks = compound.getInt("Ticks");
 		mode = compound.getBoolean("Mode");
-		sequencedAssemblyStep = compound.getInt("Step");
+		// 不存在时，默认读取到0
+		sequencedAssemblyStep = compound.getInt("sequencedAssemblyStep");
 		super.read(compound, clientPacket);
 
 		if (clientPacket && hasLevel())
@@ -164,7 +167,7 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		compound.putBoolean("Running", running);
 		compound.putInt("Ticks", runningTicks);
 		compound.putBoolean("Mode", mode);
-		compound.putInt("Step", sequencedAssemblyStep);
+		compound.putInt("isSequencedAssembly", sequencedAssemblyStep);
 		super.write(compound, clientPacket);
 	}
 
@@ -271,57 +274,73 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		return res;
 	}
 
-	Optional<? extends Recipe<?>> matchAssemblyRecipe(){
-		//获取工作盆
+	protected Optional<? extends Recipe<?>> matchAssemblyRecipe(){
+		// 获取工作盆
 		Optional<BasinBlockEntity> basin = getBasin();
 		if (basin.isEmpty()) {
 			return Optional.empty();
 		}
 
-		//获取盆内物品
+		// 获取盆内物品
 		IItemHandler availableItems = basin.get().getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
 		if(availableItems == null){
 			return Optional.empty();
 		}
 
-		//遍历物品判断能否序列装配
+		// 遍历物品判断能否序列装配
 		Optional<? extends Recipe<?>> assemblyRecipe;
 		for(int slot = 0; slot < availableItems.getSlots(); slot++){
-			ItemStack  item = availableItems.getStackInSlot(slot);
-			if(mode){//加压模式
-				assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, item,
-						VintageRecipes.PRESSURIZING.getType(), PressurizingRecipe.class);
-				//判断序列步骤
-				if (item.hasTag() && item.getTag().contains("SequencedAssembly")){
-					CompoundTag tag = item.getTag();
-					int step = tag.getCompound("SequencedAssembly")
-							.getInt("Step");
-					sequencedAssemblyStep = step + 1;
-				}else{
-					sequencedAssemblyStep = 1;
-				}
-				//检查过滤、加热、盆内原料、机器副原料
-				if(assemblyRecipe.isPresent() &&
-						PressurizingRecipe.match(basin.get(), assemblyRecipe.get(), this, sequencedAssemblyStep)
-				){
+			ItemStack item = availableItems.getStackInSlot(slot);
+			String itemSequenceId;
+			int itemSequenceStep;
+
+			// 检查物品的序列装配标签
+			if (item.hasTag() && item.getTag().contains("SequencedAssembly")) {
+				CompoundTag tag = item.getTag().getCompound("SequencedAssembly");
+				itemSequenceId = tag.getString("id");
+				itemSequenceStep = tag.getInt("Step") + 1;
+			} else {
+				// 装配起始物品可以不带序列装配标签
+				itemSequenceId = "";
+				itemSequenceStep = 1;
+			}
+
+			if(mode){	// 加压模式
+				// getRecipe方法仅能匹配到相同主原料的一种序列装配配方，改用getRecipes
+				assemblyRecipe = SequencedAssemblyRecipe.getRecipes(level, item,
+					VintageRecipes.PRESSURIZING.getType(), PressurizingRecipe.class)
+					.filter((it) -> {
+						// 特别地，simibubi假定序列装配中间物品都是独一无二的
+						// 因此可能把正在装配的中间物品当作其他装配的起始物品
+						// 本体的代码暂且不做修改，临时性地在这里过滤
+						String id = PressurizingRecipe.getSequenceId(it);
+						if (id.isEmpty()) return false;
+						// 拒绝带序列装配标签且不匹配的物品
+						if (!itemSequenceId.isEmpty() && !id.equals(itemSequenceId)) return false;
+
+						// 然后才检查过滤、加热、盆内原料、机器副原料
+						return PressurizingRecipe.match(basin.get(), it, this, itemSequenceStep);
+					}).findFirst();
+
+				// 记录机器将执行的序列配方步骤
+				if (assemblyRecipe.isPresent()) {
+					sequencedAssemblyStep = itemSequenceStep;
 					return assemblyRecipe;
 				}
-			}else{//减压模式
-				assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, item,
-						VintageRecipes.VACUUMIZING.getType(), VacuumizingRecipe.class);
+			} else {	// 减压模式，同上
+				assemblyRecipe = SequencedAssemblyRecipe.getRecipes(level, item,
+					VintageRecipes.VACUUMIZING.getType(), VacuumizingRecipe.class)
+					.filter((it) -> {
+						String id = PressurizingRecipe.getSequenceId(it);
+						if (id.isEmpty()) return false;
 
-				if (item.hasTag() && item.getTag().contains("SequencedAssembly")){
-					CompoundTag tag = item.getTag();
-					int step = tag.getCompound("SequencedAssembly")
-							.getInt("Step");
-					sequencedAssemblyStep = step + 1;
-				}else{
-					sequencedAssemblyStep = 1;
-				}
+						if (!itemSequenceId.isEmpty() && !id.equals(itemSequenceId)) return false;
 
-				if(assemblyRecipe.isPresent() &&
-					VacuumizingRecipe.match(basin.get(), assemblyRecipe.get(), this, sequencedAssemblyStep)
-				){
+						return PressurizingRecipe.match(basin.get(), it, this, itemSequenceStep);
+					}).findFirst();
+
+				if (assemblyRecipe.isPresent()) {
+					sequencedAssemblyStep = itemSequenceStep;
 					return assemblyRecipe;
 				}
 			}
