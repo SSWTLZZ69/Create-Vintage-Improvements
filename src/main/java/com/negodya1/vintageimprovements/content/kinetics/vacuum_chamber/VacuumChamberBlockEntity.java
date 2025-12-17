@@ -318,12 +318,12 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 				assemblyRecipe = SequencedAssemblyRecipe.getRecipes(level, item,
 								VintageRecipes.VACUUMIZING.getType(), VacuumizingRecipe.class)
 						.filter((it) -> {
-							String id = PressurizingRecipe.getSequenceId(it);
+							String id = VacuumizingRecipe.getSequenceId(it);
 							if (id.isEmpty()) return false;
 
 							if (!itemSequenceId.isEmpty() && !id.equals(itemSequenceId)) return false;
 
-							return PressurizingRecipe.match(basin.get(), it, this, itemSequenceStep);
+							return VacuumizingRecipe.match(basin.get(), it, this, itemSequenceStep);
 						}).findFirst();
 
 				if (assemblyRecipe.isPresent()) {
