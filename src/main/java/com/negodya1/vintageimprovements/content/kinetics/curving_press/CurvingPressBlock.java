@@ -25,6 +25,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -175,43 +176,54 @@ public class CurvingPressBlock extends HorizontalKineticBlock implements IBE<Cur
 					return InteractionResult.SUCCESS;
 				}
 			}
-			else {
-				if (heldItem.is(AllItems.WRENCH.asItem())) {
-					ItemStack stack;
-
-					switch (be.mode) {
-						case 2 -> stack = new ItemStack(VintageItems.CONCAVE_CURVING_HEAD.get());
-						case 3 -> stack = new ItemStack(VintageItems.W_SHAPED_CURVING_HEAD.get());
-						case 4 -> stack = new ItemStack(VintageItems.V_SHAPED_CURVING_HEAD.get());
-						case 5 -> {
-							if (be.itemAsHead != null) stack = be.itemAsHead.getItem(0).copy();
-							else stack = ItemStack.EMPTY;
-							be.itemAsHead.clearContent();
-						}
-						default -> stack = new ItemStack(VintageItems.CONVEX_CURVING_HEAD.get());
-					}
-					if (be.mode < 5)
-						stack.setDamageValue(1000 - be.durability);
-					player.getInventory()
-							.placeItemBackInInventory(stack);
-
-					be.mode = 0;
-
-					if (worldIn.isClientSide())
-						AllSoundEvents.WRENCH_ROTATE.playAt(worldIn, pos, 3, 1,true);
-
-					be.setChanged();
-					return InteractionResult.SUCCESS;
-				}
-				else if (heldItem.is(VintageItems.REDSTONE_MODULE.get())) {
-					be.redstoneModule = true;
-					be.setChanged();
-					return InteractionResult.SUCCESS;
-				}
+			else if (heldItem.is(VintageItems.REDSTONE_MODULE.get())) {
+				be.redstoneModule = true;
+				be.setChanged();
+				return InteractionResult.SUCCESS;
 			}
 
 			return InteractionResult.PASS;
 		});
+	}
+
+	@Override
+	public InteractionResult onWrenched(BlockState state, UseOnContext context) {
+		ItemStack stack;
+		var worldIn = context.getLevel();
+		var be = this.getBlockEntity(context.getLevel(), context.getClickedPos());
+
+		if (be == null) {
+			return InteractionResult.PASS;
+		}
+
+		switch (be.mode) {
+			case 2 -> stack = new ItemStack(VintageItems.CONCAVE_CURVING_HEAD.get());
+			case 3 -> stack = new ItemStack(VintageItems.W_SHAPED_CURVING_HEAD.get());
+			case 4 -> stack = new ItemStack(VintageItems.V_SHAPED_CURVING_HEAD.get());
+			case 5 -> {
+				if (be.itemAsHead != null) {
+					stack = be.itemAsHead.getItem(0).copy();
+				}
+				else {
+					stack = ItemStack.EMPTY;
+				}
+				be.itemAsHead.clearContent();
+			}
+			default -> stack = new ItemStack(VintageItems.CONVEX_CURVING_HEAD.get());
+		}
+		if (be.mode < 5) {
+			stack.setDamageValue(1000 - be.durability);
+		}
+		context.getPlayer().getInventory().placeItemBackInInventory(stack);
+
+		be.mode = 0;
+
+		if (worldIn.isClientSide()) {
+			AllSoundEvents.WRENCH_ROTATE.playAt(worldIn, context.getClickedPos(), 3, 1, true);
+		}
+
+		be.setChanged();
+		return InteractionResult.SUCCESS;
 	}
 
 	@Override
