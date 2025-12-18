@@ -1,12 +1,10 @@
 package com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.negodya1.vintageimprovements.VintageBlocks;
+import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.compat.jei.category.assemblies.AssemblyPressurizing;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
 import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemblySubCategory;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinRecipe;
@@ -16,17 +14,13 @@ import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
 import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.fluid.FluidIngredient;
-import com.simibubi.create.foundation.recipe.DummyCraftingContainer;
 import com.simibubi.create.foundation.utility.Iterate;
-import com.simibubi.create.foundation.utility.Lang;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.entity.ai.goal.InteractGoal;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
@@ -111,6 +105,7 @@ public class PressurizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 	public Supplier<Supplier<SequencedAssemblySubCategory>> getJEISubCategory() {
 		return () -> AssemblyPressurizing::new;
 	}
+
 	public static boolean match(BasinBlockEntity basin, Recipe<?> recipe, VacuumChamberBlockEntity be, int step) {
 		FilteringBehaviour filter = basin.getFilter();
 		if (filter == null)
@@ -287,7 +282,19 @@ public class PressurizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 			if (simulate) {
 				if (recipe instanceof PressurizingRecipe basinRecipe) {
 					recipeOutputItems.addAll(basinRecipe.rollResults());
-					recipeOutputItems.addAll(basinRecipe.getRemainingItems(basin.getInputInventory()));
+
+					//create-0.5.x版本中，BasinRecipe继承自ProcessingRecipe<SmartInventory>，不支持DummyCraftingContainer
+					for (int i = 0; i < extractedItemsFromSlot.length; i++) {
+						int amount = extractedItemsFromSlot[i];
+						if (amount <= 0)
+							continue;
+						ItemStack item = availableItems.extractItem(i, amount, true);
+						if (item.hasCraftingRemainingItem()) {
+							ItemStack remainingItem = item.getCraftingRemainingItem();
+							if (!remainingItem.isEmpty())
+								recipeOutputItems.add(remainingItem);
+						}
+					}
 
 					NonNullList<FluidStack> fss = basinRecipe.getFluidResults();
 

@@ -15,9 +15,7 @@ import com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber.Pressuri
 import com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber.VacuumizingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.vibration.LeavesVibratingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingRecipe;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
 import com.simibubi.create.AllTags;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import org.jetbrains.annotations.Nullable;
 

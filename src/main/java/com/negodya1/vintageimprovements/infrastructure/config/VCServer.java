@@ -1,7 +1,6 @@
 package com.negodya1.vintageimprovements.infrastructure.config;
 
 import com.simibubi.create.foundation.config.ConfigBase;
-import com.simibubi.create.infrastructure.config.CServer;
 
 public class VCServer extends ConfigBase {
 

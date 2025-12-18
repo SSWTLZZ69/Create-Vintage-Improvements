@@ -2,7 +2,7 @@
 	"type":"vintageimprovements:pressurizing",
 	"ingredients": [ 
 		{
-			"fluid": "vintageimprovements:sulfuric_acid",
+			"fluidTag": "forge:sulfuric_acid",
 			"amount": 200
 		},
 		{

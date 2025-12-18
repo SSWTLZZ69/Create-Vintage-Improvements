@@ -2,10 +2,8 @@ package com.negodya1.vintageimprovements.content.kinetics.lathe;
 
 import com.google.common.collect.ImmutableList;
 import com.negodya1.vintageimprovements.VintageBlocks;
-import com.negodya1.vintageimprovements.VintageImprovements;
-import com.negodya1.vintageimprovements.content.kinetics.lathe.recipe_card.RecipeCardMenu;
+import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.foundation.gui.VintageGuiTextures;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
 import com.simibubi.create.foundation.gui.AllIcons;
 import com.simibubi.create.foundation.gui.element.GuiGameElement;
 import com.simibubi.create.foundation.gui.menu.AbstractSimiContainerScreen;

@@ -13,7 +13,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -58,9 +57,9 @@ public class VibratingTableBlock extends HorizontalKineticBlock implements IBE<V
 
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
-		Direction prefferedSide = getPreferredHorizontalFacing(context);
-		if (prefferedSide != null)
-			return defaultBlockState().setValue(HORIZONTAL_FACING, prefferedSide);
+		Direction preferredSide = getPreferredHorizontalFacing(context);
+		if (preferredSide != null)
+			return defaultBlockState().setValue(HORIZONTAL_FACING, preferredSide);
 		return super.getStateForPlacement(context);
 	}
 

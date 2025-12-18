@@ -4,7 +4,7 @@
 	"heatRequirement": "heated",
 	"ingredients": [ 
 		{
-			"fluid": "vintageimprovements:sulfur_dioxide",
+			"fluidTag": "forge:sulfur_dioxide",
 			"amount": 250
 		},
 		{

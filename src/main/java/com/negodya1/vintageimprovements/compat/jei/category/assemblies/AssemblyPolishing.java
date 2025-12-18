@@ -1,14 +1,10 @@
 package com.negodya1.vintageimprovements.compat.jei.category.assemblies;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedGrinder;
 import com.negodya1.vintageimprovements.content.kinetics.grinder.PolishingRecipe;
-import com.negodya1.vintageimprovements.content.kinetics.helve_hammer.HammeringRecipe;
 import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemblySubCategory;
 import com.simibubi.create.content.processing.sequenced.SequencedRecipe;
-import com.simibubi.create.foundation.gui.AllIcons;
-import com.simibubi.create.foundation.utility.Components;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

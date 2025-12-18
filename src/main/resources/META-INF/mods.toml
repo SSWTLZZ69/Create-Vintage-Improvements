@@ -8,8 +8,8 @@ license="${mod_license}"
     version="${mod_version}"
     displayName="${mod_name}"
     #updateJSONURL="https://change.me.example.invalid/updates.json"
-    displayURL="https://github.com/Negodya1/Create-Vintage-Improvements"
-    issueTrackerURL="https://github.com/Negodya1/Create-Vintage-Improvements/issues"
+    displayURL="https://github.com/SSWTLZZ69/Create-Vintage-Improvements"
+    issueTrackerURL="https://github.com/SSWTLZZ69/Create-Vintage-Improvements/issues"
     logoFile="logo.png"
     credits='''Catchmons, Junnaturefox & Qi-Month - zh_cn localization
 padin - en_us localization editing
@@ -33,7 +33,7 @@ description="${mod_description}"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.modid]]
+[[dependencies.mod_id]]
     modId="create"
     mandatory=true
     versionRange="[0.5.1.e,)"

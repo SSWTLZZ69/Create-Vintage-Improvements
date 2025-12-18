@@ -24,6 +24,7 @@ import com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber.VacuumCh
 import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingTableBlockEntity;
 import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingTableInstance;
 import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingTableRenderer;
+
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 
 import static com.negodya1.vintageimprovements.VintageImprovements.MY_REGISTRATE;

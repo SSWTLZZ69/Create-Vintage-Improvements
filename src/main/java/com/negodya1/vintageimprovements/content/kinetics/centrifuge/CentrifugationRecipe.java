@@ -3,40 +3,26 @@ package com.negodya1.vintageimprovements.content.kinetics.centrifuge;
 import java.util.*;
 import java.util.function.Supplier;
 
-import javax.annotation.Nonnull;
-
 import com.google.gson.JsonObject;
 import com.negodya1.vintageimprovements.VintageBlocks;
-import com.negodya1.vintageimprovements.VintageImprovements;
+import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.compat.jei.category.assemblies.AssemblyCentrifugation;
-import com.negodya1.vintageimprovements.compat.jei.category.assemblies.AssemblyVibrating;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
-import com.simibubi.create.AllRecipeTypes;
 import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemblySubCategory;
-import com.simibubi.create.content.kinetics.base.IRotate;
-import com.simibubi.create.content.processing.burner.BlazeBurnerBlock.HeatLevel;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
-import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour.TankSegment;
 import com.simibubi.create.foundation.fluid.FluidIngredient;
-import com.simibubi.create.foundation.item.SmartInventory;
 import com.simibubi.create.foundation.recipe.DummyCraftingContainer;
-import com.simibubi.create.foundation.recipe.IRecipeTypeInfo;
 import com.simibubi.create.foundation.utility.Iterate;
-
-import com.simibubi.create.foundation.utility.Lang;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
@@ -46,11 +32,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
 
-public class CentrifugationRecipe extends ProcessingRecipe<SmartInventory> implements IAssemblyRecipe {
+public class CentrifugationRecipe extends ProcessingRecipe<Container> implements IAssemblyRecipe {
 
 	int minimalRPM;
 
@@ -144,7 +128,11 @@ public class CentrifugationRecipe extends ProcessingRecipe<SmartInventory> imple
 				if (recipe instanceof CentrifugationRecipe centrifugeRecipe) {
 					recipeOutputItems.addAll(centrifugeRecipe.rollResults());
 					recipeOutputFluids.addAll(centrifugeRecipe.getFluidResults());
-					recipeOutputItems.addAll(centrifugeRecipe.getRemainingItems(centrifuge.getInputInventory()));
+					CraftingContainer remainderContainer = new DummyCraftingContainer(availableItems, extractedItemsFromSlot);
+
+					for (ItemStack stack : centrifugeRecipe.getRemainingItems(remainderContainer))
+						if (!stack.isEmpty())
+							recipeOutputItems.add(stack);
 				}
 			}
 
@@ -181,19 +169,6 @@ public class CentrifugationRecipe extends ProcessingRecipe<SmartInventory> imple
 
 	@Override
 	protected boolean canSpecifyDuration() {
-		return true;
-	}
-
-	@Override
-	public boolean matches(SmartInventory inv, @Nonnull Level worldIn) {
-		if (inv.isEmpty())
-			return false;
-		if (ingredients.isEmpty())
-			return !fluidIngredients.isEmpty();
-
-		for (Ingredient ingredient : ingredients)
-			if (inv.countItem(ingredient.getItems()[0].getItem()) < ingredient.getItems().length) return false;
-
 		return true;
 	}
 
@@ -276,5 +251,10 @@ public class CentrifugationRecipe extends ProcessingRecipe<SmartInventory> imple
 
 	public int getMinimalRPM() {
 		return minimalRPM;
+	}
+
+	@Override
+	public boolean matches(Container container, Level level) {
+		return false;
 	}
 }

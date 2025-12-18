@@ -18,6 +18,7 @@ import com.simibubi.create.foundation.blockEntity.renderer.SafeBlockEntityRender
 import com.simibubi.create.foundation.render.CachedBufferer;
 import com.simibubi.create.foundation.render.SuperByteBuffer;
 import com.simibubi.create.foundation.utility.AngleHelper;
+import com.simibubi.create.foundation.utility.AnimationTickHolder;
 import com.simibubi.create.foundation.utility.VecHelper;
 
 import net.minecraft.client.Minecraft;
@@ -81,7 +82,10 @@ public class GrinderRenderer extends SafeBlockEntityRenderer<GrinderBlockEntity>
 			};
 		}
 
-		SuperByteBuffer superBuffer = CachedBufferer.partialFacing(partial, blockState, blockState.getValue(HORIZONTAL_FACING)).rotateCentered(Direction.UP, blockState.getValue(HORIZONTAL_FACING) == Direction.WEST || blockState.getValue(HORIZONTAL_FACING) == Direction.NORTH ? 0 : (180*(float)Math.PI/180f));
+		SuperByteBuffer superBuffer = CachedBufferer
+				.partialFacing(partial, blockState, blockState.getValue(HORIZONTAL_FACING))
+				.rotateCentered(Direction.UP, blockState.getValue(HORIZONTAL_FACING) == Direction.WEST || blockState.getValue(HORIZONTAL_FACING) == Direction.NORTH ? 0 : (180*(float)Math.PI/180f));
+
 		superBuffer.color(0xFFFFFF)
 			.light(light)
 			.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()));

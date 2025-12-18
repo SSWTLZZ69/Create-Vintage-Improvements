@@ -1,8 +1,6 @@
 package com.negodya1.vintageimprovements.compat.jei.category;
 
-import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedCoiling;
 import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedLathe;
-import com.negodya1.vintageimprovements.content.kinetics.coiling.CoilingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.lathe.TurningRecipe;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;

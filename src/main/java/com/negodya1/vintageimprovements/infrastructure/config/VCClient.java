@@ -4,7 +4,7 @@ import com.simibubi.create.foundation.config.ConfigBase;
 
 public class VCClient extends ConfigBase {
 
-	public final ConfigGroup client = group(0, "client",
+	public final ConfigBase.ConfigGroup client = group(0, "client",
 			Comments.client);
 
 

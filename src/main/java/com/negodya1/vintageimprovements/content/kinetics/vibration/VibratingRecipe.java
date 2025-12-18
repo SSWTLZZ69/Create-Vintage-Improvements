@@ -1,21 +1,14 @@
 package com.negodya1.vintageimprovements.content.kinetics.vibration;
 
 import com.negodya1.vintageimprovements.VintageBlocks;
+import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.compat.jei.category.assemblies.AssemblyVibrating;
-import com.negodya1.vintageimprovements.content.kinetics.centrifuge.CentrifugationRecipe;
-import com.negodya1.vintageimprovements.content.kinetics.centrifuge.CentrifugeBlockEntity;
-import com.negodya1.vintageimprovements.content.kinetics.helve_hammer.HammeringRecipe;
-import com.negodya1.vintageimprovements.content.kinetics.helve_hammer.HelveBlockEntity;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
 import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemblySubCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
-import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
-import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.utility.Iterate;
-import com.simibubi.create.foundation.utility.Lang;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -25,8 +18,6 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.RecipeWrapper;
 
@@ -94,9 +85,8 @@ public class VibratingRecipe extends ProcessingRecipe<RecipeWrapper> implements 
 			}
 
 			if (simulate) {
-				if (recipe instanceof VibratingRecipe centrifugeRecipe) {
-					recipeOutputItems.addAll(centrifugeRecipe.rollResults());
-					recipeOutputItems.addAll(centrifugeRecipe.getRemainingItems(centrifuge.inputInv));
+				if (recipe instanceof VibratingRecipe vibratingRecipe) {
+					recipeOutputItems.addAll(vibratingRecipe.rollResults());
 				}
 			}
 

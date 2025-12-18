@@ -1,36 +1,16 @@
 package com.negodya1.vintageimprovements.content.kinetics.helve_hammer;
 
-import com.google.common.collect.ImmutableList;
 import com.negodya1.vintageimprovements.*;
-import com.negodya1.vintageimprovements.content.kinetics.centrifuge.CentrifugationRecipe;
-import com.negodya1.vintageimprovements.content.kinetics.centrifuge.CentrifugeBlock;
-import com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber.PressurizingRecipe;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancementBehaviour;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancements;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
 import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
-import com.simibubi.create.AllBlocks;
-import com.simibubi.create.AllItems;
-import com.simibubi.create.AllRecipeTypes;
 import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation;
-import com.simibubi.create.content.kinetics.base.IRotate;
-import com.simibubi.create.content.processing.basin.BasinBlockEntity;
-import com.simibubi.create.content.processing.basin.BasinRecipe;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
-import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
-import com.simibubi.create.foundation.fluid.CombinedTankWrapper;
-import com.simibubi.create.foundation.fluid.FluidHelper;
-import com.simibubi.create.foundation.fluid.FluidIngredient;
-import com.simibubi.create.foundation.recipe.RecipeConditions;
 import com.simibubi.create.foundation.recipe.RecipeFinder;
-import com.simibubi.create.foundation.utility.*;
-import com.simibubi.create.foundation.utility.animation.LerpedFloat;
-import com.tterrag.registrate.util.entry.RegistryEntry;
+import com.simibubi.create.foundation.utility.Lang;
+import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.Direction.Axis;
 import com.simibubi.create.AllSoundEvents;
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.belt.behaviour.DirectBeltInputBehaviour;
 import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -39,15 +19,11 @@ import com.simibubi.create.foundation.item.SmartInventory;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
@@ -59,34 +35,23 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.SmithingRecipe;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.AnvilBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.crafting.ConditionalRecipe;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
@@ -101,7 +66,6 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	private SmithingRecipe lastSmithingRecipe;
 	private HammeringRecipe lastHammeringRecipe;
 	boolean lastRecipeIsAssembly;
-	private boolean contentsChanged;
 	private static final Object hammeringRecipesKey = new Object();
 	private int operatingMode;
 	Block anvilBlock;
@@ -300,7 +264,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 				}
 			}
 
-			if (inputInv.getStackInSlot(0).isEmpty()) return;
+			if (inputInv.isEmpty()) return;
 
 			if (lastHammeringRecipe == null || !HammeringRecipe.match(this, lastHammeringRecipe)) {
 
@@ -658,13 +622,13 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 
 		switch (operatingMode) {
 			case 1 -> VintageLang.translate("gui.goggles.current_mode")
-						.add(Lang.text(" ")).add(VintageLang.translate("gui.goggles.hammering_mode"))
-						.style(ChatFormatting.DARK_AQUA).forGoggles(tooltip);
+					.add(Lang.text(" ")).add(VintageLang.translate("gui.goggles.hammering_mode"))
+					.style(ChatFormatting.DARK_AQUA).forGoggles(tooltip);
 			case 2 -> VintageLang.translate("gui.goggles.current_mode")
 					.add(Lang.text(" ")).add(VintageLang.translate("gui.goggles.smithing_mode"))
 					.style(ChatFormatting.DARK_PURPLE).forGoggles(tooltip);
 			default -> VintageLang.translate("gui.goggles.no_operating_block")
-							.style(ChatFormatting.DARK_RED).forGoggles(tooltip);
+					.style(ChatFormatting.DARK_RED).forGoggles(tooltip);
 
 		}
 
@@ -675,7 +639,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 
 		if (operatingMode == 1 && hammerBlows > 0 && lastHammeringRecipe != null)
 			VintageLang.translate("gui.goggles.hammer_blows")
-					.add(Lang.text(" ")).add(VintageLang.number(hammerBlows))
+					.add(Lang.text(" ")).add(Lang.number(hammerBlows))
 					.forGoggles(tooltip);
 
 		return true;
