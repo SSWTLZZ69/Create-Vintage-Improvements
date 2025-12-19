@@ -452,6 +452,8 @@
 	"vintageimprovements.jei.text.curving_head_damage": "Head Damage",
 	
 	"vintageimprovements.jei.text.energy": "Energy costs:",
+
+	"vintageimprovements.jei.text.processing_duration":  "Processing duration: %s",
 	
 	"vintageimprovements.gui.goggles.low": "Low",
 	"vintageimprovements.gui.goggles.medium": "Medium",

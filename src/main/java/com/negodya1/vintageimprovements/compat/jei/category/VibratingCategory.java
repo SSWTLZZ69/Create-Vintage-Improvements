@@ -33,14 +33,14 @@ public class VibratingCategory extends CreateRecipeCategory<VibratingRecipe> {
 				.addIngredients(recipe.getIngredients().get(0));
 
 		List<ProcessingOutput> results = recipe.getRollableResults();
-		boolean single = results.size() == 1;
+		int globalYOffset = (results.size() / 3 - 1) * 19 / 2;
 		int i = 0;
 		for (ProcessingOutput output : results) {
-			int xOffset = i % 2 == 0 ? 0 : 19;
-			int yOffset = (i / 2) * -19;
+			int xOffset = (i % 3) * 19;
+			int yOffset = (i / 3) * 19;
 
 			builder
-					.addSlot(RecipeIngredientRole.OUTPUT, single ? 139 : 133 + xOffset, 27 + yOffset)
+					.addSlot(RecipeIngredientRole.OUTPUT, 104 + xOffset, 25 + yOffset - globalYOffset)
 					.setBackground(getRenderedSlot(output), -1, -1)
 					.addItemStack(output.getStack())
 					.addTooltipCallback(addStochasticTooltip(output));
@@ -51,8 +51,10 @@ public class VibratingCategory extends CreateRecipeCategory<VibratingRecipe> {
 
 	@Override
 	public void draw(VibratingRecipe recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
-		AllGuiTextures.JEI_ARROW.render(graphics, 85, 32);
-		AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 43, 4);
+		List<ProcessingOutput> results = recipe.getRollableResults();
+		int yOffset = results.size() / 3 * 19 / 2;
+		AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 98, 19 - yOffset);
+		AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 43, 0);
 
 		AllGuiTextures.JEI_SHADOW.render(graphics, 48 - 17, 35 + 13);
 
