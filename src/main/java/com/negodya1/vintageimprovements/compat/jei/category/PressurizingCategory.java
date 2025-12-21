@@ -5,7 +5,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import com.negodya1.vintageimprovements.compat.jei.VintageRecipeUtil;
 import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedVacuumChamber;
 import com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber.PressurizingRecipe;
-import com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber.VacuumizingRecipe;
 import com.negodya1.vintageimprovements.foundation.gui.VintageGuiTextures;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
@@ -20,14 +19,16 @@ import com.simibubi.create.content.processing.recipe.ProcessingOutput;
 import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.foundation.item.ItemHelper;
-import mezz.jei.api.forge.ForgeTypes;
+import com.simibubi.create.foundation.utility.CreateLang;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.createmod.catnip.data.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.fluids.FluidStack;
@@ -51,6 +52,10 @@ public class PressurizingCategory extends BasinCategory {
 		List<Pair<Ingredient, MutableInt>> condensedIngredients = ItemHelper.condenseIngredients(recipe.getIngredients());
 
 		int size = condensedIngredients.size() + recipe.getFluidIngredients().size();
+		// 原先仅计算输出流体槽位时剔除了副流体数量，其余槽位仍显示错误
+		if (recipe instanceof PressurizingRecipe r) {
+			size -= r.getSecondaryFluidInputs() > -1 ? 1 : 0;
+		}
 		int xOffset = size < 3 ? (3 - size) * 19 / 2 : 0;
 		int i = 0;
 
@@ -63,7 +68,7 @@ public class PressurizingCategory extends BasinCategory {
 			}
 
 			builder
-					.addSlot(RecipeIngredientRole.INPUT, 17 + xOffset + (i % 3) * 19, 51 - (i / 3) * 19)
+					.addSlot(RecipeIngredientRole.INPUT, 21 + xOffset + (i % 3) * 19, 52 - (i / 3) * 19)
 					.setBackground(getRenderedSlot(), -1, -1)
 					.addItemStacks(stacks);
 			i++;
@@ -74,19 +79,24 @@ public class PressurizingCategory extends BasinCategory {
 			if (recipe instanceof PressurizingRecipe r && j == r.getSecondaryFluidInputs())
 				CreateRecipeCategory.addFluidSlot(builder, 21, 14, fluidIngredient)
 						.addRichTooltipCallback(VintageRecipeUtil.addTooltip("jei.text.secondary_fluid_ingredient"));
-			else
-				CreateRecipeCategory.addFluidSlot(builder, 17 + xOffset + (i % 3) * 19, 51 - (i / 3) * 19, fluidIngredient);
-
-			i++;
+			else {
+				CreateRecipeCategory.addFluidSlot(builder, 17 + xOffset + (i % 3) * 19, 52 - (i / 3) * 19, fluidIngredient);
+				// 副流体不占据主原料的显示空间
+				i++;
+			}
 			j++;
 		}
 
 		size = recipe.getRollableResults().size() + recipe.getFluidResults().size();
+		// 同上
+		if (recipe instanceof PressurizingRecipe r) {
+			size -= r.getSecondaryFluidResults() > -1 ? 1 : 0;
+		}
 		i = 0;
 
 		for (ProcessingOutput result : recipe.getRollableResults()) {
 			int xPosition = 142 - (size % 2 != 0 && i == size - 1 ? 0 : i % 2 == 0 ? 10 : -9);
-			int yPosition = -19 * (i / 2) + 51;
+			int yPosition = -19 * (i / 2) + 52;
 
 			builder
 					.addSlot(RecipeIngredientRole.OUTPUT, xPosition, yPosition)
@@ -110,12 +120,12 @@ public class PressurizingCategory extends BasinCategory {
 							.addRichTooltipCallback(VintageRecipeUtil.addTooltip("jei.text.secondary_fluid_result"));
 				}
 				else {
-					xPosition = 142 - ((secondary >= 0 ? size - 1 : size) % 2 != 0 && i == (secondary >= 0 ? size - 1 : size) - 1 ? 0 : i % 2 == 0 ? 10 : -9);
-					yPosition = -19 * (i / 2) + 51;
+					xPosition = 142 - (size % 2 != 0 && i == size - 1 ? 0 : i % 2 == 0 ? 10 : -9);
+					yPosition = -19 * (i / 2) + 52;
 					CreateRecipeCategory.addFluidSlot(builder, xPosition, yPosition, fluidResult);
+					// 同上
+					i++;
 				}
-
-				i++;
 				j++;
 			}
 		}
@@ -135,20 +145,48 @@ public class PressurizingCategory extends BasinCategory {
 
 	@Override
 	public void draw(BasinRecipe recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
-		super.draw(recipe, iRecipeSlotsView, graphics, mouseX, mouseY);
+		HeatCondition requiredHeat = recipe.getRequiredHeat();
 
+		boolean noHeat = requiredHeat == HeatCondition.NONE;
+		// 修复工作盆默认显示逻辑箭头错位的问题
+		int size = recipe.getRollableResults().size() + recipe.getFluidResults().size();
+		if (recipe instanceof PressurizingRecipe r) {
+			size -= r.getSecondaryFluidResults() > -1 ? 1 : 0;
+		}
+		int vRows = (1 + size) / 2;
+
+		if (size > 0 && vRows <= 2)
+			AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 136, -19 * (vRows - 1) + 33);
+
+		AllGuiTextures shadow = noHeat ? AllGuiTextures.JEI_SHADOW : AllGuiTextures.JEI_LIGHT;
+		shadow.render(graphics, 81, 58 + (noHeat ? 10 : 30));
+
+		AllGuiTextures heatBar = noHeat ? AllGuiTextures.JEI_NO_HEAT_BAR : AllGuiTextures.JEI_HEAT_BAR;
+		heatBar.render(graphics, 4, 80);
+		graphics.drawString(Minecraft.getInstance().font, CreateLang.translateDirect(requiredHeat.getTranslationKey()), 9,
+				86, requiredHeat.getColor(), false);
+
+
+		// 防呆检测
 		if (recipe instanceof PressurizingRecipe vrecipe) {
-			if (vrecipe.getSecondaryFluidResults() >= 0 && vrecipe.getFluidResults().size() > 0)
+			if (vrecipe.getSecondaryFluidResults() >= 0 && vrecipe.getFluidResults().size() > vrecipe.getSecondaryFluidResults())
 				VintageGuiTextures.JEI_UP_TO_RIGHT_ARROW.render(graphics, 120, 2);
-			if (vrecipe.getSecondaryFluidInputs() >= 0 && vrecipe.getFluidIngredients().size() > 0)
+			if (vrecipe.getSecondaryFluidInputs() >= 0 && vrecipe.getFluidIngredients().size() > vrecipe.getSecondaryFluidInputs())
 				AllGuiTextures.JEI_ARROW.render(graphics, 45, 18);
 		}
 
-		HeatCondition requiredHeat = recipe.getRequiredHeat();
 		if (requiredHeat != HeatCondition.NONE)
 			heater.withHeat(requiredHeat.visualizeAsBlazeBurner())
 					.draw(graphics, getBackground().getWidth() / 2 + 3, 55);
 		vacuum.draw(graphics, getBackground().getWidth() / 2 + 3, 34, true);
 	}
 
+	@Override
+	public void getTooltip(ITooltipBuilder tooltip, BasinRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		if (mouseX > 90 && mouseX < 120 && mouseY > 9 && mouseY < 76) {
+			int duration = recipe.getProcessingDuration();
+			if (duration == 0) duration = 100;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+	}
 }

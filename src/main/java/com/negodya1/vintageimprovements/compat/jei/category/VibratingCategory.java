@@ -11,10 +11,12 @@ import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 
 @ParametersAreNonnullByDefault
 public class VibratingCategory extends CreateRecipeCategory<VibratingRecipe> {
@@ -33,14 +35,14 @@ public class VibratingCategory extends CreateRecipeCategory<VibratingRecipe> {
 				.addIngredients(recipe.getIngredients().get(0));
 
 		List<ProcessingOutput> results = recipe.getRollableResults();
-		boolean single = results.size() == 1;
+		int globalYOffset = (results.size() / 3 - 1) * 19 / 2;
 		int i = 0;
 		for (ProcessingOutput output : results) {
-			int xOffset = i % 2 == 0 ? 0 : 19;
-			int yOffset = (i / 2) * -19;
+			int xOffset = (i % 3) * 19;
+			int yOffset = (i / 3) * 19;
 
 			builder
-					.addSlot(RecipeIngredientRole.OUTPUT, single ? 139 : 133 + xOffset, 27 + yOffset)
+					.addSlot(RecipeIngredientRole.OUTPUT, 104 + xOffset, 25 + yOffset - globalYOffset)
 					.setBackground(getRenderedSlot(output), -1, -1)
 					.addItemStack(output.getStack())
 					.addRichTooltipCallback(addStochasticTooltip(output));
@@ -51,12 +53,22 @@ public class VibratingCategory extends CreateRecipeCategory<VibratingRecipe> {
 
 	@Override
 	public void draw(VibratingRecipe recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
-		AllGuiTextures.JEI_ARROW.render(graphics, 85, 32);
-		AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 43, 4);
+		List<ProcessingOutput> results = recipe.getRollableResults();
+		int yOffset = results.size() / 3 * 19 / 2;
+		AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 98, 19 - yOffset);
+		AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 43, 0);
 
 		AllGuiTextures.JEI_SHADOW.render(graphics, 48 - 17, 35 + 13);
 
 		table.draw(graphics, 48, 35);
 	}
 
+	@Override
+	public void getTooltip(ITooltipBuilder tooltip, VibratingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		if (mouseX > 39 && mouseX < 73 && mouseY > 19 && mouseY < 57) {
+			int duration = recipe.getProcessingDuration();
+			if (duration == 0) duration = 100;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+	}
 }

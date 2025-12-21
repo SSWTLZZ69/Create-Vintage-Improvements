@@ -1,17 +1,17 @@
 package com.negodya1.vintageimprovements.compat.jei.category;
 
-import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedCoiling;
 import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedLathe;
-import com.negodya1.vintageimprovements.content.kinetics.coiling.CoilingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.lathe.TurningRecipe;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
@@ -54,4 +54,12 @@ public class TurningCategory extends CreateRecipeCategory<TurningRecipe> {
 		lathe.draw(graphics, 72, 42);
 	}
 
+	@Override
+	public void getTooltip(ITooltipBuilder tooltip, TurningRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		if (mouseX > 54 && mouseX < 97 && mouseY > 24 && mouseY < 65) {
+			int duration = recipe.getProcessingDuration();
+			if (duration == 0) duration = 200;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+	}
 }
