@@ -4,6 +4,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedGrinder;
+import com.negodya1.vintageimprovements.content.kinetics.grinder.PolishingRecipe;
 import com.negodya1.vintageimprovements.foundation.gui.VintageGuiTextures;
 import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
@@ -19,6 +20,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
@@ -78,4 +80,13 @@ public class GrinderSandpaperPolishingCategory extends CreateRecipeCategory<Sand
 		}
 	}
 
+	@Override
+	public List<Component> getTooltipStrings(SandPaperPolishingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		List<Component> tooltip = new ArrayList<>();
+		if (mouseX > 63 && mouseX < 97 && mouseY > 33 && mouseY < 64) {
+			int duration = 50;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+		return tooltip;
+	}
 }

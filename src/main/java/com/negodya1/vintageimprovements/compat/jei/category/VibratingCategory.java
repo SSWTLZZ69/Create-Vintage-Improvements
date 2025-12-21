@@ -1,5 +1,6 @@
 package com.negodya1.vintageimprovements.compat.jei.category;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -15,6 +16,7 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 
 @ParametersAreNonnullByDefault
 public class VibratingCategory extends CreateRecipeCategory<VibratingRecipe> {
@@ -61,4 +63,14 @@ public class VibratingCategory extends CreateRecipeCategory<VibratingRecipe> {
 		table.draw(graphics, 48, 35);
 	}
 
+	@Override
+	public List<Component> getTooltipStrings(VibratingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		List<Component> tooltip = new ArrayList<>();
+		if (mouseX > 39 && mouseX < 73 && mouseY > 19 && mouseY < 57) {
+			int duration = recipe.getProcessingDuration();
+			if (duration == 0) duration = 100;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+		return tooltip;
+	}
 }

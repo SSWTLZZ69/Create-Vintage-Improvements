@@ -1,6 +1,7 @@
 package com.negodya1.vintageimprovements.compat.jei.category;
 
 import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedCoiling;
+import com.negodya1.vintageimprovements.content.kinetics.centrifuge.CentrifugationRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.coiling.CoilingRecipe;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
@@ -10,8 +11,10 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
@@ -52,4 +55,14 @@ public class CoilingCategory extends CreateRecipeCategory<CoilingRecipe> {
 		coiling.draw(graphics, 72, 42);
 	}
 
+	@Override
+	public List<Component> getTooltipStrings(CoilingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		List<Component> tooltip = new ArrayList<>();
+		if (mouseX > 63 && mouseX < 97 && mouseY > 33 && mouseY < 64) {
+			int duration = recipe.getProcessingDuration();
+			if (duration == 0) duration = 50;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+		return tooltip;
+	}
 }

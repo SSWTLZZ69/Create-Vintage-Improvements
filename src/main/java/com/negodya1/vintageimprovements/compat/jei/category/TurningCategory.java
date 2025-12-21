@@ -10,8 +10,10 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
@@ -52,4 +54,14 @@ public class TurningCategory extends CreateRecipeCategory<TurningRecipe> {
 		lathe.draw(graphics, 72, 42);
 	}
 
+	@Override
+	public List<Component> getTooltipStrings(TurningRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		List<Component> tooltip = new ArrayList<>();
+		if (mouseX > 54 && mouseX < 97 && mouseY > 24 && mouseY < 65) {
+			int duration = recipe.getProcessingDuration();
+			if (duration == 0) duration = 200;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+		return tooltip;
+	}
 }

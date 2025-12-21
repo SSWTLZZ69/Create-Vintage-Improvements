@@ -201,8 +201,10 @@ public class PressurizingCategory extends BasinCategory {
 	@Override
 	public List<Component> getTooltipStrings(BasinRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
 		List<Component> tooltip = new ArrayList<>();
-		if(mouseX > getBackground().getWidth() / 2 && mouseX < getBackground().getWidth() / 2 + 36 && mouseY > 15 && mouseY < 75) {
-			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", recipe.getProcessingDuration()));
+		if (mouseX > 90 && mouseX < 120 && mouseY > 9 && mouseY < 76) {
+			int duration = recipe.getProcessingDuration();
+			if (duration == 0) duration = 100;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
 		}
 		return tooltip;
 	}

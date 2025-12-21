@@ -1,11 +1,13 @@
 package com.negodya1.vintageimprovements.compat.jei.category;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedGrinder;
+import com.negodya1.vintageimprovements.content.kinetics.coiling.CoilingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.grinder.PolishingRecipe;
 import com.negodya1.vintageimprovements.foundation.gui.VintageGuiTextures;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
@@ -77,4 +79,13 @@ public class GrinderPolishingCategory extends CreateRecipeCategory<PolishingReci
 		}
 	}
 
+	@Override
+	public List<Component> getTooltipStrings(PolishingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		List<Component> tooltip = new ArrayList<>();
+		if (mouseX > 63 && mouseX < 97 && mouseY > 33 && mouseY < 64) {
+			int duration = recipe.getProcessingDuration();
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+		return tooltip;
+	}
 }
