@@ -12,6 +12,7 @@ import com.simibubi.create.content.processing.recipe.ProcessingOutput;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
@@ -78,4 +79,11 @@ public class GrinderSandpaperPolishingCategory extends CreateRecipeCategory<Sand
 		}
 	}
 
+	@Override
+	public void getTooltip(ITooltipBuilder tooltip, SandPaperPolishingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		if (mouseX > 63 && mouseX < 97 && mouseY > 33 && mouseY < 64) {
+			int duration = 50;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+	}
 }

@@ -6,6 +6,7 @@ import com.negodya1.vintageimprovements.content.kinetics.vibration.LeavesVibrati
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
@@ -48,4 +49,11 @@ public class LeavesVibratingCategory extends CreateRecipeCategory<LeavesVibratin
 		graphics.drawString(Minecraft.getInstance().font,  Component.translatable(VintageImprovements.MODID + ".jei.text.leaves_vibrating.text6"), 87, 58, 0xFAFAFA);
 	}
 
+	@Override
+	public void getTooltip(ITooltipBuilder tooltip, LeavesVibratingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		if (mouseX > 39 && mouseX < 73 && mouseY > 19 && mouseY < 57) {
+			int duration = 100;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+	}
 }

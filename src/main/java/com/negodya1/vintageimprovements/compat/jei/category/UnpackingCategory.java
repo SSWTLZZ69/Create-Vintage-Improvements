@@ -8,11 +8,13 @@ import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 
 @ParametersAreNonnullByDefault
@@ -50,4 +52,11 @@ public class UnpackingCategory extends CreateRecipeCategory<CraftingRecipe> {
 		table.draw(graphics, 48, 35);
 	}
 
+	@Override
+	public void getTooltip(ITooltipBuilder tooltip, CraftingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		if (mouseX > 39 && mouseX < 73 && mouseY > 19 && mouseY < 57) {
+			int duration = 100;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+	}
 }
