@@ -2,11 +2,7 @@ package com.negodya1.vintageimprovements.compat.jei.category;
 
 import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedCentrifuge;
-import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedVacuumChamber;
 import com.negodya1.vintageimprovements.content.kinetics.centrifuge.CentrifugationRecipe;
-import com.negodya1.vintageimprovements.content.kinetics.coiling.CoilingRecipe;
-import com.negodya1.vintageimprovements.content.kinetics.grinder.PolishingRecipe;
-import com.simibubi.create.compat.jei.category.BasinCategory;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.content.processing.basin.BasinRecipe;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
@@ -15,7 +11,6 @@ import com.simibubi.create.foundation.gui.AllGuiTextures;
 import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
-import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.Minecraft;
@@ -25,6 +20,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.fluids.FluidStack;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
@@ -97,4 +93,14 @@ public class CentrifugationCategory extends CreateRecipeCategory<CentrifugationR
 				88, 103, 0xFFFF00);
 	}
 
+	@Override
+	public List<Component> getTooltipStrings(CentrifugationRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		List<Component> tooltip = new ArrayList<>();
+		if (mouseX > 23 && mouseX < 105 && mouseY > 47 && mouseY < 97) {
+			int duration = recipe.getProcessingDuration();
+			if (duration == 0) duration = 100;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+		return tooltip;
+	}
 }

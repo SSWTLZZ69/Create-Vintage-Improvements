@@ -40,7 +40,7 @@ public class SpringCoilingScenes {
 		scene.world.createItemOnBeltLike(itemSpawn, Direction.UP, steel_rod);
 		scene.idle(10);
 		scene.world.removeItemsFromBelt(util.grid.at(3, 1, 2));
-		scene.world.createItemOnBeltLike(coilingPos, Direction.UP, steel_rod);
+		scene.world.createItemOnBeltLike(coilingPos, Direction.UP, steel_spring);
 		scene.idle(60);
 
 		scene.overlay.showText(60)

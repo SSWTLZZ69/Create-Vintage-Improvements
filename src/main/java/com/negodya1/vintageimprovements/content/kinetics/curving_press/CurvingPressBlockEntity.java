@@ -3,73 +3,43 @@ package com.negodya1.vintageimprovements.content.kinetics.curving_press;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
-import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.VintageItems;
+import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.VintageRecipesList;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancementBehaviour;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancements;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
-import com.negodya1.vintageimprovements.infrastructure.config.VCRecipes;
-import com.negodya1.vintageimprovements.infrastructure.config.VCServer;
 import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
-import com.simibubi.create.AllBlocks;
-import com.simibubi.create.AllRecipeTypes;
-import com.simibubi.create.AllTags;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.belt.transport.TransportedItemStack;
-import com.simibubi.create.content.kinetics.crafter.MechanicalCraftingRecipe;
-import com.simibubi.create.content.kinetics.press.PressingBehaviour;
-import com.simibubi.create.content.processing.basin.BasinBlockEntity;
-import com.simibubi.create.content.processing.basin.BasinOperatingBlockEntity;
 import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
-import com.simibubi.create.foundation.advancement.AdvancementBehaviour;
-import com.simibubi.create.foundation.advancement.AllAdvancements;
-import com.simibubi.create.foundation.advancement.CreateAdvancement;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.item.ItemHelper;
 import com.simibubi.create.foundation.item.SmartInventory;
 import com.simibubi.create.foundation.recipe.RecipeApplier;
 import com.simibubi.create.foundation.recipe.RecipeConditions;
 import com.simibubi.create.foundation.recipe.RecipeFinder;
-import com.simibubi.create.foundation.utility.Components;
-import com.simibubi.create.foundation.utility.Lang;
-import com.simibubi.create.foundation.utility.LangBuilder;
 import com.simibubi.create.foundation.utility.VecHelper;
-import com.simibubi.create.infrastructure.config.AllConfigs;
 
-import com.negodya1.vintageimprovements.content.kinetics.curving_press.CurvingBehaviour.Mode;
 import com.negodya1.vintageimprovements.content.kinetics.curving_press.CurvingBehaviour.CurvingBehaviourSpecifics;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.Optionull;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.RecipeWrapper;
-import net.minecraftforge.registries.ForgeRegistries;
 
 public class CurvingPressBlockEntity extends KineticBlockEntity implements CurvingBehaviourSpecifics {
 
@@ -422,16 +392,13 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 	@Override
 	public boolean tryProcessInWorld(ItemEntity itemEntity, boolean simulate) {
 		ItemStack item = itemEntity.getItem();
-		Optional<CurvingRecipe> recipe = getRecipe(item);
-		if (!recipe.isPresent())
+		Optional<CurvingRecipe> optionalRecipe = getRecipe(item);
+		if (!optionalRecipe.isPresent() || !checkToolHead.test(optionalRecipe.get()))
 			return tryToCurve(itemEntity, simulate);
-		if (recipe.get().getMode() != mode)
+
+		CurvingRecipe recipe = optionalRecipe.get();
+		if (itemEntity.getItem().getCount() < recipe.getIngredients().size())
 			return false;
-		if (mode == 5) {
-			if (itemAsHead.isEmpty()) return false;
-			if (!itemAsHead.getItem(0).is(recipe.get().itemAsHead)) return false;
-		}
-		if (itemEntity.getItem().getCount() < recipe.get().getIngredients().size()) return false;
 
 		if (simulate)
 			return true;
@@ -439,7 +406,7 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 		ItemStack itemCreated = ItemStack.EMPTY;
 		pressingBehaviour.particleItems.add(item.copy());
 		for (ItemStack result : RecipeApplier.applyRecipeOn(level, ItemHandlerHelper.copyStackWithSize(item, 1),
-				recipe.get())) {
+				recipe)) {
 			if (itemCreated.isEmpty())
 				itemCreated = result.copy();
 			ItemEntity created =
@@ -448,36 +415,33 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 			created.setDeltaMovement(VecHelper.offsetRandomly(Vec3.ZERO, level.random, .05f));
 			level.addFreshEntity(created);
 		}
-		item.shrink(recipe.get().getIngredients().size());
+		item.shrink(recipe.getIngredients().size());
 
 		if (!itemCreated.isEmpty())
-			onItemPressed(itemCreated, recipe.get().headDamage);
+			onItemPressed(itemCreated, recipe.headDamage);
 		return true;
 	}
 
 	@Override
 	public boolean tryProcessOnBelt(TransportedItemStack input, List<ItemStack> outputList, boolean simulate) {
-		Optional<CurvingRecipe> recipe = getRecipe(input.stack);
-		if (!recipe.isPresent())
+		Optional<CurvingRecipe> optionalRecipe = getRecipe(input.stack);
+		if (!optionalRecipe.isPresent() || !checkToolHead.test(optionalRecipe.get()))
 			return tryToCurve(outputList, input.stack, simulate);
-		if (recipe.get().getMode() != mode)
+
+		CurvingRecipe recipe = optionalRecipe.get();
+		if (input.stack.getCount() < recipe.getIngredients().size())
 			return false;
-		if (mode == 5) {
-			if (itemAsHead.isEmpty()) return false;
-			if (!itemAsHead.getItem(0).is(recipe.get().itemAsHead)) return false;
-		}
-		if (input.stack.getCount() < recipe.get().getIngredients().size()) return false;
 
 		if (simulate)
 			return true;
 		pressingBehaviour.particleItems.add(input.stack);
 		List<ItemStack> outputs = RecipeApplier.applyRecipeOn(level,
-			ItemHandlerHelper.copyStackWithSize(input.stack, 1), recipe.get());
-		input.stack.shrink(recipe.get().getIngredients().size() - 1);
+			ItemHandlerHelper.copyStackWithSize(input.stack, 1), recipe);
+		input.stack.shrink(recipe.getIngredients().size() - 1);
 
 		for (ItemStack created : outputs) {
 			if (!created.isEmpty()) {
-				onItemPressed(created, recipe.get().headDamage);
+				onItemPressed(created, recipe.headDamage);
 				break;
 			}
 		}
@@ -488,22 +452,28 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 
 	private static final RecipeWrapper pressingInv = new RecipeWrapper(new ItemStackHandler(1));
 
+	private final Predicate<CurvingRecipe> checkToolHead = recipe -> {
+		if (mode != recipe.getMode())
+			return false;
+
+		if (mode == 5)
+			return itemAsHead.getItem(0).is(recipe.getItemAsHead());
+		else
+			return true;
+	};
+
 	public Optional<CurvingRecipe> getRecipe(ItemStack item) {
 		Optional<CurvingRecipe> assemblyRecipe =
-			SequencedAssemblyRecipe.getRecipe(level, item, VintageRecipes.CURVING.getType(), CurvingRecipe.class);
+			SequencedAssemblyRecipe.getRecipes(level, item, VintageRecipes.CURVING.getType(), CurvingRecipe.class).filter(checkToolHead).findFirst();
+		
 		if (assemblyRecipe.isPresent())
 			return assemblyRecipe;
 
 		pressingInv.setItem(0, item);
 		assemblyRecipe = VintageRecipes.CURVING.find(pressingInv, level);
 
-		if (assemblyRecipe.isPresent())
-			if (mode == assemblyRecipe.get().getMode()) {
-				if (mode == 5) {
-					if (itemAsHead.getItem(0).is(assemblyRecipe.get().getItemAsHead())) return assemblyRecipe;
-				}
-				else return assemblyRecipe;
-			}
+		if (assemblyRecipe.isPresent() && checkToolHead.test(assemblyRecipe.get()))
+			return assemblyRecipe;
 
 		Predicate<Recipe<?>> types = RecipeConditions.isOfType(VintageRecipes.CURVING.getType());
 
@@ -511,13 +481,8 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 		startedSearch = startedSearch.stream()
 				.filter(RecipeConditions.firstIngredientMatches(item))
 				.filter(r -> !VintageRecipes.shouldIgnoreInAutomation(r))
-				.filter(r -> {if (r instanceof CurvingRecipe curvingRecipe)
-						if (mode == curvingRecipe.mode) {
-							if (mode == 5)
-								return itemAsHead.getItem(0).is(curvingRecipe.getItemAsHead());
-							return true;}
-					return false;})
-				.collect(Collectors.toList());
+				.filter(r -> r instanceof CurvingRecipe curvingRecipe && checkToolHead.test(curvingRecipe) && curvingRecipe.matches(pressingInv, level))
+				.toList();
 
 		for (Recipe recipe : startedSearch) {
 			if (recipe instanceof CurvingRecipe curvingRecipe)

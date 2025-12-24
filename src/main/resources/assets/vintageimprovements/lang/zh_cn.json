@@ -452,6 +452,7 @@
 	"vintageimprovements.jei.text.secondary_fluid_result": "此流体是次要产物,合成完成后出现在压缩机内部",
 	"vintageimprovements.jei.text.secondary_fluid_ingredient": "此流体是次要原料,必须注入压缩机内部才能开始合成",
 	"vintageimprovements.jei.text.hammer_blows": "锤击次数:",
+	"vintageimprovements.jei.text.processing_duration":  "配方时间: %s",
 	"vintageimprovements.gui.goggles.low": "低",
 	"vintageimprovements.gui.goggles.medium": "中",
 	"vintageimprovements.gui.goggles.high": "高",

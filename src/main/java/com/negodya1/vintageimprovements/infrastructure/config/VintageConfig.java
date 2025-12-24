@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Supplier;
 
-import com.negodya1.vintageimprovements.VintageImprovements;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.simibubi.create.content.kinetics.BlockStressValues;
@@ -59,7 +58,8 @@ public class VintageConfig {
         for (Entry<ModConfig.Type, ConfigBase> pair : CONFIGS.entrySet())
             context.registerConfig(pair.getKey(), pair.getValue().specification);
 
-        BlockStressValues.registerProvider(context.getActiveNamespace(), server().kinetics.stressValues);
+        VCStress stress = server().kinetics.stressValues;
+        BlockStressValues.registerProvider(context.getActiveNamespace(), stress);
     }
 
     @SubscribeEvent

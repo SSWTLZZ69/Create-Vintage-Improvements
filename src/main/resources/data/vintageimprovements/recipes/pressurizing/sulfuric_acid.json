@@ -3,7 +3,7 @@
 	"secondaryFluidInput": 1,
 	"ingredients": [ 
 		{
-			"fluid": "vintageimprovements:sulfur_trioxide",
+			"fluidTag": "forge:sulfur_trioxide",
 			"amount": 1000
 		},
 		{

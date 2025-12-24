@@ -20,11 +20,11 @@ public class GrinderFilterSlot extends ValueBoxTransform {
 	}
 
 	@Override
-	public void rotate(BlockState state, PoseStack ms) {
-		int yRot = 180;
-		TransformStack.cast(ms)
-			.rotateY(yRot)
-			.rotateX(90);
-	}
+	public void rotate(BlockState blockState, PoseStack poseStack) {
 
+		int yRot = 180;
+		TransformStack.cast(poseStack)
+				.rotateY(yRot)
+				.rotateX(90);
+	}
 }

@@ -1,7 +1,5 @@
-package com.negodya1.vintageimprovements.foundation.utility;
+package com.negodya1.vintageimprovements;
 
-import com.negodya1.vintageimprovements.VintageImprovements;
-import com.simibubi.create.Create;
 import com.simibubi.create.foundation.utility.Components;
 import com.simibubi.create.foundation.utility.Lang;
 import com.simibubi.create.foundation.utility.LangBuilder;

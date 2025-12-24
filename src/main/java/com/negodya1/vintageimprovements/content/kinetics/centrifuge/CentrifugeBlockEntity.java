@@ -1,28 +1,20 @@
 package com.negodya1.vintageimprovements.content.kinetics.centrifuge;
 
-import com.negodya1.vintageimprovements.VintageBlocks;
-import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.VintageItems;
-import com.negodya1.vintageimprovements.content.kinetics.helve_hammer.HammeringRecipe;
+import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancementBehaviour;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancements;
-import com.negodya1.vintageimprovements.foundation.utility.VintageLang;
+import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.equipment.goggles.IHaveGoggleInformation;
-import com.simibubi.create.content.kinetics.base.IRotate;
-import com.simibubi.create.content.processing.basin.BasinBlockEntity;
-import com.simibubi.create.content.processing.basin.BasinRecipe;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.fluid.CombinedTankWrapper;
-import com.simibubi.create.foundation.fluid.FluidHelper;
-import com.simibubi.create.foundation.fluid.FluidIngredient;
 import com.simibubi.create.foundation.recipe.RecipeFinder;
 import com.simibubi.create.foundation.utility.*;
 import com.simibubi.create.foundation.utility.animation.LerpedFloat;
+
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Direction.Axis;
 import com.negodya1.vintageimprovements.VintageRecipes;
-import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.belt.behaviour.DirectBeltInputBehaviour;
 import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
@@ -32,7 +24,6 @@ import com.simibubi.create.foundation.item.SmartInventory;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -43,10 +34,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
@@ -58,7 +46,6 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
@@ -79,7 +66,6 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 	private int basins;
 	private boolean redstoneApp;
 	boolean lastRecipeIsAssembly;
-	private boolean contentsChanged;
 	private static final Object centrifugationRecipesKey = new Object();
 
 	public static final int OUTPUT_ANIMATION_TIME = 10;
@@ -87,6 +73,8 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 	LerpedFloat ingredientRotationSpeed;
 	LerpedFloat ingredientRotation;
 	VintageAdvancementBehaviour advancementBehaviour;
+
+	private final CompoundTag nbtForAnim = new CompoundTag();
 
 	public CentrifugeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -131,10 +119,8 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		behaviours.add(new DirectBeltInputBehaviour(this));
 		super.addBehaviours(behaviours);
 
-		inputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.INPUT, this, 2, 1000, true)
-				.whenFluidUpdates(() -> contentsChanged = true);
+		inputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.INPUT, this, 2, 1000, true);
 		outputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.OUTPUT, this, 2, 1000, true)
-				.whenFluidUpdates(() -> contentsChanged = true)
 				.forbidInsertion();
 		behaviours.add(inputTank);
 		behaviours.add(outputTank);
@@ -162,7 +148,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		if (!clientPacket)
 			return;
 
-		NBTHelper.iterateCompoundList(compound.getList("VisualizedItems", Tag.TAG_COMPOUND),
+		NBTHelper.iterateCompoundList(nbtForAnim.getList("VisualizedItems", Tag.TAG_COMPOUND),
 				c -> visualizedOutputItems.add(IntAttached.with(OUTPUT_ANIMATION_TIME, ItemStack.of(c))));
 	}
 
@@ -179,7 +165,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		if (!clientPacket)
 			return;
 
-		compound.put("VisualizedItems", NBTHelper.writeCompoundList(visualizedOutputItems, ia -> ia.getValue()
+		nbtForAnim.put("VisualizedItems", NBTHelper.writeCompoundList(visualizedOutputItems, ia -> ia.getValue()
 				.serializeNBT()));
 		visualizedOutputItems.clear();
 	}
@@ -201,7 +187,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 	}
 
 	private List<Recipe<?>> getRecipes() {
-		List<Recipe<?>> list =  RecipeFinder.get(centrifugationRecipesKey, level, this::matchStaticFilters);
+		List<Recipe<?>> list = RecipeFinder.get(centrifugationRecipesKey, level, this::matchStaticFilters);
 
 		return list.stream()
 				.filter(this::matchCentrifugeRecipe)
@@ -216,7 +202,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		return r.getType() == VintageRecipes.CENTRIFUGATION.getType();
 	}
 
-	public boolean isProccesingNow() {
+	public boolean isProcessingNow() {
 		for (int i = 0; i < inputInv.getSlots(); i++) {
 			Optional<CentrifugationRecipe> assemblyRecipe = SequencedAssemblyRecipe.
 					getRecipe(level, inputInv.getStackInSlot(i),
@@ -236,8 +222,13 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 			if (!outputInv.getStackInSlot(i).isEmpty() && outputInv.getStackInSlot(i).getCount() >= outputInv.getStackInSlot(i).getMaxStackSize())
 				return false;
 		}
-
-		return CentrifugationRecipe.match(this, recipes.get(0));
+		if (recipes.get(0) instanceof CentrifugationRecipe centrifugationRecipe) {
+			boolean res = this.acceptOutputs(centrifugationRecipe.getRollableResultsAsItemStacks(), centrifugationRecipe.getFluidResults(), true);
+			if (!res)
+				return false;
+			return CentrifugationRecipe.match(this, centrifugationRecipe);
+		}
+		return false;
 	}
 
 	@Override
@@ -251,10 +242,6 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 
 		if (getBasins() < 4)
 			return;
-		for (int i = 0; i < outputInv.getSlots(); i++)
-			if (outputInv.getStackInSlot(i)
-					.getCount() == outputInv.getSlotLimit(i))
-				return;
 
 		if (timer > 0) {
 			if (getSpeed() == 0) {
@@ -319,8 +306,9 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 
 			lastRecipeIsAssembly = false;
 
-			if (!getRecipes().isEmpty()) {
-				lastRecipe = (CentrifugationRecipe) getRecipes().get(0);
+			List<Recipe<?>> recipes = getRecipes();
+			if (!recipes.isEmpty()) {
+				lastRecipe = (CentrifugationRecipe) recipes.get(0);
 				timer = lastRecipe.getProcessingDuration();
 				sendData();
 				return;
@@ -370,7 +358,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 	}
 
 	public boolean canProcess() {
-		return getSpeed() == 0 && getBasins() >= 4;
+		return (getSpeed() == 0 || VintageConfig.common().easyCentrifuge.get()) && getBasins() >= 4;
 	}
 
 	public SmartInventory getInputInventory() {
@@ -578,7 +566,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 
 			if (lastRecipe != null) if (lastRecipe.minimalRPM > Mth.abs(getSpeed()))
 				VintageLang.translate("gui.goggles.not_enough_rpm")
-						.add(Lang.text(" ")).add(Lang.number(lastRecipe.minimalRPM)).style(ChatFormatting.RED).forGoggles(tooltip);
+					.add(Lang.text(" ")).add(Lang.number(lastRecipe.minimalRPM)).style(ChatFormatting.RED).forGoggles(tooltip);
 
 
 			IItemHandlerModifiable items = capability.orElse(new ItemStackHandler());

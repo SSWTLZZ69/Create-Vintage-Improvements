@@ -12,8 +12,11 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
+import java.util.List;
 
 @ParametersAreNonnullByDefault
 public class LeavesVibratingCategory extends CreateRecipeCategory<LeavesVibratingRecipe> {
@@ -48,4 +51,13 @@ public class LeavesVibratingCategory extends CreateRecipeCategory<LeavesVibratin
 		graphics.drawString(Minecraft.getInstance().font,  Component.translatable(VintageImprovements.MODID + ".jei.text.leaves_vibrating.text6"), 87, 58, 0xFAFAFA);
 	}
 
+	@Override
+	public List<Component> getTooltipStrings(LeavesVibratingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		List<Component> tooltip = new ArrayList<>();
+		if (mouseX > 39 && mouseX < 73 && mouseY > 19 && mouseY < 57) {
+			int duration = 100;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+		return tooltip;
+	}
 }

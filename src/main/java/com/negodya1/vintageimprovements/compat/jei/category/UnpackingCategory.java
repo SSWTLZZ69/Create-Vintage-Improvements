@@ -3,6 +3,7 @@ package com.negodya1.vintageimprovements.compat.jei.category;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedVibratingTable;
+import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingRecipe;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
@@ -13,7 +14,11 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ParametersAreNonnullByDefault
 public class UnpackingCategory extends CreateRecipeCategory<CraftingRecipe> {
@@ -50,4 +55,13 @@ public class UnpackingCategory extends CreateRecipeCategory<CraftingRecipe> {
 		table.draw(graphics, 48, 35);
 	}
 
+	@Override
+	public List<Component> getTooltipStrings(CraftingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+		List<Component> tooltip = new ArrayList<>();
+		if (mouseX > 39 && mouseX < 73 && mouseY > 19 && mouseY < 57) {
+			int duration = 100;
+			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
+		}
+		return tooltip;
+	}
 }
