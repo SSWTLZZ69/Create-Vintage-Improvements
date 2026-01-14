@@ -34,6 +34,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -252,13 +253,35 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		//未匹配到序列配方
 		sequencedAssemblyStep = 0;
 
-		List<Recipe<?>> res = new ArrayList<>();
-		for (Recipe recipe : super.getMatchingRecipes()) {
-			if (mode && recipe instanceof PressurizingRecipe) res.add(recipe);
-			else if (!mode && recipe instanceof VacuumizingRecipe) res.add(recipe);
-		}
+        List<Recipe<?>> res = new ArrayList<>();
 
-		return res;
+        Optional<BasinBlockEntity> basin = getBasin();
+        if (basin.isEmpty()) return res;
+
+        RecipeType<?> type = mode ?
+                VintageRecipes.PRESSURIZING.getType() :
+                VintageRecipes.VACUUMIZING.getType();
+
+        List<? extends Recipe<?>> allRecipes = null;
+        if (level != null) {
+            allRecipes = level.getRecipeManager().getAllRecipesFor((RecipeType) type);
+        }
+
+        if (allRecipes != null) {
+            for (Recipe<?> recipe : allRecipes) {
+                if (mode && recipe instanceof PressurizingRecipe pr) {
+                    if (pr.match(basin.get(), recipe, this, sequencedAssemblyStep)) {
+                        res.add(recipe);
+                    }
+                } else if (!mode && recipe instanceof VacuumizingRecipe vr) {
+                    if (vr.match(basin.get(), recipe, this, sequencedAssemblyStep)) {
+                        res.add(recipe);
+                    }
+                }
+            }
+        }
+
+        return res;
 	}
 
 	protected Optional<? extends Recipe<?>> matchAssemblyRecipe(){
