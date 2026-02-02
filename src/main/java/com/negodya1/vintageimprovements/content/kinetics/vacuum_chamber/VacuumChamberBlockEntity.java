@@ -8,6 +8,7 @@ import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancementBehaviour;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancements;
 import com.simibubi.create.AllSoundEvents;
+import com.simibubi.create.Create;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinOperatingBlockEntity;
@@ -18,6 +19,10 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.fluid.CombinedTankWrapper;
 
+import com.simibubi.create.foundation.recipe.RecipeFinder;
+import com.simibubi.create.foundation.recipe.trie.AbstractVariant;
+import com.simibubi.create.foundation.recipe.trie.RecipeTrie;
+import com.simibubi.create.foundation.recipe.trie.RecipeTrieFinder;
 import com.simibubi.create.foundation.utility.CreateLang;
 import net.createmod.catnip.data.Couple;
 import net.createmod.catnip.lang.LangBuilder;
@@ -255,31 +260,52 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 
         List<Recipe<?>> res = new ArrayList<>();
 
-        Optional<BasinBlockEntity> basin = getBasin();
-        if (basin.isEmpty()) return res;
+		Optional<BasinBlockEntity> $basin = getBasin();
+		BasinBlockEntity basin;
+		if ($basin.isEmpty() || (basin = $basin.get()).isEmpty())
+			return res;
 
-        RecipeType<?> type = mode ?
-                VintageRecipes.PRESSURIZING.getType() :
-                VintageRecipes.VACUUMIZING.getType();
+		// 利用机械动力6.0.7+快速查找配方特性
+		try {
+			IItemHandler availableItems = basin.getCapability(ForgeCapabilities.ITEM_HANDLER)
+					.orElse(null);
+			IFluidHandler availableBasinFluids = basin.getCapability(ForgeCapabilities.FLUID_HANDLER)
+					.orElse(null);
+			IFluidHandler availableVacuumFluids = this.getCapability(ForgeCapabilities.FLUID_HANDLER)
+					.orElse(null);
+			// 创建工作盆和压缩机流体容器的 combined 视图
+			IFluidHandler availableFluids = new CombinedTankWrapper(availableBasinFluids, availableVacuumFluids);
 
-        List<? extends Recipe<?>> allRecipes = null;
-        if (level != null) {
-            allRecipes = level.getRecipeManager().getAllRecipesFor((RecipeType) type);
-        }
+			// no point even searching, since no recipe will ever match
+			if (availableItems == null && availableBasinFluids == null && availableVacuumFluids == null) {
+				return res;
+			}
 
-        if (allRecipes != null) {
-            for (Recipe<?> recipe : allRecipes) {
-                if (mode && recipe instanceof PressurizingRecipe pr) {
-                    if (pr.match(basin.get(), recipe, this, sequencedAssemblyStep)) {
-                        res.add(recipe);
-                    }
-                } else if (!mode && recipe instanceof VacuumizingRecipe vr) {
-                    if (vr.match(basin.get(), recipe, this, sequencedAssemblyStep)) {
-                        res.add(recipe);
-                    }
-                }
-            }
-        }
+			RecipeTrie<?> trie = RecipeTrieFinder.get(getRecipeCacheKey(), level, this::matchStaticFilters);
+			Set<AbstractVariant> availableVariants = RecipeTrie.getVariants(availableItems, availableFluids);
+
+			for (Recipe<?> r : trie.lookup(availableVariants))
+				if (matchBasinRecipe(r))
+					res.add(r);
+		} catch (Exception e) {
+			Create.LOGGER.error("Failed to get recipe trie, falling back to slow logic", e);
+			res.clear();
+
+			for (Recipe<?> r : RecipeFinder.get(getRecipeCacheKey(), level, this::matchStaticFilters))
+				if (matchBasinRecipe(r))
+					res.add(r);
+		}
+
+		// 根据语义，按原料数量比较优先级时不应该忽略流体原料
+		res.sort((r1, r2) -> {
+			int size1 = r1.getIngredients().size();
+			int size2 = r2.getIngredients().size();
+			if (r1 instanceof ProcessingRecipe<?> processingRecipe)
+				size1 += processingRecipe.getFluidIngredients().size();
+			if (r2 instanceof ProcessingRecipe<?> processingRecipe)
+				size2 += processingRecipe.getFluidIngredients().size();
+			return size2 - size1;
+		});
 
         return res;
 	}
