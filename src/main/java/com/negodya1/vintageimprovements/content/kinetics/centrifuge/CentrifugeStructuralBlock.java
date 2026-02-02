@@ -308,10 +308,15 @@ public class CentrifugeStructuralBlock extends DirectionalBlock implements IBE<C
 			return;
 
 		CentrifugeBlockEntity centrifuge = null;
-		for (BlockPos pos : Iterate.hereAndBelow(entityIn.blockPosition()))
-			if (worldIn.getBlockState(pos).is(VintageBlocks.CENTRIFUGE_STRUCTURAL.get()))
-				if (centrifuge == null)
+		for (BlockPos pos : Iterate.hereAndBelow(entityIn.blockPosition())) {
+			if (worldIn.getBlockState(pos).is(VintageBlocks.CENTRIFUGE_STRUCTURAL.get())) {
+				// 获取结构主方块前检查，避免无限递归
+				if (stillValid(worldIn, pos, worldIn.getBlockState(pos), false)) {
 					centrifuge = (CentrifugeBlockEntity) worldIn.getBlockEntity(getMaster(worldIn, pos, worldIn.getBlockState(pos)));
+					break;
+				}
+			}
+		}
 		if (centrifuge == null)
 			return;
 
