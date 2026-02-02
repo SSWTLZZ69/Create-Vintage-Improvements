@@ -53,6 +53,11 @@ public class CentrifugeStructuralBlockEntity extends SmartBlockEntity {
         super.tick();
 
         if (cbe == null) {
+            // 获取结构主方块前检查，避免无限递归
+            if (!(getBlockState().getBlock() instanceof CentrifugeStructuralBlock structuralBlock))
+                return;
+            if (!structuralBlock.stillValid(getLevel(), getBlockPos(), getBlockState(), false))
+                return;
             if (level.getBlockEntity(CentrifugeStructuralBlock.getMaster(level, getBlockPos(), getBlockState())) instanceof CentrifugeBlockEntity be) {
                 cbe = be;
             }
