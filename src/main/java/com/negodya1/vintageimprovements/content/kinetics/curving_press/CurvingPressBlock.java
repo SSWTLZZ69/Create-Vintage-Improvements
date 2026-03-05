@@ -197,6 +197,7 @@ public class CurvingPressBlock extends HorizontalKineticBlock implements IBE<Cur
 		}
 
 		switch (be.mode) {
+			case 1 -> stack = new ItemStack(VintageItems.CONVEX_CURVING_HEAD.get());
 			case 2 -> stack = new ItemStack(VintageItems.CONCAVE_CURVING_HEAD.get());
 			case 3 -> stack = new ItemStack(VintageItems.W_SHAPED_CURVING_HEAD.get());
 			case 4 -> stack = new ItemStack(VintageItems.V_SHAPED_CURVING_HEAD.get());
@@ -209,8 +210,10 @@ public class CurvingPressBlock extends HorizontalKineticBlock implements IBE<Cur
 				}
 				be.itemAsHead.clearContent();
 			}
-			default -> stack = new ItemStack(VintageItems.CONVEX_CURVING_HEAD.get());
+			default -> stack = null;
 		}
+		if (stack == null)
+			return InteractionResult.PASS;
 		if (be.mode < 5) {
 			stack.setDamageValue(1000 - be.durability);
 		}
