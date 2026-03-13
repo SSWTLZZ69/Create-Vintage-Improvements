@@ -19,6 +19,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
@@ -51,6 +52,16 @@ public class GrinderSandpaperPolishingCategory extends CreateRecipeCategory<Sand
 			i++;
 		}
 	}
+
+    @Override
+    public ResourceLocation getRegistryName(SandPaperPolishingRecipe recipe) {
+        ResourceLocation id = super.getRegistryName(recipe);
+        if (id != null) {
+            return new ResourceLocation(id.getNamespace(),
+                    "grinder_" + id.getPath());
+        }
+        return id;
+    }
 
 	@Override
 	public void draw(SandPaperPolishingRecipe recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
