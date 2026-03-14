@@ -135,6 +135,14 @@ public class HelveBlock extends HorizontalDirectionalBlock implements IBE<HelveB
 		pLevel.removeBlockEntity(pPos);
 	}
 
+    @Override
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+        if (fromPos.equals(pos.below())) {
+            withBlockEntityDo(level, pos, HelveBlockEntity::updateAnvilState);
+        }
+    }
+
 	@Override
 	public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
 
