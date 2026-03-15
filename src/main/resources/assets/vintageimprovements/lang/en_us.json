@@ -393,7 +393,7 @@
 	"vintageimprovements.ponder.helve_hammer.text_9": "Items can also be extracted/inserted by automation",
 	
 	"vintageimprovements.ponder.slots_blocking.header": "Helve Hammer slots blocking",
-	"vintageimprovements.ponder.slots_blocking.text_1": "Some recipes may require less then 3 ingredients",
+	"vintageimprovements.ponder.slots_blocking.text_1": "Some recipes may require less than 3 ingredients",
 	"vintageimprovements.ponder.slots_blocking.text_2": "You can block redundant slots with Helve Hammer Slot Cover",
 	"vintageimprovements.ponder.slots_blocking.text_3": "You can remove Slot Covers via right-click with a Wrench",
 	

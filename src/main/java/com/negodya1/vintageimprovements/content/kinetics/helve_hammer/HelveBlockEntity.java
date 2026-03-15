@@ -66,7 +66,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	private SmithingRecipe lastSmithingRecipe;
 	private HammeringRecipe lastHammeringRecipe;
 	boolean lastRecipeIsAssembly;
-	private boolean contentsChanged;
+	private boolean recipesDirty;
 	private static final Object hammeringRecipesKey = new Object();
 	private int operatingMode;
 	Block anvilBlock;
@@ -82,15 +82,15 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	public HelveBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
 
-		inputInv = new SmartInventory(3, this).whenContentsChanged(slot -> contentsChanged = true);
+		inputInv = new SmartInventory(3, this).whenContentsChanged(slot -> recipesDirty = true);
 		bufInv = new SmartInventory(3, this);
-		outputInv = new SmartInventory(3, this).whenContentsChanged(slot -> contentsChanged = true);
+		outputInv = new SmartInventory(3, this).whenContentsChanged(slot -> recipesDirty = true);
 		capability = LazyOptional.of(() -> new HelveInventoryHandler(inputInv, outputInv));
 		operatingMode = 0;
 		hammerBlows = 0;
 		anvilBlock = Blocks.AIR;
 		blockedSlots = 0;
-		contentsChanged = true;
+		recipesDirty = true;
 	}
 
 	public void resetRecipes() {
@@ -115,6 +115,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		compound.put("OutputInventory", outputInv.serializeNBT());
 		compound.putBoolean("LastRecipeIsAssembly", lastRecipeIsAssembly);
 		compound.putInt("BlockedSlots", blockedSlots);
+		compound.putInt("OperatingMode", operatingMode);
 		super.write(compound, clientPacket);
 	}
 
@@ -127,15 +128,16 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		outputInv.deserializeNBT(compound.getCompound("OutputInventory"));
 		lastRecipeIsAssembly = compound.getBoolean("LastRecipeIsAssembly");
 		blockedSlots = compound.getInt("BlockedSlots");
+		operatingMode = compound.getInt("OperatingMode");
 	}
 
 	public boolean addBlockedSlots() {
 		if (blockedSlots >= 2) return false;
 		blockedSlots += 1;
 		ItemHelper.dropContents(level, worldPosition, inputInv);
-		inputInv = new SmartInventory(3 - blockedSlots, this).whenContentsChanged(slot -> contentsChanged = true);
+		inputInv = new SmartInventory(3 - blockedSlots, this).whenContentsChanged(slot -> recipesDirty = true);
 		capability = LazyOptional.of(() -> new HelveInventoryHandler(inputInv, outputInv));
-		contentsChanged = true;
+		recipesDirty = true;
 		resetRecipes();
 		return true;
 	}
@@ -150,9 +152,9 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		ItemStack itemStack = new ItemStack(VintageItems.HELVE_HAMMER_SLOT_COVER.get(), blockedSlots);
 		blockedSlots = 0;
 		ItemHelper.dropContents(level, worldPosition, inputInv);
-		inputInv = new SmartInventory(3, this).whenContentsChanged(slot -> contentsChanged = true);
+		inputInv = new SmartInventory(3, this).whenContentsChanged(slot -> recipesDirty = true);
 		capability = LazyOptional.of(() -> new HelveInventoryHandler(inputInv, outputInv));
-		contentsChanged = true;
+		recipesDirty = true;
 		resetRecipes();
 		return itemStack;
 	}
@@ -178,17 +180,19 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 			inputInv.clearContent();
 			outputInv.clearContent();
 		}
+
+		if (!level.isClientSide) {
+			sendData();
+		}
 	}
 
 	public float getHammerAngle() {
 		if (timer <= 0) return 0.0f;
 
-		if (operatingMode > 0) {
-			if ((operatingMode == 2 && lastSmithingRecipe != null) || (operatingMode == 1 && lastHammeringRecipe != null)) {
-				if (timer > 25)
-					return -25f + (timer / 20f);
-				return timer * -1f;
-			}
+		if (operatingMode == 1 && hammerBlows > 0 || operatingMode == 2) {
+			if (timer > 25)
+				return -25f + (timer / 20f);
+			return timer * -1f;
 		}
 
 		return 0.0f;
@@ -217,7 +221,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	public void updateAnvilState() {
 		if (level == null) return;
 		needsAnvilUpdate = false;
-		contentsChanged = true;
+		recipesDirty = true;
 
 		Block blockBelow = level.getBlockState(worldPosition.below()).getBlock();
 		if (blockBelow instanceof AnvilBlock ||
@@ -243,13 +247,12 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	public void tick() {
 		super.tick();
 
-		if (needsAnvilUpdate) {
-			updateAnvilState();
-		}
-
 		if (level.isClientSide) {
 			tickClient();
 		} else {
+			if (needsAnvilUpdate) {
+				updateAnvilState();
+			}
 			tickServer();
 		}
 	}
@@ -258,16 +261,27 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		float speed = getSpeed();
 		int processingSpeed = getProcessingSpeed(speed);
 
-		if (operatingMode == 1 && timer > 0 && lastHammeringRecipe != null) {
+		if (speed == 0) {
+			timer = 0;
+			return;
+		}
+
+		if (operatingMode == 1 && timer > 0 && hammerBlows > 0) {
 			timer -= processingSpeed;
 			if (timer > 0 && timer - processingSpeed <= 0) {
 				spawnEventParticles(inputInv.getStackInSlot(0));
 				AllSoundEvents.MECHANICAL_PRESS_ACTIVATION.playAt(level, worldPosition, 3, 1, true);
 			}
+			if (timer <= 0) {
+				timer = 500;
+			}
 		}
-		else if (operatingMode == 2 && timer > 0 && timer - processingSpeed * 2 <= 0) {
-			spawnEventParticles(inputInv.getStackInSlot(0));
-			AllSoundEvents.MECHANICAL_PRESS_ACTIVATION.playAt(level, worldPosition, 3, 1, true);
+		else if (operatingMode == 2 && timer > 0) {
+			timer -= processingSpeed;
+			if (timer > 0 && timer - processingSpeed * 2 <= 0) {
+				spawnEventParticles(inputInv.getStackInSlot(0));
+				AllSoundEvents.MECHANICAL_PRESS_ACTIVATION.playAt(level, worldPosition, 3, 1, true);
+			}
 		}
 	}
 
@@ -276,15 +290,21 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		int processingSpeed = getProcessingSpeed(speed);
 
 		if (operatingMode == 1) {
-			for (int i = 0; i < outputInv.getSlots(); i++)
-				if (outputInv.getStackInSlot(i)
-						.getCount() == outputInv.getSlotLimit(i))
-					return;
+			boolean outputFull = true;
+			for (int i = 0; i < outputInv.getSlots(); i++) {
+				if (outputInv.getStackInSlot(i).getCount() < outputInv.getSlotLimit(i)) {
+					outputFull = false;
+					break;
+				}
+			}
+			if (outputFull) return;
 
 			if (timer > 0) {
 				if (speed == 0) {
 					timer = 0;
 					lastHammeringRecipe = null;
+					recipesDirty = true;
+					sendData();
 				}
 
 				if (lastHammeringRecipe != null) {
@@ -296,7 +316,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 						if (hammerBlows <= 0) {
 							process();
 							lastHammeringRecipe = null;
-							contentsChanged = true;
+							recipesDirty = true;
 							sendData();
 						} else timer = 500;
 					}
@@ -304,11 +324,11 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 				}
 			}
 
-			if (inputInv.isEmpty()) return;
+			if (!recipesDirty) return;
 			if (speed == 0) return;
-			if (!contentsChanged) return;
+			if (inputInv.isEmpty() && outputInv.isEmpty()) return;
 
-			contentsChanged = false;
+			recipesDirty = false;
 
 			if (lastHammeringRecipe == null || !HammeringRecipe.match(this, lastHammeringRecipe)) {
 
@@ -364,8 +384,8 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 			for (int i = 0; i < inputInv.getSlots(); i++)
 				if (!inputInv.getStackInSlot(i).isEmpty()) slots++;
 
-			if (lastSmithingRecipe == null && contentsChanged && slots >= (VintageConfig.server().recipes.allowTemplatelessRecipes.get() ? 2 : 3) && speed != 0) {
-				contentsChanged = false;
+			if (lastSmithingRecipe == null && recipesDirty && slots >= (VintageConfig.server().recipes.allowTemplatelessRecipes.get() ? 2 : 3) && speed != 0) {
+				recipesDirty = false;
 				for (SmithingRecipe recipe : VintageRecipesList.getSmithing()) {
 					boolean template = false;
 					boolean base = false;
@@ -383,6 +403,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 					if (template && base && addition) {
 						lastSmithingRecipe = recipe;
 						timer = 500;
+						sendData();
 						break;
 					}
 				}
@@ -391,6 +412,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 			if (lastSmithingRecipe != null && (slots < (VintageConfig.server().recipes.allowTemplatelessRecipes.get() ? 2 : 3) || speed == 0)) {
 				lastSmithingRecipe = null;
 				timer = 0;
+				sendData();
 			}
 
 			if (timer > 0) {
@@ -400,7 +422,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 					if (timer <= 0) {
 						processSmith();
 						lastSmithingRecipe = null;
-						contentsChanged = true;
+						recipesDirty = true;
 						sendData();
 					}
 					return;
@@ -526,7 +548,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	@Override
 	public void setChanged() {
 		super.setChanged();
-		contentsChanged = true;
+		recipesDirty = true;
 	}
 
 	@Override

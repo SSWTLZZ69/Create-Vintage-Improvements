@@ -185,7 +185,7 @@ public class HelveScenes {
 		Vec3 helveTop = util.vector().centerOf(helve);
 		scene.overlay().showText(40)
 				.attachKeyFrame()
-				.text("Some recipes may require less then 3 ingredients")
+				.text("Some recipes may require less than 3 ingredients")
 				.pointAt(helveTop)
 				.placeNearTarget();
 		scene.idle(50);
