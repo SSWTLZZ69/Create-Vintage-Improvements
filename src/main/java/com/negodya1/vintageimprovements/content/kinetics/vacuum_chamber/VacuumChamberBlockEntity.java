@@ -187,10 +187,10 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 					if (currentRecipe instanceof ProcessingRecipe) {
 						int t = ((ProcessingRecipe<?>) currentRecipe).getProcessingDuration();
 						if (t != 0)
-							recipeSpeed = t / 100f;
+							recipeSpeed = (0.15f * t * (3000 / (t + 3000))) / 15f;
 					}
 
-					processingTicks = Mth.clamp((Mth.log2((int) (512 / speed))) * Mth.ceil(recipeSpeed * 15) + 1, 1, 512);
+					processingTicks = Mth.clamp((Mth.log2(512 / speed)) * Mth.ceil(recipeSpeed * 15) + 1, 1, 512);
 
 					Optional<BasinBlockEntity> basin = getBasin();
 					if (basin.isPresent()) {
