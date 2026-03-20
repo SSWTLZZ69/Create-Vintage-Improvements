@@ -166,7 +166,7 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 	private boolean laserRecipe(ItemStack stack, TransportedItemStack transported, TransportedItemStackHandlerBehaviour handler) {
 		if(this.getLevel() == null) return false;
 		if (Mth.abs(getSpeed()) == 0) return false;
-		if(!inputInv.getStackInSlot(0).is(stack.getItem())) {
+		if(!inputInv.getStackInSlot(0).equals(stack, true)) {
 			inputInv.setStackInSlot(0, stack);
 			recipeCache = find(new RecipeWrapper(inputInv), this.getLevel());
 			chargeAccumulator = 0;
