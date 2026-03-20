@@ -394,12 +394,12 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		if (!basin.isPresent())
 			return false;
 
-		if (recipe instanceof VacuumizingRecipe r)
+		if (!mode && recipe instanceof VacuumizingRecipe r)
 			return r.match(basin.get(), recipe, this, sequencedAssemblyStep);
-		if (recipe instanceof PressurizingRecipe r)
+		if (mode && recipe instanceof PressurizingRecipe r)
 			return r.match(basin.get(), recipe, this, sequencedAssemblyStep);
 
-		return BasinRecipe.match(basin.get(), recipe);
+		return false;
 	}
 
 	public boolean acceptOutputs(List<FluidStack> outputFluids, boolean simulate) {
