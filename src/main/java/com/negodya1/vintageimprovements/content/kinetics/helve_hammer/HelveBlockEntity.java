@@ -66,12 +66,13 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	private SmithingRecipe lastSmithingRecipe;
 	private HammeringRecipe lastHammeringRecipe;
 	boolean lastRecipeIsAssembly;
-	private boolean contentsChanged;
+	private boolean recipesDirty;
 	private static final Object hammeringRecipesKey = new Object();
 	private int operatingMode;
 	Block anvilBlock;
 	VintageAdvancementBehaviour advancementBehaviour;
 	private int blockedSlots;
+	private boolean needsAnvilUpdate = true;
 
 	public static final TagKey<Item> customAnvilTag =
 			ItemTags.create(new ResourceLocation("vintageimprovements", "custom_hammering_blocks"));
@@ -81,14 +82,15 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	public HelveBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
 
-		inputInv = new SmartInventory(3, this);
+		inputInv = new SmartInventory(3, this).whenContentsChanged(slot -> recipesDirty = true);
 		bufInv = new SmartInventory(3, this);
-		outputInv = new SmartInventory(3, this);
+		outputInv = new SmartInventory(3, this).whenContentsChanged(slot -> recipesDirty = true);
 		capability = LazyOptional.of(() -> new HelveInventoryHandler(inputInv, outputInv));
 		operatingMode = 0;
 		hammerBlows = 0;
 		anvilBlock = Blocks.AIR;
 		blockedSlots = 0;
+		recipesDirty = true;
 	}
 
 	public void resetRecipes() {
@@ -113,6 +115,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		compound.put("OutputInventory", outputInv.serializeNBT());
 		compound.putBoolean("LastRecipeIsAssembly", lastRecipeIsAssembly);
 		compound.putInt("BlockedSlots", blockedSlots);
+		compound.putInt("OperatingMode", operatingMode);
 		super.write(compound, clientPacket);
 	}
 
@@ -125,14 +128,16 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		outputInv.deserializeNBT(compound.getCompound("OutputInventory"));
 		lastRecipeIsAssembly = compound.getBoolean("LastRecipeIsAssembly");
 		blockedSlots = compound.getInt("BlockedSlots");
+		operatingMode = compound.getInt("OperatingMode");
 	}
 
 	public boolean addBlockedSlots() {
 		if (blockedSlots >= 2) return false;
 		blockedSlots += 1;
 		ItemHelper.dropContents(level, worldPosition, inputInv);
-		inputInv = new SmartInventory(3 - blockedSlots, this);
+		inputInv = new SmartInventory(3 - blockedSlots, this).whenContentsChanged(slot -> recipesDirty = true);
 		capability = LazyOptional.of(() -> new HelveInventoryHandler(inputInv, outputInv));
+		recipesDirty = true;
 		resetRecipes();
 		return true;
 	}
@@ -147,8 +152,9 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		ItemStack itemStack = new ItemStack(VintageItems.HELVE_HAMMER_SLOT_COVER.get(), blockedSlots);
 		blockedSlots = 0;
 		ItemHelper.dropContents(level, worldPosition, inputInv);
-		inputInv = new SmartInventory(3, this);
+		inputInv = new SmartInventory(3, this).whenContentsChanged(slot -> recipesDirty = true);
 		capability = LazyOptional.of(() -> new HelveInventoryHandler(inputInv, outputInv));
+		recipesDirty = true;
 		resetRecipes();
 		return itemStack;
 	}
@@ -174,17 +180,19 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 			inputInv.clearContent();
 			outputInv.clearContent();
 		}
+
+		if (!level.isClientSide) {
+			sendData();
+		}
 	}
 
 	public float getHammerAngle() {
 		if (timer <= 0) return 0.0f;
 
-		if (operatingMode > 0) {
-			if ((operatingMode == 2 && lastSmithingRecipe != null) || (operatingMode == 1 && lastHammeringRecipe != null)) {
-				if (timer > 25)
-					return -25f + (timer / 20f);
-				return timer * -1f;
-			}
+		if (operatingMode == 1 && hammerBlows > 0 || operatingMode == 2) {
+			if (timer > 25)
+				return -25f + (timer / 20f);
+			return timer * -1f;
 		}
 
 		return 0.0f;
@@ -210,20 +218,22 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		}
 	}
 
-	@Override
-	public void tick() {
-		super.tick();
+	public void updateAnvilState() {
+		if (level == null) return;
+		needsAnvilUpdate = false;
+		recipesDirty = true;
 
-		if (level.getBlockState(worldPosition.below()).getBlock() instanceof AnvilBlock ||
-				level.getBlockState(worldPosition.below()).getBlock().asItem().getDefaultInstance().is(anvilTag)) {
+		Block blockBelow = level.getBlockState(worldPosition.below()).getBlock();
+		if (blockBelow instanceof AnvilBlock ||
+				blockBelow.asItem().getDefaultInstance().is(anvilTag)) {
 			changeMode(1);
 			anvilBlock = Blocks.AIR;
 		}
-		else if (level.getBlockState(worldPosition.below()).getBlock().asItem().getDefaultInstance().is(customAnvilTag)) {
+		else if (blockBelow.asItem().getDefaultInstance().is(customAnvilTag)) {
 			changeMode(1);
-			anvilBlock = level.getBlockState(worldPosition.below()).getBlock();
+			anvilBlock = blockBelow;
 		}
-		else if (level.getBlockState(worldPosition.below()).is(Blocks.SMITHING_TABLE)) {
+		else if (blockBelow == Blocks.SMITHING_TABLE) {
 			changeMode(2);
 			anvilBlock = Blocks.AIR;
 		}
@@ -231,33 +241,82 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 			changeMode(0);
 			anvilBlock = Blocks.AIR;
 		}
+	}
+
+	@Override
+	public void tick() {
+		super.tick();
+
+		if (level.isClientSide) {
+			tickClient();
+		} else {
+			if (needsAnvilUpdate) {
+				updateAnvilState();
+			}
+			tickServer();
+		}
+	}
+
+	private void tickClient() {
+		float speed = getSpeed();
+		int processingSpeed = getProcessingSpeed(speed);
+
+		if (speed == 0) {
+			timer = 0;
+			return;
+		}
+
+		if (operatingMode == 1 && timer > 0 && hammerBlows > 0) {
+			timer -= processingSpeed;
+			if (timer > 0 && timer - processingSpeed <= 0) {
+				spawnEventParticles(inputInv.getStackInSlot(0));
+				AllSoundEvents.MECHANICAL_PRESS_ACTIVATION.playAt(level, worldPosition, 3, 1, true);
+			}
+			if (timer <= 0) {
+				timer = 500;
+			}
+		}
+		else if (operatingMode == 2 && timer > 0) {
+			timer -= processingSpeed;
+			if (timer > 0 && timer - processingSpeed * 2 <= 0) {
+				spawnEventParticles(inputInv.getStackInSlot(0));
+				AllSoundEvents.MECHANICAL_PRESS_ACTIVATION.playAt(level, worldPosition, 3, 1, true);
+			}
+		}
+	}
+
+	private void tickServer() {
+		float speed = getSpeed();
+		int processingSpeed = getProcessingSpeed(speed);
 
 		if (operatingMode == 1) {
-			for (int i = 0; i < outputInv.getSlots(); i++)
-				if (outputInv.getStackInSlot(i)
-						.getCount() == outputInv.getSlotLimit(i))
-					return;
+			boolean outputFull = true;
+			for (int i = 0; i < outputInv.getSlots(); i++) {
+				if (outputInv.getStackInSlot(i).getCount() < outputInv.getSlotLimit(i)) {
+					outputFull = false;
+					break;
+				}
+			}
+			if (outputFull) return;
 
 			if (timer > 0) {
-				if (getSpeed() == 0) {
+				if (speed == 0) {
 					timer = 0;
 					lastHammeringRecipe = null;
+					recipesDirty = true;
+					sendData();
 				}
 
 				if (lastHammeringRecipe != null) {
-					timer -= getProcessingSpeed();
+					timer -= processingSpeed;
 
-					if (level.isClientSide && timer > 0 && timer - getProcessingSpeed() <= 0) {
-						spawnEventParticles(inputInv.getStackInSlot(0));
-						AllSoundEvents.MECHANICAL_PRESS_ACTIVATION.playAt(level, worldPosition, 3, 1, true);
-						return;
-					}
 					if (timer <= 0) {
 						hammerBlows--;
 
 						if (hammerBlows <= 0) {
 							process();
 							lastHammeringRecipe = null;
+							recipesDirty = true;
 							sendData();
 						} else timer = 500;
 					}
@@ -265,7 +324,11 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 				}
 			}
 
-			if (inputInv.isEmpty()) return;
+			if (!recipesDirty) return;
+			if (speed == 0) return;
+			if (inputInv.isEmpty() && outputInv.isEmpty()) return;
+
+			recipesDirty = false;
 
 			if (lastHammeringRecipe == null || !HammeringRecipe.match(this, lastHammeringRecipe)) {
 
@@ -303,8 +366,9 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 
 				lastRecipeIsAssembly = false;
 
-				if (!getRecipes().isEmpty()) {
-					if (getRecipes().get(0) instanceof HammeringRecipe hammering) {
+				List<Recipe<?>> recipes = getRecipes();
+				if (!recipes.isEmpty()) {
+					if (recipes.get(0) instanceof HammeringRecipe hammering) {
 						lastHammeringRecipe = hammering;
 						timer = 500;
 						hammerBlows = hammering.hammerBlows;
@@ -316,16 +380,12 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 
 		}
 		else if (operatingMode == 2) {
-			if (level.isClientSide && timer > 0 && timer - getProcessingSpeed() * 2 <= 0) {
-				spawnEventParticles(inputInv.getStackInSlot(0));
-				AllSoundEvents.MECHANICAL_PRESS_ACTIVATION.playAt(level, worldPosition, 3, 1, true);
-			}
-
 			int slots = 0;
 			for (int i = 0; i < inputInv.getSlots(); i++)
 				if (!inputInv.getStackInSlot(i).isEmpty()) slots++;
 
-			if (lastSmithingRecipe == null && slots >= (VintageConfig.server().recipes.allowTemplatelessRecipes.get() ? 2 : 3) && getSpeed() != 0) {
+			if (lastSmithingRecipe == null && recipesDirty && slots >= (VintageConfig.server().recipes.allowTemplatelessRecipes.get() ? 2 : 3) && speed != 0) {
+				recipesDirty = false;
 				for (SmithingRecipe recipe : VintageRecipesList.getSmithing()) {
 					boolean template = false;
 					boolean base = false;
@@ -343,25 +403,26 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 					if (template && base && addition) {
 						lastSmithingRecipe = recipe;
 						timer = 500;
+						sendData();
 						break;
 					}
 				}
 			}
 
-			if (lastSmithingRecipe != null && (slots < (VintageConfig.server().recipes.allowTemplatelessRecipes.get() ? 2 : 3) || getSpeed() == 0)) {
+			if (lastSmithingRecipe != null && (slots < (VintageConfig.server().recipes.allowTemplatelessRecipes.get() ? 2 : 3) || speed == 0)) {
 				lastSmithingRecipe = null;
 				timer = 0;
+				sendData();
 			}
 
 			if (timer > 0) {
 				if (lastSmithingRecipe != null) {
-					timer -= getProcessingSpeed();
-
-					if (level.isClientSide) return;
+					timer -= processingSpeed;
 
 					if (timer <= 0) {
 						processSmith();
 						lastSmithingRecipe = null;
+						recipesDirty = true;
 						sendData();
 					}
 					return;
@@ -485,6 +546,12 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	}
 
 	@Override
+	public void setChanged() {
+		super.setChanged();
+		recipesDirty = true;
+	}
+
+	@Override
 	public void invalidate() {
 		super.invalidate();
 		capability.invalidate();
@@ -583,8 +650,8 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		return 0;
 	}
 
-	public int getProcessingSpeed() {
-		return Mth.clamp((int) Math.abs(getSpeed() / 16f), 1, 512);
+	public int getProcessingSpeed(float speed) {
+		return Mth.clamp((int) Math.abs(speed / 16f), 1, 512);
 	}
 
 	private class HelveInventoryHandler extends CombinedInvWrapper {
