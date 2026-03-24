@@ -161,6 +161,11 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	}
 
 	@Override
+	public void writeSafe(CompoundTag compound) {
+		compound.putBoolean("Mode", mode);
+	}
+
+	@Override
 	public void tick() {
 		super.tick();
 
