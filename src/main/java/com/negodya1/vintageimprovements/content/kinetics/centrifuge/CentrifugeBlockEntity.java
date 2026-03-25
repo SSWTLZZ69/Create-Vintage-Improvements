@@ -107,6 +107,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		if (basins >= 4) return false;
 		if (items.getItem() != AllBlocks.BASIN.asItem()) return false;
 		basins += 1;
+        notifyUpdate();
 		return true;
 	}
 
@@ -118,6 +119,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		if (redstoneApp) return false;
 		if (items.getItem() != VintageItems.REDSTONE_MODULE.get()) return false;
 		redstoneApp = true;
+        notifyUpdate();
 		return true;
 	}
 

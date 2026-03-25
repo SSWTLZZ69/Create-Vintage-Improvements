@@ -82,6 +82,7 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 		if (redstoneModule) return false;
 		if (items.getItem() != VintageItems.REDSTONE_MODULE.get()) return false;
 		redstoneModule = true;
+        notifyUpdate();
 		return true;
 	}
 

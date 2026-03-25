@@ -139,6 +139,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		capability = LazyOptional.of(() -> new HelveInventoryHandler(inputInv, outputInv));
 		recipesDirty = true;
 		resetRecipes();
+        notifyUpdate();
 		return true;
 	}
 
@@ -156,6 +157,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		capability = LazyOptional.of(() -> new HelveInventoryHandler(inputInv, outputInv));
 		recipesDirty = true;
 		resetRecipes();
+        notifyUpdate();
 		return itemStack;
 	}
 
