@@ -548,27 +548,30 @@ public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggl
 		switch (items.getItem().getDescriptionId()) {
 			case "item.create.sand_paper":
 				textureType = 0;
-				return true;
+                break;
 
 			case "item.create.red_sand_paper":
 				textureType = 1;
-				return true;
+                break;
 
 			case "item.createaddition.diamond_grit_sandpaper", "item.create_so.diamond_sandpaper":
 				textureType = 2;
-				return true;
+                break;
 
 			case "item.create_so.iron_sandpaper":
 				textureType = 3;
-				return true;
+                break;
 
 			case "item.create_so.obsidian_sandpaper":
 				textureType = 4;
-				return true;
+                break;
 
 			default:
 				return false;
 		}
+
+        notifyUpdate();
+        return true;
 	}
 
 }
