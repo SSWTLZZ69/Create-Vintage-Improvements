@@ -103,6 +103,7 @@ public class VacuumChamberBlock extends KineticBlock implements IBE<VacuumChambe
 		if (be != null && be.runningTicks == 0)
 		{
 			be.changeMode();
+			be.sendData();
 			if (worldIn.isClientSide()) {
 				AllSoundEvents.WRENCH_ROTATE.playAt(worldIn, pos, 3, 1, true);
 			}
