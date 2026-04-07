@@ -1,0 +1,27 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "dca6cd",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/amethyst_bronze"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_amethyst_bronze_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/amethyst_bronze"
+                                     }
+                       }
+                   ],
+    "processing_time":  60
+}
+
+

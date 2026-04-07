@@ -1,0 +1,23 @@
+﻿{
+    "type":  "vintageimprovements:centrifugation",
+    "ingredients":  [
+                        {
+                            "tag":  "c:dyes/orange"
+                        },
+                        {
+                            "tag":  "c:dyes/orange"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "minecraft:red_dye"
+                    },
+                    {
+                        "count":  1,
+                        "id":  "minecraft:yellow_dye"
+                    }
+                ],
+    "processing_time":  1000
+}
+

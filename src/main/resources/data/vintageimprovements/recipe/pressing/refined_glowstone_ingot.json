@@ -1,0 +1,24 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/refined_glowstone"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:refined_glowstone_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/refined_glowstone"
+                                     }
+                       }
+                   ]
+}
+
+

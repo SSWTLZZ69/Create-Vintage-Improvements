@@ -1,0 +1,24 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "a1b18f",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/knightmetal"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_knightmetal_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "twilightforest"
+                       }
+                   ],
+    "processing_time":  60
+}
+
+

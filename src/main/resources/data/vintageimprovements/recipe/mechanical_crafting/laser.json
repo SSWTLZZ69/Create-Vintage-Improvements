@@ -1,0 +1,32 @@
+﻿{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "key": {
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "P": {
+      "tag": "c:plates/copper"
+    },
+	"g": {
+      "tag": "c:dusts/glowstone"
+    },
+	"T": {
+      "item": "create:electron_tube"
+    },
+	"G": {
+      "tag": "c:glass/red"
+    }
+  },
+  "pattern": [
+    " R ",
+    "PTP",
+    "PgP",
+	" G "
+  ],
+  "result": {
+    "count": 1,
+    "id": "vintageimprovements:laser_item"
+  }
+}
+

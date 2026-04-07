@@ -38,6 +38,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -51,16 +52,14 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
 
@@ -72,7 +71,7 @@ public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggl
 
 	public ProcessingInventory inventory;
 	private int recipeIndex;
-	private final LazyOptional<IItemHandler> invProvider;
+	private final IItemHandler invProvider;
 	private FilteringBehaviour filtering;
 	private VintageAdvancementBehaviour advancementBehaviour;
 
@@ -85,15 +84,16 @@ public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggl
 		inventory = new ProcessingInventory(this::start).withSlotLimit(!AllConfigs.server().recipes.bulkCutting.get());
 		inventory.remainingTime = -1;
 		recipeIndex = 0;
-		invProvider = LazyOptional.of(() -> inventory);
+		invProvider = inventory;
 		playEvent = ItemStack.EMPTY;
 		textureType = VintageConfig.common().defaultBeltGrinderSkin.get();
 	}
 
 	public boolean canCraft(ItemStack stack) {
-		List<PolishingRecipe> recipes = level.getRecipeManager().getAllRecipesFor(VintageRecipes.POLISHING.getType());
-		for (PolishingRecipe recipe : recipes) {
-			if (recipe.getResultItem(RegistryAccess.EMPTY) == stack) return true;
+		List<RecipeHolder<PolishingRecipe>> recipes = level.getRecipeManager().getAllRecipesFor(VintageRecipes.POLISHING.getType());
+		for (RecipeHolder<PolishingRecipe> recipe : recipes) {
+			if (ItemStack.isSameItemSameComponents(recipe.value().getResultItem(RegistryAccess.EMPTY), stack))
+				return true;
 		}
 		return false;
 	}
@@ -109,27 +109,27 @@ public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggl
 	}
 
 	@Override
-	public void write(CompoundTag compound, boolean clientPacket) {
-		compound.put("Inventory", inventory.serializeNBT());
+	public void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+		compound.put("Inventory", inventory.serializeNBT(registries));
 		compound.putInt("RecipeIndex", recipeIndex);
 		compound.putInt("TextureType", textureType);
-		super.write(compound, clientPacket);
+		super.write(compound, registries, clientPacket);
 
 		if (!clientPacket || playEvent.isEmpty())
 			return;
-		compound.put("PlayEvent", playEvent.serializeNBT());
+		compound.put("PlayEvent", playEvent.saveOptional(registries));
 		playEvent = ItemStack.EMPTY;
 	}
 
 	@Override
-	protected void read(CompoundTag compound, boolean clientPacket) {
-		super.read(compound, clientPacket);
-		inventory.deserializeNBT(compound.getCompound("Inventory"));
+	protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+		super.read(compound, registries, clientPacket);
+		inventory.deserializeNBT(registries, compound.getCompound("Inventory"));
 		recipeIndex = compound.getInt("RecipeIndex");
 		textureType = compound.getInt("TextureType");
 
 		if (compound.contains("PlayEvent"))
-			playEvent = ItemStack.of(compound.getCompound("PlayEvent"));
+			playEvent = ItemStack.parseOptional(registries, compound.getCompound("PlayEvent"));
 	}
 
 	@Override
@@ -231,7 +231,7 @@ public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggl
 				if (stack.isEmpty())
 					continue;
 				ItemStack remainder = behaviour.handleInsertion(stack, itemMovementFacing, false);
-				if (remainder.equals(stack, false))
+				if (ItemStack.matches(remainder, stack))
 					continue;
 				inventory.setStackInSlot(slot, remainder);
 				changed = true;
@@ -267,20 +267,12 @@ public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggl
 	@Override
 	public void invalidate() {
 		super.invalidate();
-		invProvider.invalidate();
 	}
 	
 	@Override
 	public void destroy() {
 		super.destroy();
 		ItemHelper.dropContents(level, worldPosition, inventory);
-	}
-
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-		if (cap == ForgeCapabilities.ITEM_HANDLER)
-			return invProvider.cast();
-		return super.getCapability(cap, side);
 	}
 
 	protected void spawnEventParticles(ItemStack stack) {
@@ -374,7 +366,7 @@ public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggl
 			for (int roll = 0; roll < rolls; roll++) {
 				List<ItemStack> results = new LinkedList<ItemStack>();
 				if (recipe instanceof SandPaperPolishingRecipe sandRecipe)
-					results = sandRecipe.rollResults();
+					results = sandRecipe.rollResults(level.random);
 
 				for (int i = 0; i < results.size(); i++) {
 					ItemStack stack = results.get(i);
@@ -410,7 +402,7 @@ public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggl
 
 			List<ItemStack> list = new ArrayList<>();
 			for (int roll = 0; roll < rolls; roll++) {
-				List<ItemStack> results = polishingRecipe.rollResults();
+				List<ItemStack> results = polishingRecipe.rollResults(level.random);
 
 				for (int i = 0; i < results.size(); i++) {
 					ItemStack stack = results.get(i);
@@ -425,27 +417,28 @@ public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggl
 	}
 
 	private List<? extends Recipe<?>> getRecipes() {
-		Optional<PolishingRecipe> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, inventory.getStackInSlot(0),
+		Optional<RecipeHolder<PolishingRecipe>> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, inventory.getStackInSlot(0),
 			VintageRecipes.POLISHING.getType(), PolishingRecipe.class);
-		if (assemblyRecipe.isPresent() && filtering.test(assemblyRecipe.get()
+		if (assemblyRecipe.isPresent() && filtering.test(assemblyRecipe.get().value()
 			.getResultItem(level.registryAccess())))
-			return ImmutableList.of(assemblyRecipe.get());
+			return ImmutableList.of(assemblyRecipe.get().value());
 
-		Predicate<Recipe<?>> types = RecipeConditions.isOfType(VintageRecipes.POLISHING.getType(),
+		Predicate<RecipeHolder<? extends Recipe<?>>> types = RecipeConditions.isOfType(VintageRecipes.POLISHING.getType(),
 				VintageConfig.server().recipes.allowSandpaperPolishingOnGrinder.get() ? AllRecipeTypes.SANDPAPER_POLISHING.getType() : null);
 
-		List<Recipe<?>> startedSearch = RecipeFinder.get(polishingRecipesKey, level, types);
+		List<RecipeHolder<? extends Recipe<?>>> startedSearch = RecipeFinder.get(polishingRecipesKey, level, types);
 		startedSearch = startedSearch.stream()
 				.filter(RecipeConditions.outputMatchesFilter(filtering))
 				.filter(RecipeConditions.firstIngredientMatches(inventory.getStackInSlot(0)))
-				.filter(r -> !VintageRecipes.shouldIgnoreInAutomation(r))
+				.filter(r -> !VintageRecipes.shouldIgnoreInAutomation(r.value()))
 				.collect(Collectors.toList());
 
 		List<Recipe<?>> grinder = new ArrayList<>();
 		List<Recipe<?>> grinderWrongSpeed = new ArrayList<>();
 		List<Recipe<?>> sandpaper = new ArrayList<>();
 
-		for (Recipe<?> recipe : startedSearch) {
+		for (RecipeHolder<? extends Recipe<?>> holder : startedSearch) {
+			Recipe<?> recipe = holder.value();
 			if (recipe instanceof PolishingRecipe re) {
 				if (re.getSpeedLimits() == getCurrentSpeedMode()) grinder.add(recipe);
 				else grinderWrongSpeed.add(recipe);
@@ -575,3 +568,4 @@ public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggl
 	}
 
 }
+

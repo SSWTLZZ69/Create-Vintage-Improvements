@@ -1,0 +1,28 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "group":  "netherite_rods",
+    "key":  {
+                "#":  {
+                          "tag":  "c:plates/netherite"
+                      }
+            },
+    "pattern":  [
+                    "#",
+                    "#"
+                ],
+    "result":  {
+                   "count":  4,
+                   "id":  "vintageimprovements:netherite_rod"
+               },
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:mod_loaded",
+                                         "modid":  "createaddition"
+                                     }
+                       }
+                   ]
+}
+
+

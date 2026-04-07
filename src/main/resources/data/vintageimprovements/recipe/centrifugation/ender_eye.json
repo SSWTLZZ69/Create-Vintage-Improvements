@@ -1,0 +1,19 @@
+﻿{
+    "type":  "vintageimprovements:centrifugation",
+    "ingredients":  [
+                        {
+                            "item":  "minecraft:ender_eye"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "minecraft:ender_pearl"
+                    },
+                    {
+                        "count":  1,
+                        "id":  "minecraft:blaze_powder"
+                    }
+                ],
+    "processing_time":  1000
+}

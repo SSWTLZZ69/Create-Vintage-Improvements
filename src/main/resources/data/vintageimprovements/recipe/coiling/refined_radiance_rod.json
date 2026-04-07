@@ -1,0 +1,17 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "f5fae1",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/refined_radiance"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:refined_radiance_spring"
+                    }
+                ],
+    "processing_time":  120
+}
+

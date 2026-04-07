@@ -30,14 +30,15 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 
 public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHaveGoggleInformation {
 
@@ -166,7 +167,7 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 	private boolean laserRecipe(ItemStack stack, TransportedItemStack transported, TransportedItemStackHandlerBehaviour handler) {
 		if(this.getLevel() == null) return false;
 		if (Mth.abs(getSpeed()) == 0) return false;
-		if(!inputInv.getStackInSlot(0).equals(stack, true)) {
+		if (!ItemStack.isSameItemSameComponents(inputInv.getStackInSlot(0), stack)) {
 			inputInv.setStackInSlot(0, stack);
 			recipeCache = find(new RecipeWrapper(inputInv), this.getLevel());
 			chargeAccumulator = 0;
@@ -186,7 +187,7 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 				TransportedItemStack remainingStack = transported.copy();
 				int inputCount = recipe.getIngredients().get(0).getItems()[0].getCount();
 				List<ItemStack> outputs = RecipeApplier.applyRecipeOn(level,
-						ItemHandlerHelper.copyStackWithSize(transported.stack, inputCount), recipe, true);
+						transported.stack.copyWithCount(inputCount), recipe, true);
 				List<TransportedItemStack> outList = new ArrayList<>();
 				outputs.forEach(itemStack -> {
 					TransportedItemStack tmp = transported.copy();
@@ -226,7 +227,7 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 			chargeAccumulator += energyRemoved;
 			if(chargeAccumulator >= recipe.getEnergy()) {
 				ItemStack itemCreated = ItemStack.EMPTY;
-				for (ItemStack result : RecipeApplier.applyRecipeOn(level, ItemHandlerHelper.copyStackWithSize(item, 1),
+				for (ItemStack result : RecipeApplier.applyRecipeOn(level, item.copyWithCount(1),
 						recipe, true)) {
 					if (itemCreated.isEmpty())
 						itemCreated = result.copy();
@@ -249,12 +250,14 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 	}
 
 	public Optional<LaserCuttingRecipe> find(RecipeWrapper wrapper, Level world) {
-		Optional<LaserCuttingRecipe> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, wrapper.getItem(0),
+		Optional<RecipeHolder<LaserCuttingRecipe>> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, wrapper.getItem(0),
 				VintageRecipes.LASER_CUTTING.getType(), LaserCuttingRecipe.class);
 		if (assemblyRecipe.isPresent())
-			return assemblyRecipe;
+			return Optional.of(assemblyRecipe.get().value());
 
-		return world.getRecipeManager().getRecipeFor(VintageRecipes.LASER_CUTTING.getType(), wrapper, world);
+		return world.getRecipeManager()
+				.<RecipeWrapper, LaserCuttingRecipe>getRecipeFor(VintageRecipes.LASER_CUTTING.getType(), wrapper, world)
+				.map(RecipeHolder::value);
 	}
 
 	@Override
@@ -277,3 +280,4 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 		return true;
 	}
 }
+

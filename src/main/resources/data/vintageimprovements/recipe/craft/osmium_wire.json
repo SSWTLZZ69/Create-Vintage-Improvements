@@ -1,0 +1,34 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "#":  {
+                          "tag":  "c:rods/osmium"
+                      }
+            },
+    "pattern":  [
+                    "#",
+                    "#"
+                ],
+    "result":  {
+                   "count":  4,
+                   "id":  "vintageimprovements:osmium_wire"
+               },
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:mod_loaded",
+                                         "modid":  "createaddition"
+                                     }
+                       },
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/osmium"
+                                     }
+                       }
+                   ]
+}
+
+

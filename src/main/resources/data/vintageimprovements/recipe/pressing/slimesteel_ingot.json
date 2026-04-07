@@ -1,0 +1,21 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/slimesteel"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:slimesteel_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "tconstruct"
+                       }
+                   ]
+}
+
+

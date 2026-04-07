@@ -1,0 +1,32 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "group":  "ostrum_rods",
+    "key":  {
+                "#":  {
+                          "tag":  "c:plates/ostrum"
+                      }
+            },
+    "pattern":  [
+                    "#",
+                    "#"
+                ],
+    "result":  {
+                   "count":  4,
+                   "id":  "vintageimprovements:ostrum_rod"
+               },
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:mod_loaded",
+                                         "modid":  "createaddition"
+                                     }
+                       },
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "ad_astra"
+                       }
+                   ]
+}
+
+

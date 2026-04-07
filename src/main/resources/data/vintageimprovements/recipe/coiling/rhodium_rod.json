@@ -1,0 +1,27 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "c7c6d0",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/rhodium"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:rhodium_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/rhodium"
+                                     }
+                       }
+                   ],
+    "processing_time":  120
+}
+
+

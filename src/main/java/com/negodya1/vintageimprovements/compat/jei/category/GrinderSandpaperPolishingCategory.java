@@ -19,7 +19,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import java.util.List;
 
@@ -53,16 +53,6 @@ public class GrinderSandpaperPolishingCategory extends CreateRecipeCategory<Sand
 		}
 	}
 
-    @Override
-    public ResourceLocation getRegistryName(SandPaperPolishingRecipe recipe) {
-        ResourceLocation id = super.getRegistryName(recipe);
-        if (id != null) {
-            return new ResourceLocation(id.getNamespace(),
-                    "grinder_" + id.getPath());
-        }
-        return id;
-    }
-
 	@Override
 	public void draw(SandPaperPolishingRecipe recipe, IRecipeSlotsView iRecipeSlotsView, GuiGraphics graphics, double mouseX, double mouseY) {
 		AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 70, 6);
@@ -91,7 +81,7 @@ public class GrinderSandpaperPolishingCategory extends CreateRecipeCategory<Sand
 	}
 
 	@Override
-	public void getTooltip(ITooltipBuilder tooltip, SandPaperPolishingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+	public void getTooltip(ITooltipBuilder tooltip, RecipeHolder<SandPaperPolishingRecipe> recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
 		if (mouseX > 63 && mouseX < 97 && mouseY > 33 && mouseY < 64) {
 			int duration = 50;
 			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));

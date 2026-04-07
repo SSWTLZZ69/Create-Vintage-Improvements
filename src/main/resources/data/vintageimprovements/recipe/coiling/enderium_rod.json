@@ -1,0 +1,27 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "2ba6ad",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/enderium"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:enderium_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/enderium"
+                                     }
+                       }
+                   ],
+    "processing_time":  120
+}
+
+

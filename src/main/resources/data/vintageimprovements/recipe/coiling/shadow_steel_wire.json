@@ -1,0 +1,17 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "40374d",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/shadow_steel"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_shadow_steel_spring"
+                    }
+                ],
+    "processing_time":  60
+}
+

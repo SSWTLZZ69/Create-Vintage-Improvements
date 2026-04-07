@@ -1,0 +1,18 @@
+﻿{
+    "type":  "createaddition:rolling",
+    "input":  {
+                  "tag":  "c:ingots/vanadium"
+              },
+    "result":  {
+                   "count":  2,
+                   "id":  "vintageimprovements:vanadium_rod"
+               },
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "createaddition"
+                       }
+                   ]
+}
+
+

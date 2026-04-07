@@ -1,0 +1,21 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/ironwood"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:ironwood_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "twilightforest"
+                       }
+                   ]
+}
+
+

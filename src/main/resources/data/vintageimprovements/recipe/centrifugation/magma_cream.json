@@ -1,0 +1,19 @@
+﻿{
+    "type":  "vintageimprovements:centrifugation",
+    "ingredients":  [
+                        {
+                            "item":  "minecraft:magma_cream"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "minecraft:slime_ball"
+                    },
+                    {
+                        "count":  1,
+                        "id":  "minecraft:blaze_powder"
+                    }
+                ],
+    "processing_time":  1000
+}

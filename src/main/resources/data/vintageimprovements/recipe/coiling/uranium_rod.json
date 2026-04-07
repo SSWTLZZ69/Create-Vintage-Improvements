@@ -1,0 +1,27 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "85c483",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/uranium"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:uranium_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/uranium"
+                                     }
+                       }
+                   ],
+    "processing_time":  120
+}
+
+

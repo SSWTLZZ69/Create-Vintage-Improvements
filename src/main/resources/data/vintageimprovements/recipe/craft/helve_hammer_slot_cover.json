@@ -1,0 +1,17 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "#":  {
+                          "tag":  "c:nuggets/brass"
+                      }
+            },
+    "pattern":  [
+                    "  #",
+                    " # ",
+                    "#  "
+                ],
+    "result":  {
+                   "id":  "vintageimprovements:helve_hammer_slot_cover"
+               }
+}
+

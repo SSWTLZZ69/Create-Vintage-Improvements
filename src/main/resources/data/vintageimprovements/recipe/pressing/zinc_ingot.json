@@ -1,0 +1,31 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/zinc"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:zinc_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:mod_loaded",
+                                         "modid":  "createaddition"
+                                     }
+                       },
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:mod_loaded",
+                                         "modid":  "destroy"
+                                     }
+                       }
+                   ]
+}
+
+

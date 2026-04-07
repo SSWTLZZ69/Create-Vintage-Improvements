@@ -1,0 +1,17 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "D8AE26",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/blaze"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:blaze_spring"
+                    }
+                ],
+    "processing_time":  120
+}
+

@@ -1,0 +1,23 @@
+﻿{
+    "type":  "vintageimprovements:centrifugation",
+    "ingredients":  [
+                        {
+                            "tag":  "c:dyes/magenta"
+                        },
+                        {
+                            "tag":  "c:dyes/magenta"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "minecraft:pink_dye"
+                    },
+                    {
+                        "count":  1,
+                        "id":  "minecraft:purple_dye"
+                    }
+                ],
+    "processing_time":  1000
+}
+

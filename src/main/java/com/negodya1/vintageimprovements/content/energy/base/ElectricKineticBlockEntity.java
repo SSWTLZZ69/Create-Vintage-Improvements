@@ -1,25 +1,23 @@
 package com.negodya1.vintageimprovements.content.energy.base;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 import java.util.List;
 
 public abstract class ElectricKineticBlockEntity extends KineticBlockEntity {
 
 	protected final VintageInternalEnergyStorage localEnergy;
-	protected LazyOptional<IEnergyStorage> lazyEnergy;
+	protected IEnergyStorage lazyEnergy;
 
 	private boolean firstTickState = true;
 	// protected final int CAPACITY, MAX_IN, MAX_OUT;
@@ -27,7 +25,7 @@ public abstract class ElectricKineticBlockEntity extends KineticBlockEntity {
 	public ElectricKineticBlockEntity(BlockEntityType<?> tileEntityTypeIn, BlockPos pos, BlockState state) {
 		super(tileEntityTypeIn, pos, state);
 		localEnergy = new VintageInternalEnergyStorage(getCapacity(), getMaxIn(), getMaxOut());
-		lazyEnergy = LazyOptional.of(() -> localEnergy);
+		lazyEnergy = localEnergy;
 		setLazyTickRate(20);
 	}
 
@@ -38,31 +36,24 @@ public abstract class ElectricKineticBlockEntity extends KineticBlockEntity {
 	@Override
 	public void addBehaviours(List<BlockEntityBehaviour> behaviours) {}
 
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-		if(cap == ForgeCapabilities.ENERGY && (isEnergyInput(side) || isEnergyOutput(side)))// && !level.isClientSide
-			return lazyEnergy.cast();
-		return super.getCapability(cap, side);
-	}
-
 	public abstract boolean isEnergyInput(Direction side);
 	public abstract boolean isEnergyOutput(Direction side);
 
 	@Override
-	protected void read(CompoundTag compound, boolean arg1) {
-		super.read(compound, arg1);
+	protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+		super.read(compound, registries, clientPacket);
 		localEnergy.read(compound);
 	}
 
 	@Override
-	public void write(CompoundTag compound, boolean clientPacket) {
-		super.write(compound, clientPacket);
+	public void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+		super.write(compound, registries, clientPacket);
 		localEnergy.write(compound);
 	}
 
 	@Override
 	public void remove() {
-		lazyEnergy.invalidate();
+		super.remove();
 	}
 
 	@Deprecated
@@ -101,30 +92,29 @@ public abstract class ElectricKineticBlockEntity extends KineticBlockEntity {
 
 	public void updateCache(Direction side) {
 		if (!level.isLoaded(worldPosition.relative(side))) {
-			setCache(side, LazyOptional.empty());
+			setCache(side, null);
 			return;
 		}
 		BlockEntity te = level.getBlockEntity(worldPosition.relative(side));
 		if(te == null) {
-			setCache(side, LazyOptional.empty());
+			setCache(side, null);
 			return;
 		}
-		LazyOptional<IEnergyStorage> le = te.getCapability(ForgeCapabilities.ENERGY, side.getOpposite());
-		if(ignoreCapSide() && !le.isPresent()) le = te.getCapability(ForgeCapabilities.ENERGY);
+		IEnergyStorage resolved = level.getCapability(Capabilities.EnergyStorage.BLOCK, worldPosition.relative(side), side.getOpposite());
+		if(ignoreCapSide() && resolved == null) resolved = level.getCapability(Capabilities.EnergyStorage.BLOCK, worldPosition.relative(side), null);
 		// Make sure the side isn't already cached.
-		if (le.equals(getCachedEnergy(side))) return;
-		setCache(side, le);
-		le.addListener((es) -> updateCache(side));
+		if (resolved == getCachedEnergy(side)) return;
+		setCache(side, resolved);
 	}
 
-	private LazyOptional<IEnergyStorage> escacheUp = LazyOptional.empty();
-	private LazyOptional<IEnergyStorage> escacheDown = LazyOptional.empty();
-	private LazyOptional<IEnergyStorage> escacheNorth = LazyOptional.empty();
-	private LazyOptional<IEnergyStorage> escacheEast = LazyOptional.empty();
-	private LazyOptional<IEnergyStorage> escacheSouth = LazyOptional.empty();
-	private LazyOptional<IEnergyStorage> escacheWest = LazyOptional.empty();
+	private IEnergyStorage escacheUp;
+	private IEnergyStorage escacheDown;
+	private IEnergyStorage escacheNorth;
+	private IEnergyStorage escacheEast;
+	private IEnergyStorage escacheSouth;
+	private IEnergyStorage escacheWest;
 
-	public void setCache(Direction side, LazyOptional<IEnergyStorage> storage) {
+	public void setCache(Direction side, IEnergyStorage storage) {
 		switch(side) {
 			case DOWN:
 				escacheDown = storage;
@@ -147,7 +137,7 @@ public abstract class ElectricKineticBlockEntity extends KineticBlockEntity {
 		}
 	}
 
-	public LazyOptional<IEnergyStorage> getCachedEnergy(Direction side) {
+	public IEnergyStorage getCachedEnergy(Direction side) {
 		switch(side) {
 			case DOWN:
 				return escacheDown;
@@ -162,6 +152,10 @@ public abstract class ElectricKineticBlockEntity extends KineticBlockEntity {
 			case WEST:
 				return escacheWest;
 		}
-		return LazyOptional.empty();
+		return null;
+	}
+
+	public IEnergyStorage getEnergyStorage() {
+		return lazyEnergy;
 	}
 }

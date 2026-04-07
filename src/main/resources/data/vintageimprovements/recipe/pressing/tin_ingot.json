@@ -1,0 +1,24 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/tin"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:tin_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/tin"
+                                     }
+                       }
+                   ]
+}
+
+

@@ -1,6 +1,8 @@
 package com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber;
 
-import com.google.gson.JsonObject;
+import com.google.common.base.Joiner;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
 import com.negodya1.vintageimprovements.VintageBlocks;
 import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
@@ -9,42 +11,46 @@ import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemb
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinRecipe;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
 import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
-import com.simibubi.create.foundation.fluid.FluidIngredient;
+import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 import com.simibubi.create.foundation.recipe.DummyCraftingContainer;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.*;
 import java.util.function.Supplier;
 
 public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 
-	int secondaryFluidResults;
-	int secondaryFluidInputs;
+	private final int secondaryFluidResults;
+	private final int secondaryFluidInputs;
 
-	public VacuumizingRecipe(ProcessingRecipeParams params) {
+	public VacuumizingRecipe(VacuumizingRecipeParams params) {
 		super(VintageRecipes.VACUUMIZING, params);
-		secondaryFluidResults = -1;
-		secondaryFluidInputs = -1;
+		secondaryFluidResults = params.secondaryFluidResults();
+		secondaryFluidInputs = params.secondaryFluidInputs();
 	}
 
 	@Override
@@ -67,8 +73,8 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 				result.append(ingredients.get(1).getItems()[0].getItem().getDescription());
 		}
 		else if (!fluidIngredients.isEmpty()) {
-			if (!fluidIngredients.get(0).getMatchingFluidStacks().isEmpty())
-				result.append(fluidIngredients.get(0).getMatchingFluidStacks().get(0).getDisplayName());
+			if (fluidIngredients.get(0).getFluids().length != 0)
+				result.append(fluidIngredients.get(0).getFluids()[0].getDisplayName());
 		}
 
 		if (ingredients.size() > 2) {
@@ -87,11 +93,11 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 
 		if (fluidIngredients.size() > startNum) {
 			for (int i = startNum; i < fluidIngredients.size() - 1; i++)
-				if (!fluidIngredients.get(i).getMatchingFluidStacks().isEmpty())
-					result.append(", ").append(fluidIngredients.get(i).getMatchingFluidStacks().get(0).getDisplayName());
-			if (!fluidIngredients.get(fluidIngredients.size() - 1).getMatchingFluidStacks().isEmpty())
+				if (fluidIngredients.get(i).getFluids().length != 0)
+					result.append(", ").append(fluidIngredients.get(i).getFluids()[0].getDisplayName());
+			if (fluidIngredients.get(fluidIngredients.size() - 1).getFluids().length != 0)
 				result.append(" ").append(VintageLang.translateDirect("recipe.assembly.and").append(" ")
-						.append(fluidIngredients.get(fluidIngredients.size() - 1).getMatchingFluidStacks().get(0).getDisplayName()));
+						.append(fluidIngredients.get(fluidIngredients.size() - 1).getFluids()[0].getDisplayName()));
 
 		}
 
@@ -113,8 +119,6 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 		if (filter == null)
 			return false;
 
-		// 在simibubi的设计中，配方无法得知过滤器的黑白名单模式，过滤器无法得知配方的完整产出
-		// 因此这段代码不是我不想改，而是我没招了
 		boolean filterTest = filter.test(recipe.getResultItem(basin.getLevel()
 				.registryAccess()));
 		if (recipe instanceof BasinRecipe) {
@@ -139,11 +143,9 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 
 	private static boolean apply(BasinBlockEntity basin, Recipe<?> recipe, VacuumChamberBlockEntity be, boolean test, int step) {
 		boolean isBasinRecipe = recipe instanceof BasinRecipe;
-		IItemHandler availableItems = basin.getCapability(ForgeCapabilities.ITEM_HANDLER)
-				.orElse(null);
-		IFluidHandler availableFluids = basin.getCapability(ForgeCapabilities.FLUID_HANDLER)
-				.orElse(null);
-		IFluidHandler availableSecondaryFluids = be.fluidCapability.orElse(null);
+		IItemHandler availableItems = basin.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, basin.getBlockPos(), null);
+		IFluidHandler availableFluids = basin.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, basin.getBlockPos(), null);
+		IFluidHandler availableSecondaryFluids = be.fluidCapability;
 
 		if (availableItems == null || availableFluids == null || availableSecondaryFluids == null)
 			return false;
@@ -160,7 +162,7 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 		List<FluidStack> recipeSecondaryOutputFluids = new ArrayList<>();
 
 		List<Ingredient> ingredients = new LinkedList<>(recipe.getIngredients());
-		List<FluidIngredient> fluidIngredients =
+		List<SizedFluidIngredient> fluidIngredients =
 				isBasinRecipe ? ((BasinRecipe) recipe).getFluidIngredients() : Collections.emptyList();
 
 		for (boolean simulate : Iterate.trueAndFalse) {
@@ -172,7 +174,6 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 			int[] extractedFluidsFromTank = new int[availableFluids.getTanks()];
 			int[] extractedSecondaryFluidsFromTank = new int[availableSecondaryFluids.getTanks()];
 
-			// 记录是否匹配到正确的半成品原料
 			boolean incompleteItemFound = false;
 
 			Ingredients: for (int i = 0; i < ingredients.size(); i++) {
@@ -185,24 +186,18 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 					ItemStack extracted = availableItems.extractItem(slot, 1, true);
 					if (!ingredient.test(extracted))
 						continue;
-					// 序列装配时，判断是否为对应半成品原料
 					if (step != 0) {
-						String sequenceId = getSequenceId(recipe);
-						if (extracted.hasTag() && extracted.getTag().contains("SequencedAssembly")) {
-							// 已经匹配到主原料时，拒绝任何带有序列装配标签的物品
+						CustomData customData = extracted.get(DataComponents.CUSTOM_DATA);
+						if (customData != null && customData.contains("SequencedAssembly")) {
 							if (incompleteItemFound) continue;
 
-							CompoundTag tag = extracted.getTag().getCompound("SequencedAssembly");
-							// 匹配正确的序列装配主原料
-							if (sequenceId.equals(tag.getString("id"))
-									&& step == tag.getInt("Step") + 1) {
+							CompoundTag tag = customData.copyTag().getCompound("SequencedAssembly");
+							if (step == tag.getInt("Step") + 1) {
 								incompleteItemFound = true;
 							} else {
-								// 拒绝其他任何有序列装配标签的物品
 								continue;
 							}
 						} else if (step == 1) {
-							// 起始步骤物品可以没有序列装配标签
 							incompleteItemFound = true;
 						}
 					}
@@ -216,22 +211,21 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 				return false;
 			}
 
-			// 正在执行序列装配配方，但未找到可用半成品原料
 			if (step != 0 && !incompleteItemFound) {
 				return false;
 			}
 
 			boolean fluidsAffected = false;
 			FluidIngredients: for (int i = 0; i < fluidIngredients.size(); i++) {
-				FluidIngredient fluidIngredient = fluidIngredients.get(i);
-				int amountRequired = fluidIngredient.getRequiredAmount();
+				SizedFluidIngredient SizedFluidIngredient = fluidIngredients.get(i);
+				int amountRequired = SizedFluidIngredient.amount();
 
 				if (recipe instanceof VacuumizingRecipe basinRecipe && basinRecipe.secondaryFluidInputs == i) {
 					for (int tank = 0; tank < availableSecondaryFluids.getTanks(); tank++) {
 						FluidStack fluidStack = availableSecondaryFluids.getFluidInTank(tank);
 						if (simulate && fluidStack.getAmount() <= extractedSecondaryFluidsFromTank[tank])
 							continue;
-						if (!fluidIngredient.test(fluidStack))
+						if (!SizedFluidIngredient.test(fluidStack))
 							continue;
 						int drainedAmount = Math.min(amountRequired, fluidStack.getAmount());
 						if (!simulate) {
@@ -250,7 +244,7 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 						FluidStack fluidStack = availableFluids.getFluidInTank(tank);
 						if (simulate && fluidStack.getAmount() <= extractedFluidsFromTank[tank])
 							continue;
-						if (!fluidIngredient.test(fluidStack))
+						if (!SizedFluidIngredient.test(fluidStack))
 							continue;
 						int drainedAmount = Math.min(amountRequired, fluidStack.getAmount());
 						if (!simulate) {
@@ -283,8 +277,14 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 
 			if (simulate) {
 				if (recipe instanceof VacuumizingRecipe basinRecipe) {
-					recipeOutputItems.addAll(basinRecipe.rollResults());
-					CraftingContainer remainderContainer = new DummyCraftingContainer(availableItems, extractedItemsFromSlot);
+					recipeOutputItems.addAll(basinRecipe.rollResults(basin.getLevel().random));
+					DummyCraftingContainer dummyContainer = new DummyCraftingContainer(availableItems, extractedItemsFromSlot);
+					List<ItemStack> craftingItems = new ArrayList<>();
+					for (int slot = 0; slot < dummyContainer.getContainerSize(); slot++)
+						craftingItems.add(dummyContainer.getItem(slot));
+					CraftingInput remainderContainer = craftingItems.isEmpty()
+							? CraftingInput.EMPTY
+							: CraftingInput.of(craftingItems.size(), 1, craftingItems);
 
 					for (ItemStack stack : basinRecipe.getRemainingItems(remainderContainer))
 						if (!stack.isEmpty())
@@ -300,9 +300,6 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 				}
 			}
 
-			// 这里使用的本体代码有吞流体的bug
-			// (工作盆产出流体A和B，而一个输出槽为空，另一输出槽被无关流体C占用时)
-			// 不是我不想改，而是我没招了
 			if (!basin.acceptOutputs(recipeOutputItems, recipeOutputFluids, simulate))
 				return false;
 
@@ -315,30 +312,6 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 		return true;
 	}
 
-	@Override
-	public void readAdditional(JsonObject json) {
-		if (json.has("secondaryFluidOutput")) secondaryFluidResults = json.get("secondaryFluidOutput").getAsInt();
-		if (json.has("secondaryFluidInput")) secondaryFluidInputs = json.get("secondaryFluidInput").getAsInt();
-	}
-
-	@Override
-	public void readAdditional(FriendlyByteBuf buffer) {
-		secondaryFluidResults = buffer.readInt();
-		secondaryFluidInputs = buffer.readInt();
-	}
-
-	@Override
-	public void writeAdditional(JsonObject json) {
-		json.addProperty("secondaryFluidOutput", secondaryFluidResults);
-		json.addProperty("secondaryFluidInput", secondaryFluidInputs);
-	}
-
-	@Override
-	public void writeAdditional(FriendlyByteBuf buffer) {
-		buffer.writeInt(secondaryFluidResults);
-		buffer.writeInt(secondaryFluidInputs);
-	}
-
 	public int getSecondaryFluidResults() {
 		return secondaryFluidResults;
 	}
@@ -347,14 +320,42 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 		return secondaryFluidInputs;
 	}
 
+	public static class Serializer implements RecipeSerializer<VacuumizingRecipe> {
+		private final MapCodec<VacuumizingRecipe> codec;
+		private final StreamCodec<RegistryFriendlyByteBuf, VacuumizingRecipe> streamCodec;
 
-	public static String getSequenceId(Recipe<?> recipe) {
-		// simibubi解析序列装配配方时，为每个步骤创建一个子配方，并在配方id末尾添加_step_i
-		// 但是配方自身没有方法确认是否属于序列装配，也不知道属于哪个序列装配的哪一步
-		// 方法返回序列装配配方的id，step后的数字代表单个循环内的步骤，不能匹配物品实际加工步骤
-		// 仅在能确定是序列装配的前提下调用这个方法！
+		public Serializer() {
+			this.codec = VacuumizingRecipeParams.CODEC
+					.xmap(VacuumizingRecipe::new, VacuumizingRecipeParams::fromRecipe)
+					.validate(Serializer::validateRecipe);
+			this.streamCodec = VacuumizingRecipeParams.STREAM_CODEC
+					.map(VacuumizingRecipe::new, VacuumizingRecipeParams::fromRecipe);
+		}
+
+		private static DataResult<VacuumizingRecipe> validateRecipe(VacuumizingRecipe recipe) {
+			var errors = recipe.validate();
+			if (errors.isEmpty())
+				return DataResult.success(recipe);
+			errors.add(recipe.getClass().getSimpleName() + " failed validation:");
+			return DataResult.error(() -> Joiner.on('\n').join(errors), recipe);
+		}
+
+		@Override
+		public MapCodec<VacuumizingRecipe> codec() {
+			return codec;
+		}
+
+		@Override
+		public StreamCodec<RegistryFriendlyByteBuf, VacuumizingRecipe> streamCodec() {
+			return streamCodec;
+		}
+	}
+
+
+	public static String getSequenceId(RecipeHolder<? extends Recipe<?>> recipeHolder) {
+		Recipe<?> recipe = recipeHolder.value();
 		if (recipe instanceof VacuumizingRecipe vacuumizingRecipe) {
-			String key = vacuumizingRecipe.getId().toString();
+			String key = recipeHolder.id().toString();
 			int last = key.lastIndexOf("_step_");
 			if (last > -1) return key.substring(0, last);
 		}
@@ -362,3 +363,4 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 		return "";
 	}
 }
+

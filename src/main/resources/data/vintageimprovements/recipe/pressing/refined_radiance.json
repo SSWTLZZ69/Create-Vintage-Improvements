@@ -1,0 +1,14 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/refined_radiance"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:refined_radiance_sheet"
+                    }
+                ]
+}
+

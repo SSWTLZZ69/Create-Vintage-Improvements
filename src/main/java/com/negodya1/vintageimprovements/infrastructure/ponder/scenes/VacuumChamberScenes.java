@@ -21,8 +21,10 @@ import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.createmod.ponder.foundation.element.InputWindowElement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -31,8 +33,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 public class VacuumChamberScenes {
 
@@ -71,7 +73,7 @@ public class VacuumChamberScenes {
 			.text("Compressor have two operating modes, that can be changed via right click with Wrench");
 		scene.idle(40);
 
-		ItemStack wrench = new ItemStack(AllItems.WRENCH);
+		ItemStack wrench = AllItems.WRENCH.asStack();
 		scene.overlay().showControls(util.vector().topOf(pressPos), Pointing.LEFT, 30).withItem(wrench);
 		scene.world().modifyBlockEntity(pressPos, VacuumChamberBlockEntity.class, VacuumChamberBlockEntity::changeMode);
 		scene.idle(40);
@@ -90,8 +92,8 @@ public class VacuumChamberScenes {
 		scene.idle(80);
 		scene.world().modifyBlockEntityNBT(util.select().position(basin), BasinBlockEntity.class, nbt -> {
 			nbt.put("VisualizedItems",
-				NBTHelper.writeCompoundList(ImmutableList.of(IntAttached.with(1, result)), ia -> ia.getValue()
-					.serializeNBT()));
+				NBTHelper.writeCompoundList(ImmutableList.of(IntAttached.with(1, result)), ia -> (CompoundTag) ia.getValue()
+					.saveOptional(RegistryAccess.EMPTY)));
 		});
 		scene.idle(4);
 		scene.world().createItemOnBelt(util.grid().at(1, 1, 1), Direction.UP, result);
@@ -187,3 +189,4 @@ public class VacuumChamberScenes {
 		scene.idle(25);
 	}
 }
+

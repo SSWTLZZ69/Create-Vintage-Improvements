@@ -1,0 +1,27 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "5D595E",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/steel"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:steel_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/steel"
+                                     }
+                       }
+                   ],
+    "processing_time":  120
+}
+
+

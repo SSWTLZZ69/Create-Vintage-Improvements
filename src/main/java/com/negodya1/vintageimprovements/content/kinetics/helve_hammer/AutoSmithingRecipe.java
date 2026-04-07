@@ -2,14 +2,14 @@ package com.negodya1.vintageimprovements.content.kinetics.helve_hammer;
 
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
+import com.simibubi.create.content.processing.recipe.ProcessingRecipeParams;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-public class AutoSmithingRecipe extends ProcessingRecipe<RecipeWrapper> {
+public class AutoSmithingRecipe extends ProcessingRecipe<RecipeWrapper, ProcessingRecipeParams> {
 	public AutoSmithingRecipe(ProcessingRecipeParams params) {
 		super(VintageRecipes.AUTO_SMITHING, params);
 	}
@@ -32,3 +32,4 @@ public class AutoSmithingRecipe extends ProcessingRecipe<RecipeWrapper> {
 		return 1;
 	}
 }
+

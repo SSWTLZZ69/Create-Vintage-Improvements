@@ -1,12 +1,6 @@
 package com.negodya1.vintageimprovements.content.kinetics.laser;
 
-import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
-
-import javax.annotation.ParametersAreNonnullByDefault;
-
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
 import com.negodya1.vintageimprovements.VintageBlocks;
 import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.VintageLang;
@@ -15,30 +9,34 @@ import com.negodya1.vintageimprovements.compat.jei.category.assemblies.AssemblyL
 import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
 import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemblySubCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
-
-import com.simibubi.create.foundation.utility.CreateLang;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
 
 @ParametersAreNonnullByDefault
-public class LaserCuttingRecipe extends ProcessingRecipe<RecipeWrapper> implements IAssemblyRecipe {
+public class LaserCuttingRecipe extends ProcessingRecipe<RecipeWrapper, LaserCuttingRecipeParams> implements IAssemblyRecipe {
 
-	public int energy;
-	public int maxChargeRate;
+	private final int energy;
+	private final int maxChargeRate;
 
-	public LaserCuttingRecipe(ProcessingRecipeParams params) {
+	public LaserCuttingRecipe(LaserCuttingRecipeParams params) {
 		super(VintageRecipes.LASER_CUTTING, params);
-		energy = 0;
-		maxChargeRate = 0;
+		energy = params.energy();
+		maxChargeRate = params.maxChargeRate();
 	}
 
 	@Override
@@ -82,30 +80,6 @@ public class LaserCuttingRecipe extends ProcessingRecipe<RecipeWrapper> implemen
 		return () -> AssemblyLaserCutting::new;
 	}
 
-	@Override
-	public void readAdditional(JsonObject json) {
-		if (json.has("energy")) energy = json.get("energy").getAsInt();
-		if (json.has("maxChargeRate")) maxChargeRate = json.get("maxChargeRate").getAsInt();
-	}
-
-	@Override
-	public void readAdditional(FriendlyByteBuf buffer) {
-		energy = buffer.readInt();
-		maxChargeRate = buffer.readInt();
-	}
-
-	@Override
-	public void writeAdditional(JsonObject json) {
-		json.addProperty("energy", energy);
-		json.addProperty("maxChargeRate", maxChargeRate);
-	}
-
-	@Override
-	public void writeAdditional(FriendlyByteBuf buffer) {
-		buffer.writeInt(energy);
-		buffer.writeInt(maxChargeRate);
-	}
-
 	public int getEnergy() {
 		return energy;
 	}
@@ -114,4 +88,29 @@ public class LaserCuttingRecipe extends ProcessingRecipe<RecipeWrapper> implemen
 		return maxChargeRate;
 	}
 
+	@FunctionalInterface
+	public interface Factory<R extends LaserCuttingRecipe> extends ProcessingRecipe.Factory<LaserCuttingRecipeParams, R> {
+		R create(LaserCuttingRecipeParams params);
+	}
+
+	public static class Serializer<R extends LaserCuttingRecipe> implements RecipeSerializer<R> {
+		private final MapCodec<R> codec;
+		private final StreamCodec<RegistryFriendlyByteBuf, R> streamCodec;
+
+		public Serializer(Factory<R> factory) {
+			this.codec = ProcessingRecipe.codec(factory, LaserCuttingRecipeParams.CODEC);
+			this.streamCodec = ProcessingRecipe.streamCodec(factory, LaserCuttingRecipeParams.STREAM_CODEC);
+		}
+
+		@Override
+		public MapCodec<R> codec() {
+			return codec;
+		}
+
+		@Override
+		public StreamCodec<RegistryFriendlyByteBuf, R> streamCodec() {
+			return streamCodec;
+		}
+	}
 }
+

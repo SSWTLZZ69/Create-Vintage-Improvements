@@ -1,0 +1,24 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "817549",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/ironwood"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_ironwood_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "twilightforest"
+                       }
+                   ],
+    "processing_time":  60
+}
+
+

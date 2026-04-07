@@ -1,0 +1,17 @@
+{
+    "type":  "vintageimprovements:laser_cutting",
+    "ingredients":  [
+                        {
+                            "tag":  "c:glass/purple"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  6,
+                        "id":  "minecraft:purple_stained_glass_pane"
+                    }
+                ],
+    "energy":  2000,
+    "max_charge_rate":  50
+}
+

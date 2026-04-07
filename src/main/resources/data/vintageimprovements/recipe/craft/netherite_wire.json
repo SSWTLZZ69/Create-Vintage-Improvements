@@ -1,0 +1,28 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "group":  "netherite_wires",
+    "key":  {
+                "#":  {
+                          "tag":  "c:rods/netherite"
+                      }
+            },
+    "pattern":  [
+                    "#",
+                    "#"
+                ],
+    "result":  {
+                   "count":  4,
+                   "id":  "vintageimprovements:netherite_wire"
+               },
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:mod_loaded",
+                                         "modid":  "createaddition"
+                                     }
+                       }
+                   ]
+}
+
+

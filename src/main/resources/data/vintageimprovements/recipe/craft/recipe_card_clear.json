@@ -1,0 +1,11 @@
+﻿{
+    "type":  "minecraft:crafting_shapeless",
+    "ingredients":  [
+                        {
+                            "item":  "vintageimprovements:recipe_card"
+                        }
+                    ],
+    "result":  {
+                   "id":  "vintageimprovements:recipe_card"
+               }
+}

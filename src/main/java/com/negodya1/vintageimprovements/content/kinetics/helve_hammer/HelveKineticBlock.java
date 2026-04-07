@@ -27,13 +27,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 import com.simibubi.create.AllBlocks;
@@ -63,9 +56,9 @@ import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientBlockExtensions;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions;
 
 public class HelveKineticBlock extends DirectionalKineticBlock implements IWrenchable, IProxyHoveringInformation, IBE<HelveKineticBlockEntity> {
 	public HelveKineticBlock(Properties p_52591_) {
@@ -103,7 +96,7 @@ public class HelveKineticBlock extends DirectionalKineticBlock implements IWrenc
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {
+	public ItemStack getCloneItemStack(LevelReader pLevel, BlockPos pPos, BlockState pState) {
 		return VintageBlocks.HELVE.asStack();
 	}
 
@@ -130,14 +123,14 @@ public class HelveKineticBlock extends DirectionalKineticBlock implements IWrenc
 			pLevel.destroyBlock(getMaster(pLevel, pPos, pState), true);
 	}
 
-	public void playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
+	public BlockState playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
 		if (stillValid(pLevel, pPos, pState, false)) {
 			BlockPos masterPos = getMaster(pLevel, pPos, pState);
 			pLevel.destroyBlockProgress(masterPos.hashCode(), masterPos, -1);
 			if (!pLevel.isClientSide() && pPlayer.isCreative())
 				pLevel.destroyBlock(masterPos, false);
 		}
-		super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
+		return super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
 	}
 
 	@Override

@@ -15,45 +15,43 @@ import com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber.Pressuri
 import com.negodya1.vintageimprovements.content.kinetics.vacuum_chamber.VacuumizingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.vibration.LeavesVibratingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingRecipe;
+import com.negodya1.vintageimprovements.foundation.recipe.VintageProcessingRecipeSerializer;
 import com.simibubi.create.AllTags;
+import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
+import com.simibubi.create.content.processing.recipe.ProcessingRecipeParams;
 import com.simibubi.create.foundation.utility.CreateLang;
 import net.minecraft.world.item.crafting.*;
 import org.jetbrains.annotations.Nullable;
 
 import com.negodya1.vintageimprovements.content.kinetics.grinder.PolishingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeFactory;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeSerializer;
 import com.simibubi.create.foundation.recipe.IRecipeTypeInfo;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public enum VintageRecipes implements IRecipeTypeInfo {
 
-    POLISHING(PolishingRecipe::new),
-    COILING(CoilingRecipe::new),
-    VACUUMIZING(VacuumizingRecipe::new),
+    POLISHING(() -> new PolishingRecipe.Serializer<>(PolishingRecipe::new)),
+    COILING(() -> new CoilingRecipe.Serializer<>(CoilingRecipe::new)),
+    VACUUMIZING(VacuumizingRecipe.Serializer::new),
     VIBRATING(VibratingRecipe::new),
     LEAVES_VIBRATING(LeavesVibratingRecipe::new),
-    CENTRIFUGATION(CentrifugationRecipe::new),
-    CURVING(CurvingRecipe::new),
-    PRESSURIZING(PressurizingRecipe::new),
-    HAMMERING(HammeringRecipe::new),
+    CENTRIFUGATION(() -> new CentrifugationRecipe.Serializer<>(CentrifugationRecipe::new)),
+    CURVING(() -> new CurvingRecipe.Serializer<>(CurvingRecipe::new)),
+    PRESSURIZING(PressurizingRecipe.Serializer::new),
+    HAMMERING(() -> new HammeringRecipe.Serializer<>(HammeringRecipe::new)),
     AUTO_SMITHING(AutoSmithingRecipe::new),
     AUTO_UPGRADE(AutoUpgradeRecipe::new),
     TURNING(TurningRecipe::new),
-    LASER_CUTTING(LaserCuttingRecipe::new);
+    LASER_CUTTING(() -> new LaserCuttingRecipe.Serializer<>(LaserCuttingRecipe::new));
 
     private final ResourceLocation id;
-    private final RegistryObject<RecipeSerializer<?>> serializerObject;
+    private final Supplier<RecipeSerializer<?>> serializerObject;
     @Nullable
-    private final RegistryObject<RecipeType<?>> typeObject;
+    private final Supplier<RecipeType<?>> typeObject;
     private final Supplier<RecipeType<?>> type;
 
     VintageRecipes(Supplier<RecipeSerializer<?>> serializerSupplier, Supplier<RecipeType<?>> typeSupplier, boolean registerType) {
@@ -77,12 +75,12 @@ public enum VintageRecipes implements IRecipeTypeInfo {
         type = typeObject;
     }
 
-    VintageRecipes(ProcessingRecipeFactory<?> processingFactory) {
-        this(() -> new ProcessingRecipeSerializer<>(processingFactory));
+    <R extends ProcessingRecipe<?, ProcessingRecipeParams>> VintageRecipes(ProcessingRecipe.Factory<ProcessingRecipeParams, R> processingFactory) {
+        this(() -> new VintageProcessingRecipeSerializer<>(processingFactory));
     }
 
     public static void register(IEventBus modEventBus) {
-        ShapedRecipe.setCraftingSize(9, 9);
+        ShapedRecipePattern.setCraftingSize(9, 9);
         Registers.SERIALIZER_REGISTER.register(modEventBus);
         Registers.TYPE_REGISTER.register(modEventBus);
     }
@@ -100,26 +98,28 @@ public enum VintageRecipes implements IRecipeTypeInfo {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends RecipeType<?>> T getType() {
-        return (T) type.get();
+    public <I extends RecipeInput, R extends Recipe<I>> RecipeType<R> getType() {
+        return (RecipeType<R>) type.get();
     }
 
-    public <C extends Container, T extends Recipe<C>> Optional<T> find(C inv, Level world) {
+    public <I extends RecipeInput, T extends Recipe<I>> Optional<RecipeHolder<T>> find(I inv, Level world) {
         return world.getRecipeManager()
                 .getRecipeFor(getType(), inv, world);
     }
 
     public static boolean shouldIgnoreInAutomation(Recipe<?> recipe) {
         RecipeSerializer<?> serializer = recipe.getSerializer();
-        if (serializer != null && AllTags.AllRecipeSerializerTags.AUTOMATION_IGNORE.matches(serializer))
+        return serializer != null && AllTags.AllRecipeSerializerTags.AUTOMATION_IGNORE.matches(serializer);
+    }
+
+    public static boolean shouldIgnoreInAutomation(RecipeHolder<? extends Recipe<?>> recipe) {
+        if (shouldIgnoreInAutomation(recipe.value()))
             return true;
-        return recipe.getId()
-                .getPath()
-                .endsWith("_manual_only");
+        return recipe.id().getPath().endsWith("_manual_only");
     }
 
     private static class Registers {
-        private static final DeferredRegister<RecipeSerializer<?>> SERIALIZER_REGISTER = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, VintageImprovements.MODID);
+        private static final DeferredRegister<RecipeSerializer<?>> SERIALIZER_REGISTER = DeferredRegister.create(Registries.RECIPE_SERIALIZER, VintageImprovements.MODID);
         private static final DeferredRegister<RecipeType<?>> TYPE_REGISTER = DeferredRegister.create(Registries.RECIPE_TYPE, VintageImprovements.MODID);
     }
 

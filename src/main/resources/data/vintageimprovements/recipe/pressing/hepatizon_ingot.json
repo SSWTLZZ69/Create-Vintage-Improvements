@@ -1,0 +1,24 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/hepatizon"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:hepatizon_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/hepatizon"
+                                     }
+                       }
+                   ]
+}
+
+

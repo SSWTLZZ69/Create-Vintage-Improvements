@@ -1,0 +1,16 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "B":  {
+                          "tag":  "c:storage_blocks/vanadium"
+                      }
+            },
+    "pattern":  [
+                    "B"
+                ],
+    "result":  {
+                   "count":  9,
+                   "id":  "vintageimprovements:vanadium_ingot"
+               }
+}
+

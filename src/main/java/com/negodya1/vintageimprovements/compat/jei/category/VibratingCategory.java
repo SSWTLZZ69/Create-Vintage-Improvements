@@ -17,6 +17,7 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 @ParametersAreNonnullByDefault
 public class VibratingCategory extends CreateRecipeCategory<VibratingRecipe> {
@@ -64,9 +65,9 @@ public class VibratingCategory extends CreateRecipeCategory<VibratingRecipe> {
 	}
 
 	@Override
-	public void getTooltip(ITooltipBuilder tooltip, VibratingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+	public void getTooltip(ITooltipBuilder tooltip, RecipeHolder<VibratingRecipe> recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
 		if (mouseX > 39 && mouseX < 73 && mouseY > 19 && mouseY < 57) {
-			int duration = recipe.getProcessingDuration();
+			int duration = recipe.value().getProcessingDuration();
 			if (duration == 0) duration = 100;
 			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
 		}

@@ -1,0 +1,24 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "C15A36",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/copper"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_copper_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "createaddition"
+                       }
+                   ],
+    "processing_time":  60
+}
+
+

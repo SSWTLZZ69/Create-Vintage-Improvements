@@ -1,0 +1,27 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "9060ca",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/manyllyn"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_manyllyn_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/manyllyn"
+                                     }
+                       }
+                   ],
+    "processing_time":  60
+}
+
+

@@ -1,0 +1,24 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/silver"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:silver_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/silver"
+                                     }
+                       }
+                   ]
+}
+
+

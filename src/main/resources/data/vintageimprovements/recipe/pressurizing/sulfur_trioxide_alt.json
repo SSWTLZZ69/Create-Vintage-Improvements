@@ -1,0 +1,23 @@
+{
+    "type":  "vintageimprovements:pressurizing",
+    "secondary_fluid_output":  0,
+    "ingredients":  [
+                        {
+                            "amount":  250,
+                            "tag":  "c:sulfur_dioxide",
+                            "type":  "neoforge:tag"
+                        },
+                        {
+                            "tag":  "c:nuggets/iron"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "amount":  250,
+                        "id":  "vintageimprovements:sulfur_trioxide"
+                    }
+                ],
+    "processing_time":  400,
+    "heat_requirement":  "superheated"
+}
+

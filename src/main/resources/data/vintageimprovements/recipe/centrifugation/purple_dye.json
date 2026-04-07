@@ -1,0 +1,23 @@
+﻿{
+    "type":  "vintageimprovements:centrifugation",
+    "ingredients":  [
+                        {
+                            "tag":  "c:dyes/purple"
+                        },
+                        {
+                            "tag":  "c:dyes/purple"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "minecraft:red_dye"
+                    },
+                    {
+                        "count":  1,
+                        "id":  "minecraft:blue_dye"
+                    }
+                ],
+    "processing_time":  1000
+}
+

@@ -32,13 +32,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.fluids.FluidInteractionRegistry;
-import net.minecraftforge.fluids.FluidInteractionRegistry.InteractionInformation;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.ForgeFlowingFluid;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.fluids.FluidInteractionRegistry;
+import net.neoforged.neoforge.fluids.FluidInteractionRegistry.InteractionInformation;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 
 public class VintageFluids {
 
@@ -49,7 +49,7 @@ public class VintageFluids {
 			.lang("Sulfur Trioxide").register();
 
 
-	public static final FluidEntry<ForgeFlowingFluid.Flowing> SULFURIC_ACID =
+	public static final FluidEntry<BaseFlowingFluid.Flowing> SULFURIC_ACID =
 		MY_REGISTRATE.standardFluid("sulfuric_acid",
 				SolidRenderedPlaceableFluidType.create(0xFFFFFF,
 					() -> 1f / 8f * AllConfigs.client().honeyTransparencyMultiplier.getF()))
@@ -60,7 +60,7 @@ public class VintageFluids {
 				.tickRate(25)
 				.slopeFindDistance(3)
 				.explosionResistance(100f))
-			.source(ForgeFlowingFluid.Source::new)
+			.source(BaseFlowingFluid.Source::new)
 			.bucket()
 			.build()
 			.register();
@@ -70,7 +70,7 @@ public class VintageFluids {
 	public static void register() {}
 
 	public static void registerFluidInteractions() {
-		FluidInteractionRegistry.addInteraction(ForgeMod.LAVA_TYPE.get(), new InteractionInformation(
+		FluidInteractionRegistry.addInteraction(NeoForgeMod.LAVA_TYPE.value(), new InteractionInformation(
 				SULFURIC_ACID.get().getFluidType(),
 				fluidState -> {
 					if (fluidState.isSource()) {
@@ -213,3 +213,4 @@ public class VintageFluids {
 	}
 
 }
+

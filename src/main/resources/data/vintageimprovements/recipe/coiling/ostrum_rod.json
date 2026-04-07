@@ -1,0 +1,24 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "A86C73",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/ostrum"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:ostrum_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "ad_astra"
+                       }
+                   ],
+    "processing_time":  120
+}
+
+

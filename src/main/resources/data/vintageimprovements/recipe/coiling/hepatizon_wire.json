@@ -1,0 +1,27 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "442d4f",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/hepatizon"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_hepatizon_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/hepatizon"
+                                     }
+                       }
+                   ],
+    "processing_time":  60
+}
+
+

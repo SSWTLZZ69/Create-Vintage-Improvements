@@ -19,11 +19,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -36,9 +38,9 @@ import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -105,7 +107,7 @@ public class LatheRotatingBlock extends HorizontalKineticBlock implements IBE<La
 	}
 
 	@Override
-	public boolean isPathfindable(BlockState state, BlockGetter reader, BlockPos pos, PathComputationType type) {
+	protected boolean isPathfindable(BlockState state, PathComputationType type) {
 		return false;
 	}
 
@@ -114,48 +116,50 @@ public class LatheRotatingBlock extends HorizontalKineticBlock implements IBE<La
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+	protected InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 		if (worldIn.isClientSide)
 			return InteractionResult.SUCCESS;
 
-		if (player.getItemInHand(handIn)
-				.isEmpty())
-			withBlockEntityDo(worldIn, pos, lathe -> {
-				boolean emptyOutput = true;
-				IItemHandlerModifiable inv = lathe.outputInv;
+		withBlockEntityDo(worldIn, pos, lathe -> {
+			boolean emptyOutput = true;
+			IItemHandlerModifiable inv = lathe.outputInv;
+			for (int slot = 0; slot < inv.getSlots(); slot++) {
+				ItemStack stackInSlot = inv.getStackInSlot(slot);
+				if (!stackInSlot.isEmpty())
+					emptyOutput = false;
+				player.getInventory().placeItemBackInInventory(stackInSlot);
+				inv.setStackInSlot(slot, ItemStack.EMPTY);
+			}
+
+			if (emptyOutput) {
+				inv = lathe.inputInv;
 				for (int slot = 0; slot < inv.getSlots(); slot++) {
-					ItemStack stackInSlot = inv.getStackInSlot(slot);
-					if (!stackInSlot.isEmpty())
-						emptyOutput = false;
-					player.getInventory()
-							.placeItemBackInInventory(stackInSlot);
+					player.getInventory().placeItemBackInInventory(inv.getStackInSlot(slot));
 					inv.setStackInSlot(slot, ItemStack.EMPTY);
 				}
+			}
 
-				if (emptyOutput) {
-					inv = lathe.inputInv;
-					for (int slot = 0; slot < inv.getSlots(); slot++) {
-						player.getInventory()
-								.placeItemBackInInventory(inv.getStackInSlot(slot));
-						inv.setStackInSlot(slot, ItemStack.EMPTY);
-					}
-				}
-
-					lathe.setChanged();
-					lathe.sendData();
+			lathe.setChanged();
+			lathe.sendData();
 		});
-		else {
-			withBlockEntityDo(worldIn, pos, lathe -> {
-				if (lathe.checkItem(player.getItemInHand(handIn))) {
-					player.setItemInHand(handIn, lathe.inputInv.insertItem(0, player.getItemInHand(handIn), false));
-
-					lathe.setChanged();
-					lathe.sendData();
-				}
-			});
-		}
 
 		return InteractionResult.SUCCESS;
+	}
+
+	@Override
+	protected ItemInteractionResult useItemOn(ItemStack heldItem, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+		if (worldIn.isClientSide)
+			return ItemInteractionResult.SUCCESS;
+
+		withBlockEntityDo(worldIn, pos, lathe -> {
+			if (lathe.checkItem(heldItem)) {
+				player.setItemInHand(handIn, lathe.inputInv.insertItem(0, heldItem, false));
+				lathe.setChanged();
+				lathe.sendData();
+			}
+		});
+
+		return ItemInteractionResult.SUCCESS;
 	}
 
 	@Override
@@ -200,9 +204,10 @@ public class LatheRotatingBlock extends HorizontalKineticBlock implements IBE<La
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void appendHoverText(ItemStack itemStack, @Nullable BlockGetter getter, List<Component> list, TooltipFlag flag) {
+	public void appendHoverText(ItemStack itemStack, Item.TooltipContext context, List<Component> list, TooltipFlag flag) {
 		list.add(Component.translatable(VintageImprovements.MODID + ".item_description.machine_rpm_requirements").append(" " + SpeedLevel.FAST.getSpeedValue()).withStyle(ChatFormatting.GOLD));
 		list.add(Component.translatable(VintageImprovements.MODID + ".item_description.additional_machine_rpm_requirements").append(" " + SpeedLevel.MEDIUM.getSpeedValue()).withStyle(ChatFormatting.GOLD));
 	}
 
 }
+

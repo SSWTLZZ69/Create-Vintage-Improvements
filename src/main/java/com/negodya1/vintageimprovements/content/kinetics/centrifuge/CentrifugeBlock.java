@@ -42,13 +42,11 @@ import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 
@@ -107,9 +105,8 @@ public class CentrifugeBlock extends KineticBlock implements IBE<CentrifugeBlock
 					return InteractionResult.SUCCESS;
 				if (heldItem.getItem()
 						.equals(Items.SPONGE)
-						&& !be.getCapability(ForgeCapabilities.FLUID_HANDLER)
-						.map(iFluidHandler -> iFluidHandler.drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.EXECUTE))
-						.orElse(FluidStack.EMPTY)
+						&& be.fluidCapability != null
+						&& !be.fluidCapability.drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.EXECUTE)
 						.isEmpty()) {
 					return InteractionResult.SUCCESS;
 				}
@@ -118,7 +115,7 @@ public class CentrifugeBlock extends KineticBlock implements IBE<CentrifugeBlock
 
 			if (be.getBasins() < 4 || be.getSpeed() != 0) return InteractionResult.PASS;
 
-			IItemHandlerModifiable inv = be.capability.orElse(new ItemStackHandler(1));
+			IItemHandlerModifiable inv = be.capability != null ? be.capability : new ItemStackHandler(1);
 			boolean success = false;
 			for (int slot = 0; slot < inv.getSlots(); slot++) {
 				ItemStack stackInSlot = inv.getStackInSlot(slot);
@@ -157,7 +154,7 @@ public class CentrifugeBlock extends KineticBlock implements IBE<CentrifugeBlock
 	}
 
 	@Override
-	public boolean isPathfindable(BlockState state, BlockGetter reader, BlockPos pos, PathComputationType type) {
+	protected boolean isPathfindable(BlockState state, PathComputationType type) {
 		return false;
 	}
 
@@ -234,3 +231,4 @@ public class CentrifugeBlock extends KineticBlock implements IBE<CentrifugeBlock
 	}
 
 }
+

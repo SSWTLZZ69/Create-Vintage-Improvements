@@ -12,6 +12,7 @@ import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
 import com.simibubi.create.foundation.recipe.RecipeConditions;
 import com.simibubi.create.foundation.recipe.RecipeFinder;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -35,11 +36,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.item.component.CustomData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.ItemStackHandler;
+
 
 import javax.annotation.Nullable;
 import javax.swing.*;
@@ -68,9 +69,9 @@ public class RecipeCardItem extends Item implements MenuProvider {
 		ItemStackHandler newInv = new ItemStackHandler(1);
 		if (VintageItems.RECIPE_CARD.get() != stack.getItem())
 			throw new IllegalArgumentException("Cannot get frequency items from non-recipe card: " + stack);
-		CompoundTag invNBT = stack.getOrCreateTagElement("Items");
-		if (!invNBT.isEmpty())
-			newInv.deserializeNBT(invNBT);
+		CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+		if (tag.contains("Items"))
+			newInv.deserializeNBT(RegistryAccess.EMPTY, tag.getCompound("Items"));
 		return newInv;
 	}
 
@@ -78,22 +79,24 @@ public class RecipeCardItem extends Item implements MenuProvider {
 		ItemStackHandler newInv = new ItemStackHandler(1);
 		if (VintageItems.RECIPE_CARD.get() != stack.getItem())
 			throw new IllegalArgumentException("Cannot get frequency items from non-recipe card: " + stack);
-		CompoundTag invNBT = stack.getOrCreateTagElement("Results");
-		if (!invNBT.isEmpty())
-			newInv.deserializeNBT(invNBT);
+		CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+		if (tag.contains("Results"))
+			newInv.deserializeNBT(RegistryAccess.EMPTY, tag.getCompound("Results"));
 		return newInv;
 	}
 
 	protected static int getIndex(ItemStack stack) {
 		if (VintageItems.RECIPE_CARD.get() != stack.getItem())
 			throw new IllegalArgumentException("Cannot get index from non-recipe card: " + stack);
-		if (stack.getOrCreateTagElement("Recipe").contains("Index"))
-			return stack.getOrCreateTagElement("Recipe").getInt("Index");
+		CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+		if (tag.contains("Recipe") && tag.getCompound("Recipe").contains("Index"))
+			return tag.getCompound("Recipe").getInt("Index");
 		return -1;
 	}
 
 	public static boolean haveRecipe(ItemStack stack) {
-		return stack.getOrCreateTagElement("Recipe").contains("Index");
+		CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+		return tag.contains("Recipe") && tag.getCompound("Recipe").contains("Index");
 	}
 
 	@Override
@@ -102,8 +105,8 @@ public class RecipeCardItem extends Item implements MenuProvider {
 
 		if (!player.isShiftKeyDown() && hand == InteractionHand.MAIN_HAND) {
 			if (!world.isClientSide && player instanceof ServerPlayer && player.mayBuild())
-				NetworkHooks.openScreen((ServerPlayer) player, this, buf -> {
-					buf.writeItem(heldItem);
+				((ServerPlayer) player).openMenu(this, buf -> {
+					ItemStack.STREAM_CODEC.encode(buf, heldItem);
 				});
 			return InteractionResultHolder.success(heldItem);
 		}
@@ -112,7 +115,7 @@ public class RecipeCardItem extends Item implements MenuProvider {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> list, TooltipFlag flag) {
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> list, TooltipFlag flag) {
 		int index = getIndex(stack);
 		ItemStack ingredient = getFrequencyItems(stack).getStackInSlot(0);
 		ItemStack result = getResultItems(stack).getStackInSlot(0);
@@ -129,3 +132,4 @@ public class RecipeCardItem extends Item implements MenuProvider {
 	}
 
 }
+

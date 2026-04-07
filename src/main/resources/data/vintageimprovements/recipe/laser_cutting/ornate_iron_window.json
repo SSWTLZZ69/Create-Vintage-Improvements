@@ -1,0 +1,16 @@
+{
+    "type":  "vintageimprovements:laser_cutting",
+    "ingredients":  [
+                        {
+                            "item":  "create:ornate_iron_window"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  6,
+                        "id":  "create:ornate_iron_window_pane"
+                    }
+                ],
+    "energy":  2000,
+    "max_charge_rate":  50
+}

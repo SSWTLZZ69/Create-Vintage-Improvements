@@ -50,23 +50,23 @@ public enum Mods {
 	}
 
 	public ResourceLocation ingotOf(String type) {
-		return new ResourceLocation(id, reversedMetalPrefix ? "ingot_" + type : type + "_ingot");
+		return ResourceLocation.fromNamespaceAndPath(id, reversedMetalPrefix ? "ingot_" + type : type + "_ingot");
 	}
 
 	public ResourceLocation nuggetOf(String type) {
-		return new ResourceLocation(id, reversedMetalPrefix ? "nugget_" + type : type + "_nugget");
+		return ResourceLocation.fromNamespaceAndPath(id, reversedMetalPrefix ? "nugget_" + type : type + "_nugget");
 	}
 
 	public ResourceLocation oreOf(String type) {
-		return new ResourceLocation(id, reversedMetalPrefix ? "ore_" + type : type + "_ore");
+		return ResourceLocation.fromNamespaceAndPath(id, reversedMetalPrefix ? "ore_" + type : type + "_ore");
 	}
 
 	public ResourceLocation deepslateOreOf(String type) {
-		return new ResourceLocation(id, reversedMetalPrefix ? "deepslate_ore_" + type : "deepslate_" + type + "_ore");
+		return ResourceLocation.fromNamespaceAndPath(id, reversedMetalPrefix ? "deepslate_ore_" + type : "deepslate_" + type + "_ore");
 	}
 
 	public ResourceLocation asResource(String id) {
-		return new ResourceLocation(this.id, id);
+		return ResourceLocation.fromNamespaceAndPath(this.id, id);
 	}
 	
 	public String recipeId(String id) {

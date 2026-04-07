@@ -27,29 +27,26 @@ import com.simibubi.create.foundation.item.SmartInventory;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.wrapper.CombinedInvWrapper;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
@@ -63,8 +60,8 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 	public SmartFluidTankBehaviour inputTank;
 	public SmartFluidTankBehaviour outputTank;
 	private Couple<SmartFluidTankBehaviour> tanks;
-	public LazyOptional<IItemHandlerModifiable> capability;
-	public LazyOptional<IFluidHandler> fluidCapability;
+	public IItemHandlerModifiable capability;
+	public IFluidHandler fluidCapability;
 	public int timer;
 	private CentrifugationRecipe lastRecipe;
 	private int basins;
@@ -88,7 +85,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 				.whenContentsChanged(slot -> contentsChanged = true);
 		outputInv = new SmartInventory(9, this)
 				.whenContentsChanged(slot -> contentsChanged = true);
-		capability = LazyOptional.of(() -> new CentrifugeInventoryHandler(inputInv, outputInv));
+		capability = new CentrifugeInventoryHandler(inputInv, outputInv);
 		basins = 0;
 		visualizedOutputItems = Collections.synchronizedList(new ArrayList<>());
 		ingredientRotation = LerpedFloat.angular()
@@ -136,39 +133,37 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		behaviours.add(inputTank);
 		behaviours.add(outputTank);
 
-		fluidCapability = LazyOptional.of(() -> {
-			LazyOptional<? extends IFluidHandler> inputCap = inputTank.getCapability();
-			LazyOptional<? extends IFluidHandler> outputCap = outputTank.getCapability();
-			return new CentrifugeTanksHandler(outputCap.orElse(null), inputCap.orElse(null));
-		});
+		IFluidHandler inputCap = inputTank.getCapability();
+		IFluidHandler outputCap = outputTank.getCapability();
+		fluidCapability = new CentrifugeTanksHandler(outputCap, inputCap);
 
 		advancementBehaviour = new VintageAdvancementBehaviour(this);
 		behaviours.add(advancementBehaviour);
 	}
 
 	@Override
-	public void write(CompoundTag compound, boolean clientPacket) {
+	protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
 		compound.putInt("Timer", timer);
-		compound.put("InputInventory", inputInv.serializeNBT());
-		compound.put("OutputInventory", outputInv.serializeNBT());
+		compound.put("InputInventory", inputInv.serializeNBT(registries));
+		compound.put("OutputInventory", outputInv.serializeNBT(registries));
 		compound.putBoolean("LastRecipeIsAssembly", lastRecipeIsAssembly);
 		compound.putInt("Basins", basins);
 		compound.putBoolean("RedstoneApp", redstoneApp);
-		super.write(compound, clientPacket);
+		super.write(compound, registries, clientPacket);
 
 		if (!clientPacket)
 			return;
 
 		NBTHelper.iterateCompoundList(nbtForAnim.getList("VisualizedItems", Tag.TAG_COMPOUND),
-				c -> visualizedOutputItems.add(IntAttached.with(OUTPUT_ANIMATION_TIME, ItemStack.of(c))));
+				c -> visualizedOutputItems.add(IntAttached.with(OUTPUT_ANIMATION_TIME, ItemStack.parseOptional(registries, c))));
 	}
 
 	@Override
-	protected void read(CompoundTag compound, boolean clientPacket) {
-		super.read(compound, clientPacket);
+	protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+		super.read(compound, registries, clientPacket);
 		timer = compound.getInt("Timer");
-		inputInv.deserializeNBT(compound.getCompound("InputInventory"));
-		outputInv.deserializeNBT(compound.getCompound("OutputInventory"));
+		inputInv.deserializeNBT(registries, compound.getCompound("InputInventory"));
+		outputInv.deserializeNBT(registries, compound.getCompound("OutputInventory"));
 		lastRecipeIsAssembly = compound.getBoolean("LastRecipeIsAssembly");
 		basins = compound.getInt("Basins");
 		redstoneApp = compound.getBoolean("RedstoneApp");
@@ -176,8 +171,8 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		if (!clientPacket)
 			return;
 
-		nbtForAnim.put("VisualizedItems", NBTHelper.writeCompoundList(visualizedOutputItems, ia -> ia.getValue()
-				.serializeNBT()));
+		nbtForAnim.put("VisualizedItems", NBTHelper.writeCompoundList(visualizedOutputItems, ia -> (CompoundTag) ia.getValue()
+				.saveOptional(registries)));
 		visualizedOutputItems.clear();
 	}
 
@@ -191,16 +186,17 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		visualizedOutputItems.removeIf(IntAttached::isOrBelowZero);
 	}
 
-	protected <C extends Container> boolean matchCentrifugeRecipe(Recipe<C> recipe) {
+	protected boolean matchCentrifugeRecipe(Recipe<?> recipe) {
 		if (recipe == null)
 			return false;
 		return CentrifugationRecipe.match(this, recipe);
 	}
 
 	private List<Recipe<?>> getRecipes() {
-		List<Recipe<?>> list = RecipeFinder.get(centrifugationRecipesKey, level, this::matchStaticFilters);
+		List<RecipeHolder<? extends Recipe<?>>> list = RecipeFinder.get(centrifugationRecipesKey, level, this::matchStaticFilters);
 
 		return list.stream()
+				.map(RecipeHolder::value)
 				.filter(this::matchCentrifugeRecipe)
 				.sorted((r1, r2) -> r2.getIngredients()
 						.size()
@@ -209,17 +205,17 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 				.collect(Collectors.toList());
 	}
 
-	protected <C extends Container> boolean matchStaticFilters(Recipe<C> r) {
-		return r.getType() == VintageRecipes.CENTRIFUGATION.getType();
+	protected boolean matchStaticFilters(RecipeHolder<? extends Recipe<?>> r) {
+		return r.value().getType() == VintageRecipes.CENTRIFUGATION.getType();
 	}
 
 	public boolean isProccesingNow() {
 		for (int i = 0; i < inputInv.getSlots(); i++) {
-			Optional<CentrifugationRecipe> assemblyRecipe = SequencedAssemblyRecipe.
+			Optional<RecipeHolder<CentrifugationRecipe>> assemblyRecipe = SequencedAssemblyRecipe.
 					getRecipe(level, inputInv.getStackInSlot(i),
 							VintageRecipes.CENTRIFUGATION.getType(), CentrifugationRecipe.class);
 			if (assemblyRecipe.isPresent())
-				return CentrifugationRecipe.match(this, assemblyRecipe.get());
+				return CentrifugationRecipe.match(this, assemblyRecipe.get().value());
 		}
 
 		List<Recipe<?>> recipes = getRecipes();
@@ -275,12 +271,12 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 				lastRecipe = null;
 			}
 
-			if (lastRecipe != null && Mth.abs(getSpeed()) < lastRecipe.minimalRPM) {
+			if (lastRecipe != null && Mth.abs(getSpeed()) < lastRecipe.getMinimalRPM()) {
 				timer = lastRecipe.getProcessingDuration();
 			}
 
 			if (lastRecipe != null) {
-				if (Mth.abs(getSpeed()) >= lastRecipe.minimalRPM) {
+				if (Mth.abs(getSpeed()) >= lastRecipe.getMinimalRPM()) {
 					timer -= getProcessingSpeed();
 
 					if (level.isClientSide) {
@@ -299,13 +295,13 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		if (lastRecipe == null || !CentrifugationRecipe.match(this, lastRecipe)) {
 
 			for (int i = 0; i < inputInv.getSlots(); i++) {
-				Optional<CentrifugationRecipe> assemblyRecipe = SequencedAssemblyRecipe.
+				Optional<RecipeHolder<CentrifugationRecipe>> assemblyRecipe = SequencedAssemblyRecipe.
 						getRecipe(level, inputInv.getStackInSlot(i),
 								VintageRecipes.CENTRIFUGATION.getType(), CentrifugationRecipe.class);
 				if (assemblyRecipe.isPresent()) {
 					boolean found = true;
 
-					for (Ingredient cur : assemblyRecipe.get().getIngredients()) {
+					for (Ingredient cur : assemblyRecipe.get().value().getIngredients()) {
 						boolean find = false;
 
 						for (ItemStack item : cur.getItems()) {
@@ -319,7 +315,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 					}
 
 					if (found) {
-						lastRecipe = assemblyRecipe.get();
+						lastRecipe = assemblyRecipe.get().value();
 						timer = lastRecipe.getProcessingDuration();
 						if (timer == 0) timer = 100;
 						lastRecipeIsAssembly = true;
@@ -353,8 +349,6 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 	@Override
 	public void invalidate() {
 		super.invalidate();
-		capability.invalidate();
-		fluidCapability.invalidate();
 	}
 
 	@Override
@@ -372,15 +366,6 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		}
 		ItemHelper.dropContents(level, worldPosition, inputInv);
 		ItemHelper.dropContents(level, worldPosition, outputInv);
-	}
-
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-		if (cap == ForgeCapabilities.ITEM_HANDLER)
-			return capability.cast();
-		if (cap == ForgeCapabilities.FLUID_HANDLER)
-			return fluidCapability.cast();
-		return super.getCapability(cap, side);
 	}
 
 	public boolean canProcess() {
@@ -440,8 +425,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 			return false;
 
 		IItemHandler targetInv = outputInv;
-		IFluidHandler targetTank = outputTank.getCapability()
-				.orElse(null);
+		IFluidHandler targetTank = outputTank.getCapability();
 
 		if (targetInv == null && !outputItems.isEmpty())
 			return false;
@@ -483,11 +467,11 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		if (lastRecipe == null || !CentrifugationRecipe.match(this, lastRecipe)) {
 			boolean found = false;
 			for (int i = 0; i < inputInv.getSlots(); i++) {
-				Optional<CentrifugationRecipe> assemblyRecipe = SequencedAssemblyRecipe.
+				Optional<RecipeHolder<CentrifugationRecipe>> assemblyRecipe = SequencedAssemblyRecipe.
 						getRecipe(level, inputInv.getStackInSlot(i),
 								VintageRecipes.CENTRIFUGATION.getType(), CentrifugationRecipe.class);
 				if (assemblyRecipe.isPresent()) {
-					lastRecipe = assemblyRecipe.get();
+					lastRecipe = assemblyRecipe.get().value();
 					lastRecipeIsAssembly = true;
 					found = true;
 					break;
@@ -590,13 +574,17 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 						.style(ChatFormatting.DARK_PURPLE).forGoggles(tooltip);
 			}
 
-			if (lastRecipe != null) if (lastRecipe.minimalRPM > Mth.abs(getSpeed()))
+			if (lastRecipe != null) if (lastRecipe.getMinimalRPM() > Mth.abs(getSpeed()))
 				VintageLang.translate("gui.goggles.not_enough_rpm")
-						.add(com.simibubi.create.foundation.utility.CreateLang.text(" ")).add(com.simibubi.create.foundation.utility.CreateLang.number(lastRecipe.minimalRPM)).style(ChatFormatting.RED).forGoggles(tooltip);
+						.add(com.simibubi.create.foundation.utility.CreateLang.text(" "))
+						.add(com.simibubi.create.foundation.utility.CreateLang.number(lastRecipe.getMinimalRPM()))
+						.style(ChatFormatting.RED).forGoggles(tooltip);
 
 
-			IItemHandlerModifiable items = capability.orElse(new ItemStackHandler());
-			IFluidHandler fluids = fluidCapability.orElse(new FluidTank(0));
+			IItemHandlerModifiable items = capability != null ? capability : new ItemStackHandler();
+			IFluidHandler fluids = fluidCapability;
+			if (fluids == null)
+				return true;
 			boolean isEmpty = true;
 
 			for (int i = 0; i < items.getSlots(); i++) {
@@ -640,3 +628,4 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 	}
 
 }
+

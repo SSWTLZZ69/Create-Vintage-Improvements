@@ -1,71 +1,41 @@
 package com.negodya1.vintageimprovements.content.kinetics.grinder;
 
-import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
-
-import javax.annotation.ParametersAreNonnullByDefault;
-
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
 import com.negodya1.vintageimprovements.VintageBlocks;
 import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.compat.jei.category.assemblies.AssemblyPolishing;
 import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemblySubCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
-
-import com.simibubi.create.foundation.utility.CreateLang;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
 
 @ParametersAreNonnullByDefault
-public class PolishingRecipe extends ProcessingRecipe<RecipeWrapper> implements IAssemblyRecipe {
+public class PolishingRecipe extends ProcessingRecipe<RecipeWrapper, PolishingRecipeParams> implements IAssemblyRecipe {
 
-	int speedLimits;
-	boolean fragile;
-	public PolishingRecipe(ProcessingRecipeParams params) {
+	final int speedLimits;
+	final boolean fragile;
+
+	public PolishingRecipe(PolishingRecipeParams params) {
 		super(VintageRecipes.POLISHING, params);
-		speedLimits = 0;
-		fragile = false;
+		speedLimits = params.speedLimits();
+		fragile = params.fragile();
 	}
-
-	@Override
-	public void readAdditional(JsonObject json) {
-		if (json.has("speedLimits")) speedLimits = json.get("speedLimits").getAsInt();
-		else if (json.has("speed_limits")) speedLimits = json.get("speed_limits").getAsInt();
-		else speedLimits = 0;
-
-		if (json.has("fragile")) fragile = json.get("fragile").getAsBoolean();
-		else fragile = false;
-	}
-
-	@Override
-	public void readAdditional(FriendlyByteBuf buffer) {
-		speedLimits = buffer.readInt();
-		fragile = buffer.readBoolean();
-	}
-
-	@Override
-	public void writeAdditional(JsonObject json) {
-		json.addProperty("speedLimits", speedLimits);
-		json.addProperty("fragile", fragile);
-	}
-
-	@Override
-	public void writeAdditional(FriendlyByteBuf buffer) {
-		buffer.writeInt(speedLimits);
-		buffer.writeBoolean(fragile);
-	}
-
 
 	@Override
 	public boolean matches(RecipeWrapper inv, Level worldIn) {
@@ -123,4 +93,29 @@ public class PolishingRecipe extends ProcessingRecipe<RecipeWrapper> implements 
 
 	public boolean isFragile() {return fragile;}
 
+	@FunctionalInterface
+	public interface Factory<R extends PolishingRecipe> extends ProcessingRecipe.Factory<PolishingRecipeParams, R> {
+		R create(PolishingRecipeParams params);
+	}
+
+	public static class Serializer<R extends PolishingRecipe> implements RecipeSerializer<R> {
+		private final MapCodec<R> codec;
+		private final StreamCodec<RegistryFriendlyByteBuf, R> streamCodec;
+
+		public Serializer(Factory<R> factory) {
+			this.codec = ProcessingRecipe.codec(factory, PolishingRecipeParams.CODEC);
+			this.streamCodec = ProcessingRecipe.streamCodec(factory, PolishingRecipeParams.STREAM_CODEC);
+		}
+
+		@Override
+		public MapCodec<R> codec() {
+			return codec;
+		}
+
+		@Override
+		public StreamCodec<RegistryFriendlyByteBuf, R> streamCodec() {
+			return streamCodec;
+		}
+	}
 }
+

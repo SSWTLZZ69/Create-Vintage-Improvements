@@ -1,0 +1,24 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "42efef",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/slimesteel"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_slimesteel_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "tconstruct"
+                       }
+                   ],
+    "processing_time":  60
+}
+
+

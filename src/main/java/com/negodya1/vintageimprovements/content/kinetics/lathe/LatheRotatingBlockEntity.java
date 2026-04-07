@@ -29,18 +29,17 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.wrapper.CombinedInvWrapper;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
@@ -57,7 +56,7 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 
 	public SmartInventory inputInv;
 	public SmartInventory outputInv;
-	public LazyOptional<IItemHandler> capability;
+	public IItemHandler capability;
 	public float timer;
 	public float initialTimer;
 	private TurningRecipe lastRecipe;
@@ -69,7 +68,7 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 
 		inputInv = new SmartInventory(1, this, 1, false);
 		outputInv = new SmartInventory(1, this);
-		capability = LazyOptional.of(LatheRotatingBlockEntity.LatheInventoryHandler::new);
+		capability = new LatheInventoryHandler();
 		playEvent = ItemStack.EMPTY;
 	}
 
@@ -90,20 +89,20 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 	}
 
 	public List<TurningRecipe> getRecipes() {
-		Optional<TurningRecipe> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, inputInv.getStackInSlot(0),
+		Optional<RecipeHolder<TurningRecipe>> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, inputInv.getStackInSlot(0),
 				VintageRecipes.TURNING.getType(), TurningRecipe.class);
 
 		List<TurningRecipe> startedSearch = new ArrayList<>();
 
 		if (assemblyRecipe.isPresent())
-			startedSearch.add(assemblyRecipe.get());
+			startedSearch.add(assemblyRecipe.get().value());
 
-		Predicate<Recipe<?>> types = RecipeConditions.isOfType(VintageRecipes.TURNING.getType());
+		Predicate<RecipeHolder<? extends Recipe<?>>> types = RecipeConditions.isOfType(VintageRecipes.TURNING.getType());
 
-		for (Recipe<?> recipe : RecipeFinder.get(turningRecipesKey, level, types))
-			if (recipe instanceof TurningRecipe turningRecipe) startedSearch.add(turningRecipe);
+		for (RecipeHolder<? extends Recipe<?>> holder : RecipeFinder.get(turningRecipesKey, level, types))
+			if (holder.value() instanceof TurningRecipe turningRecipe) startedSearch.add(turningRecipe);
 
-		startedSearch = startedSearch.stream().filter(RecipeConditions.firstIngredientMatches(inputInv.getStackInSlot(0)))
+		startedSearch = startedSearch.stream().filter(r -> !r.getIngredients().isEmpty() && r.getIngredients().get(0).test(inputInv.getStackInSlot(0)))
 				.filter(r -> !VintageRecipes.shouldIgnoreInAutomation(r))
 				.sorted(Comparator.comparing(r -> r.getResultItem(getLevel().registryAccess()).getDescriptionId()))
 				.collect(Collectors.toList());
@@ -149,28 +148,28 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 	}
 
 	@Override
-	public void write(CompoundTag compound, boolean clientPacket) {
+	public void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
 		compound.putFloat("Timer", timer);
 		compound.putFloat("InitialTimer", initialTimer);
-		compound.put("InputInventory", inputInv.serializeNBT());
-		compound.put("OutputInventory", outputInv.serializeNBT());
-		super.write(compound, clientPacket);
+		compound.put("InputInventory", inputInv.serializeNBT(registries));
+		compound.put("OutputInventory", outputInv.serializeNBT(registries));
+		super.write(compound, registries, clientPacket);
 
 		if (!clientPacket || playEvent.isEmpty())
 			return;
-		compound.put("PlayEvent", playEvent.serializeNBT());
+		compound.put("PlayEvent", playEvent.saveOptional(registries));
 		playEvent = ItemStack.EMPTY;
 	}
 
 	@Override
-	protected void read(CompoundTag compound, boolean clientPacket) {
-		super.read(compound, clientPacket);
+	protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+		super.read(compound, registries, clientPacket);
 		timer = compound.getFloat("Timer");
 		initialTimer = compound.getFloat("InitialTimer");
-		inputInv.deserializeNBT(compound.getCompound("InputInventory"));
-		outputInv.deserializeNBT(compound.getCompound("OutputInventory"));
+		inputInv.deserializeNBT(registries, compound.getCompound("InputInventory"));
+		outputInv.deserializeNBT(registries, compound.getCompound("OutputInventory"));
 		if (compound.contains("PlayEvent"))
-			playEvent = ItemStack.of(compound.getCompound("PlayEvent"));
+			playEvent = ItemStack.parseOptional(registries, compound.getCompound("PlayEvent"));
 	}
 
 	@Override
@@ -246,7 +245,6 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 	@Override
 	public void invalidate() {
 		super.invalidate();
-		capability.invalidate();
 	}
 
 	@Override
@@ -259,20 +257,13 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 			ItemHelper.dropContents(level, LatheRotatingBlock.getSlave(level, worldPosition, this.getBlockState()), be.recipeSlot);
 	}
 
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-		if (isItemHandlerCap(cap))
-			return capability.cast();
-		return super.getCapability(cap, side);
-	}
-
 	public boolean checkItem(ItemStack stack) {
 		if (!inputInv.isEmpty() || !outputInv.isEmpty()) return false;
 		return canProcess(stack);
 	}
 
 	private boolean canProcess(ItemStack stack) {
-		Optional<TurningRecipe> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, stack,
+		Optional<RecipeHolder<TurningRecipe>> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, stack,
 				VintageRecipes.TURNING.getType(), TurningRecipe.class);
 		if (assemblyRecipe.isPresent()) return true;
 
@@ -300,7 +291,7 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 		stackInSlot.shrink(1);
 		inputInv.setStackInSlot(0, stackInSlot);
 
-		lastRecipe.rollResults()
+		lastRecipe.rollResults(level.random)
 				.forEach(stack -> ItemHandlerHelper.insertItemStacked(outputInv, stack, false));
 
 		lastRecipe = null;
@@ -456,3 +447,4 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 		return true;
 	}
 }
+

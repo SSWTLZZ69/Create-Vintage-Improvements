@@ -53,18 +53,19 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SmithingRecipe;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.common.crafting.IShapedRecipe;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 
 import static com.simibubi.create.compat.jei.CreateJEI.consumeAllRecipes;
 
 @JeiPlugin
 public class VintageJEI implements IModPlugin {
 
-	private static final ResourceLocation ID = new ResourceLocation(VintageImprovements.MODID, "jei_plugin");
+private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(VintageImprovements.MODID, "jei_plugin");
 
 	@Override
 	@Nonnull
@@ -158,10 +159,10 @@ public class VintageJEI implements IModPlugin {
 
 		ALL.add(builder(CraftingRecipe.class)
 				.enableWhen(c -> c.allowUnpackingOnVibratingTable)
-				.addAllRecipesIf(r -> r instanceof CraftingRecipe && !(r instanceof IShapedRecipe<?>)
+				.addAllRecipesIf(r -> r instanceof CraftingRecipe && !(r instanceof ShapedRecipe)
 						&& r.getIngredients()
 						.size() == 1
-						&& VibratingTableBlockEntity.canUnpack(r) && !AllRecipeTypes.shouldIgnoreInAutomation(r))
+						&& VibratingTableBlockEntity.canUnpack(r))
 				.catalyst(VintageBlocks.VIBRATING_TABLE::get)
 				.doubleItemIcon(VintageBlocks.VIBRATING_TABLE.get(), Blocks.IRON_BLOCK)
 				.emptyBackground(177, 70)
@@ -177,22 +178,22 @@ public class VintageJEI implements IModPlugin {
 
 		ALL.add(builder(CraftingRecipe.class)
 				.enableWhen(c -> c.allowAutoCurvingRecipes)
-				.addAllRecipesIf(r -> r instanceof CraftingRecipe && r instanceof IShapedRecipe<?>
+				.addAllRecipesIf(r -> r instanceof CraftingRecipe && r instanceof ShapedRecipe
 						&& r.getIngredients().size() == 6
 						&& r.canCraftInDimensions(3, 2)
-						&& CurvingPressBlockEntity.canCurve(r) && !AllRecipeTypes.shouldIgnoreInAutomation(r))
-				.addAllRecipesIf(r -> r instanceof CraftingRecipe && r instanceof IShapedRecipe<?>
+						&& CurvingPressBlockEntity.canCurve(r))
+				.addAllRecipesIf(r -> r instanceof CraftingRecipe && r instanceof ShapedRecipe
 						&& r.getIngredients().size() == 6
 						&& r.canCraftInDimensions(3, 2)
-						&& CurvingPressBlockEntity.canCurve(r, 2) && !AllRecipeTypes.shouldIgnoreInAutomation(r))
-				.addAllRecipesIf(r -> r instanceof CraftingRecipe && r instanceof IShapedRecipe<?>
+						&& CurvingPressBlockEntity.canCurve(r, 2))
+				.addAllRecipesIf(r -> r instanceof CraftingRecipe && r instanceof ShapedRecipe
 						&& r.getIngredients().size() == 4
 						&& r.canCraftInDimensions(2, 2)
-						&& CurvingPressBlockEntity.canCurve(r, 3) && !AllRecipeTypes.shouldIgnoreInAutomation(r))
-				.addAllRecipesIf(r -> r instanceof CraftingRecipe && r instanceof IShapedRecipe<?>
+						&& CurvingPressBlockEntity.canCurve(r, 3))
+				.addAllRecipesIf(r -> r instanceof CraftingRecipe && r instanceof ShapedRecipe
 						&& r.getIngredients().size() == 4
 						&& r.canCraftInDimensions(2, 2)
-						&& CurvingPressBlockEntity.canCurve(r, 4) && !AllRecipeTypes.shouldIgnoreInAutomation(r))
+						&& CurvingPressBlockEntity.canCurve(r, 4))
 				.catalyst(VintageBlocks.CURVING_PRESS::get)
 				.doubleItemIcon(VintageBlocks.CURVING_PRESS.get(), AllItems.IRON_SHEET)
 				.emptyBackground(177, 85)
@@ -218,6 +219,30 @@ public class VintageJEI implements IModPlugin {
 	@Override
 	public void registerRecipes(IRecipeRegistration registration) {
 		ingredientManager = registration.getIngredientManager();
+		int polishingCount = CreateJEI.getTypedRecipes(VintageRecipes.POLISHING.getType()).size();
+		int coilingCount = CreateJEI.getTypedRecipes(VintageRecipes.COILING.getType()).size();
+		int vibratingCount = CreateJEI.getTypedRecipes(VintageRecipes.VIBRATING.getType()).size();
+		int leavesVibratingCount = CreateJEI.getTypedRecipes(VintageRecipes.LEAVES_VIBRATING.getType()).size();
+		int curvingCount = CreateJEI.getTypedRecipes(VintageRecipes.CURVING.getType()).size();
+		int hammeringCount = CreateJEI.getTypedRecipes(VintageRecipes.HAMMERING.getType()).size();
+		int autoSmithingCount = CreateJEI.getTypedRecipes(VintageRecipes.AUTO_SMITHING.getType()).size();
+		int turningCount = CreateJEI.getTypedRecipes(VintageRecipes.TURNING.getType()).size();
+		int laserCuttingCount = CreateJEI.getTypedRecipes(VintageRecipes.LASER_CUTTING.getType()).size();
+		int pressurizingCount = CreateJEI.getTypedRecipes(VintageRecipes.PRESSURIZING.getType()).size();
+		int centrifugationCount = CreateJEI.getTypedRecipes(VintageRecipes.CENTRIFUGATION.getType()).size();
+		int vacuumizingCount = CreateJEI.getTypedRecipes(VintageRecipes.VACUUMIZING.getType()).size();
+		VintageImprovements.logThis("JEI typed recipe counts: polishing=" + polishingCount
+				+ ", coiling=" + coilingCount
+				+ ", vibrating=" + vibratingCount
+				+ ", leaves_vibrating=" + leavesVibratingCount
+				+ ", curving=" + curvingCount
+				+ ", hammering=" + hammeringCount
+				+ ", auto_smithing=" + autoSmithingCount
+				+ ", turning=" + turningCount
+				+ ", laser_cutting=" + laserCuttingCount
+				+ ", pressurizing=" + pressurizingCount
+				+ ", centrifugation=" + centrifugationCount
+				+ ", vacuumizing=" + vacuumizingCount);
 		ALL.forEach(c -> c.registerRecipes(registration));
 	}
 
@@ -225,7 +250,7 @@ public class VintageJEI implements IModPlugin {
 	public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
 		ALL.forEach(c -> c.registerCatalysts(registration));
 
-		registration.getJeiHelpers().getRecipeType(new ResourceLocation("minecraft", "smithing"), SmithingRecipe.class).ifPresent(type -> {
+		registration.getJeiHelpers().getRecipeType(ResourceLocation.fromNamespaceAndPath("minecraft", "smithing"), SmithingRecipe.class).ifPresent(type -> {
 			registration.addRecipeCatalyst(new ItemStack(VintageBlocks.HELVE.get()), type);
 		});
 	}
@@ -241,14 +266,14 @@ public class VintageJEI implements IModPlugin {
 		private IDrawable background;
 		private IDrawable icon;
 
-		private final List<Consumer<List<T>>> recipeListConsumers = new ArrayList<>();
+		private final List<Consumer<List<RecipeHolder<T>>>> recipeListConsumers = new ArrayList<>();
 		private final List<Supplier<? extends ItemStack>> catalysts = new ArrayList<>();
 
 		public CategoryBuilder(Class<? extends T> recipeClass) {
 			this.recipeClass = recipeClass;
 		}
 
-		public CategoryBuilder<T> addRecipeListConsumer(Consumer<List<T>> consumer) {
+		public CategoryBuilder<T> addRecipeListConsumer(Consumer<List<RecipeHolder<T>>> consumer) {
 			recipeListConsumers.add(consumer);
 			return this;
 		}
@@ -259,7 +284,10 @@ public class VintageJEI implements IModPlugin {
 		}
 
 		public CategoryBuilder<T> addTypedRecipes(Supplier<RecipeType<? extends T>> recipeType) {
-			return addRecipeListConsumer(recipes -> CreateJEI.<T>consumeTypedRecipes(recipes::add, recipeType.get()));
+			return addRecipeListConsumer(recipes -> CreateJEI.consumeTypedRecipes(holder -> {
+				if (recipeClass.isInstance(holder.value()))
+					recipes.add((RecipeHolder<T>) holder);
+			}, recipeType.get()));
 		}
 
 		public CategoryBuilder<T> catalystStack(Supplier<ItemStack> supplier) {
@@ -298,27 +326,28 @@ public class VintageJEI implements IModPlugin {
 		}
 
 		public CategoryBuilder<T> addAllRecipesIf(Predicate<Recipe<?>> pred) {
-			return addRecipeListConsumer(recipes -> consumeAllRecipes(recipe -> {
+			return addRecipeListConsumer(recipes -> consumeAllRecipes(recipeHolder -> {
+				Recipe<?> recipe = recipeHolder.value();
 				if (pred.test(recipe)) {
-					recipes.add((T) recipe);
+					if (recipeClass.isInstance(recipe))
+						recipes.add((RecipeHolder<T>) recipeHolder);
 				}
 			}));
 		}
 
-		public CategoryBuilder<T> addAllRecipesIf(Predicate<Recipe<?>> pred, Function<Recipe<?>, T> converter) {
-			return addRecipeListConsumer(recipes -> consumeAllRecipes(recipe -> {
-				if (pred.test(recipe)) {
-					recipes.add(converter.apply(recipe));
-				}
+		public CategoryBuilder<T> addAllRecipesIf(Predicate<Recipe<?>> pred, Function<RecipeHolder<?>, RecipeHolder<T>> converter) {
+			return addRecipeListConsumer(recipes -> consumeAllRecipes(recipeHolder -> {
+				if (pred.test(recipeHolder.value()))
+					recipes.add(converter.apply(recipeHolder));
 			}));
 		}
 
 		public CreateRecipeCategory<T> build(String name, CreateRecipeCategory.Factory<T> factory) {
-			Supplier<List<T>> recipesSupplier;
+			Supplier<List<RecipeHolder<T>>> recipesSupplier;
 			if (predicate.test(VintageConfig.server().recipes)) {
 				recipesSupplier = () -> {
-					List<T> recipes = new ArrayList<>();
-					for (Consumer<List<T>> consumer : recipeListConsumers)
+					List<RecipeHolder<T>> recipes = new ArrayList<>();
+					for (Consumer<List<RecipeHolder<T>>> consumer : recipeListConsumers)
 						consumer.accept(recipes);
 					return recipes;
 				};
@@ -327,7 +356,7 @@ public class VintageJEI implements IModPlugin {
 			}
 
 			CreateRecipeCategory.Info<T> info = new CreateRecipeCategory.Info<>(
-					new mezz.jei.api.recipe.RecipeType<>(VintageImprovements.asResource(name), recipeClass),
+					mezz.jei.api.recipe.RecipeType.createRecipeHolderType(VintageImprovements.asResource(name)),
 					Component.translatable(VintageImprovements.MODID + ".recipe." + name), background, icon, recipesSupplier, catalysts);
 			CreateRecipeCategory<T> category = factory.create(info);
 			return category;

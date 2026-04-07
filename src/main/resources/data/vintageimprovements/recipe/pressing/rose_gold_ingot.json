@@ -1,0 +1,24 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/rose_gold"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:rose_gold_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/rose_gold"
+                                     }
+                       }
+                   ]
+}
+
+

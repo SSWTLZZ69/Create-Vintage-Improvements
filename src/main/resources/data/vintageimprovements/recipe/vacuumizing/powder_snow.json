@@ -1,0 +1,18 @@
+﻿{
+    "type":  "vintageimprovements:vacuumizing",
+    "ingredients":  [
+                        {
+                            "item":  "minecraft:bucket"
+                        },
+                        {
+                            "item":  "minecraft:snow_block"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "minecraft:powder_snow_bucket"
+                    }
+                ],
+    "processing_time":  600
+}

@@ -19,6 +19,7 @@ import com.simibubi.create.foundation.item.SmartInventory;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
@@ -30,11 +31,13 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.SmithingRecipe;
+import net.minecraft.world.item.crafting.SmithingRecipeInput;
 import net.minecraft.world.level.block.AnvilBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -42,13 +45,10 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.wrapper.CombinedInvWrapper;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
@@ -60,7 +60,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	public SmartInventory inputInv;
 	public SmartInventory bufInv;
 	public SmartInventory outputInv;
-	public LazyOptional<IItemHandlerModifiable> capability;
+	public IItemHandlerModifiable capability;
 	public int timer;
 	public int hammerBlows;
 	private SmithingRecipe lastSmithingRecipe;
@@ -75,9 +75,9 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	private boolean needsAnvilUpdate = true;
 
 	public static final TagKey<Item> customAnvilTag =
-			ItemTags.create(new ResourceLocation("vintageimprovements", "custom_hammering_blocks"));
+			ItemTags.create(ResourceLocation.fromNamespaceAndPath("vintageimprovements", "custom_hammering_blocks"));
 	public static final TagKey<Item> anvilTag =
-			ItemTags.create(new ResourceLocation("vintageimprovements", "anvils"));
+			ItemTags.create(ResourceLocation.fromNamespaceAndPath("vintageimprovements", "anvils"));
 
 	public HelveBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -85,7 +85,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		inputInv = new SmartInventory(3, this).whenContentsChanged(slot -> recipesDirty = true);
 		bufInv = new SmartInventory(3, this);
 		outputInv = new SmartInventory(3, this).whenContentsChanged(slot -> recipesDirty = true);
-		capability = LazyOptional.of(() -> new HelveInventoryHandler(inputInv, outputInv));
+		capability = new HelveInventoryHandler(inputInv, outputInv);
 		operatingMode = 0;
 		hammerBlows = 0;
 		anvilBlock = Blocks.AIR;
@@ -108,24 +108,24 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	}
 
 	@Override
-	public void write(CompoundTag compound, boolean clientPacket) {
+	public void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
 		compound.putInt("Timer", timer);
 		compound.putInt("HammerBlows", hammerBlows);
-		compound.put("InputInventory", inputInv.serializeNBT());
-		compound.put("OutputInventory", outputInv.serializeNBT());
+		compound.put("InputInventory", inputInv.serializeNBT(registries));
+		compound.put("OutputInventory", outputInv.serializeNBT(registries));
 		compound.putBoolean("LastRecipeIsAssembly", lastRecipeIsAssembly);
 		compound.putInt("BlockedSlots", blockedSlots);
 		compound.putInt("OperatingMode", operatingMode);
-		super.write(compound, clientPacket);
+		super.write(compound, registries, clientPacket);
 	}
 
 	@Override
-	protected void read(CompoundTag compound, boolean clientPacket) {
-		super.read(compound, clientPacket);
+	protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+		super.read(compound, registries, clientPacket);
 		timer = compound.getInt("Timer");
 		hammerBlows = compound.getInt("HammerBlows");
-		inputInv.deserializeNBT(compound.getCompound("InputInventory"));
-		outputInv.deserializeNBT(compound.getCompound("OutputInventory"));
+		inputInv.deserializeNBT(registries, compound.getCompound("InputInventory"));
+		outputInv.deserializeNBT(registries, compound.getCompound("OutputInventory"));
 		lastRecipeIsAssembly = compound.getBoolean("LastRecipeIsAssembly");
 		blockedSlots = compound.getInt("BlockedSlots");
 		operatingMode = compound.getInt("OperatingMode");
@@ -136,7 +136,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		blockedSlots += 1;
 		ItemHelper.dropContents(level, worldPosition, inputInv);
 		inputInv = new SmartInventory(3 - blockedSlots, this).whenContentsChanged(slot -> recipesDirty = true);
-		capability = LazyOptional.of(() -> new HelveInventoryHandler(inputInv, outputInv));
+		capability = new HelveInventoryHandler(inputInv, outputInv);
 		recipesDirty = true;
 		resetRecipes();
         notifyUpdate();
@@ -154,7 +154,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		blockedSlots = 0;
 		ItemHelper.dropContents(level, worldPosition, inputInv);
 		inputInv = new SmartInventory(3, this).whenContentsChanged(slot -> recipesDirty = true);
-		capability = LazyOptional.of(() -> new HelveInventoryHandler(inputInv, outputInv));
+		capability = new HelveInventoryHandler(inputInv, outputInv);
 		recipesDirty = true;
 		resetRecipes();
         notifyUpdate();
@@ -335,13 +335,13 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 			if (lastHammeringRecipe == null || !HammeringRecipe.match(this, lastHammeringRecipe)) {
 
 				for (int i = 0; i < inputInv.getSlots(); i++) {
-					Optional<HammeringRecipe> assemblyRecipe = SequencedAssemblyRecipe.
+					Optional<RecipeHolder<HammeringRecipe>> assemblyRecipe = SequencedAssemblyRecipe.
 							getRecipe(level, inputInv.getStackInSlot(i),
 									VintageRecipes.HAMMERING.getType(), HammeringRecipe.class);
 					if (assemblyRecipe.isPresent()) {
 						boolean found = true;
 
-						for (Ingredient cur : assemblyRecipe.get().getIngredients()) {
+						for (Ingredient cur : assemblyRecipe.get().value().getIngredients()) {
 							boolean find = false;
 
 							for (ItemStack item : cur.getItems()) {
@@ -355,9 +355,9 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 						}
 
 						if (found) {
-							lastHammeringRecipe = assemblyRecipe.get();
+							lastHammeringRecipe = assemblyRecipe.get().value();
 							timer = 500;
-							hammerBlows = assemblyRecipe.get().hammerBlows;
+							hammerBlows = assemblyRecipe.get().value().hammerBlows;
 							lastRecipeIsAssembly = true;
 
 							sendData();
@@ -434,9 +434,10 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	}
 
 	private List<Recipe<?>> getRecipes() {
-		List<Recipe<?>> list =  RecipeFinder.get(hammeringRecipesKey, level, this::matchStaticFilters);
+		List<RecipeHolder<? extends Recipe<?>>> list =  RecipeFinder.get(hammeringRecipesKey, level, this::matchStaticFilters);
 
 		return list.stream()
+				.map(RecipeHolder::value)
 				.filter(this::matchHelveRecipe)
 				.sorted((r1, r2) -> r2.getIngredients()
 						.size()
@@ -445,25 +446,28 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 				.collect(Collectors.toList());
 	}
 
-	protected <C extends Container> boolean matchHelveRecipe(Recipe<C> recipe) {
+	protected boolean matchHelveRecipe(Recipe<?> recipe) {
 		if (recipe == null)
 			return false;
 		return HammeringRecipe.match(this, recipe);
 	}
 
-	protected <C extends Container> boolean matchStaticFilters(Recipe<C> r) {
-		return r.getType() == VintageRecipes.HAMMERING.getType();
+	protected boolean matchStaticFilters(RecipeHolder<? extends Recipe<?>> r) {
+		return r.value().getType() == VintageRecipes.HAMMERING.getType();
 	}
 
 	private void process() {
 		if (lastHammeringRecipe == null || !HammeringRecipe.match(this, lastHammeringRecipe)) {
 			boolean found = false;
-			Optional<HammeringRecipe> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, inputInv,
-					VintageRecipes.HAMMERING.getType(), HammeringRecipe.class);
-			if (assemblyRecipe.isPresent()) {
-				lastHammeringRecipe = assemblyRecipe.get();
-				lastRecipeIsAssembly = true;
-				found = true;
+			for (int i = 0; i < inputInv.getSlots(); i++) {
+				Optional<RecipeHolder<HammeringRecipe>> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, inputInv.getStackInSlot(i),
+						VintageRecipes.HAMMERING.getType(), HammeringRecipe.class);
+				if (assemblyRecipe.isPresent() && HammeringRecipe.match(this, assemblyRecipe.get().value())) {
+					lastHammeringRecipe = assemblyRecipe.get().value();
+					lastRecipeIsAssembly = true;
+					found = true;
+					break;
+				}
 			}
 
 			if (!found) {
@@ -531,8 +535,10 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 			return;
 		}
 
-		if (acceptOutputs(lastSmithingRecipe.assemble(bufInv, this.level.registryAccess()), true) && lastSmithingRecipe.matches(bufInv, level)) {
-			acceptOutputs(lastSmithingRecipe.assemble(bufInv, this.level.registryAccess()), false);
+		SmithingRecipeInput smithingInput = new SmithingRecipeInput(bufInv.getStackInSlot(0), bufInv.getStackInSlot(1), bufInv.getStackInSlot(2));
+		ItemStack smithingResult = lastSmithingRecipe.assemble(smithingInput, this.level.registryAccess());
+		if (acceptOutputs(smithingResult, true) && lastSmithingRecipe.matches(smithingInput, level)) {
+			acceptOutputs(smithingResult.copy(), false);
 			advancementBehaviour.awardVintageAdvancement(VintageAdvancements.USE_HELVE);
 
 			bufInv.getStackInSlot(0).shrink(1);
@@ -556,7 +562,6 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	@Override
 	public void invalidate() {
 		super.invalidate();
-		capability.invalidate();
 	}
 
 	@Override
@@ -569,13 +574,6 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 			ItemHandlerHelper.insertItemStacked(coverInv, new ItemStack(VintageItems.HELVE_HAMMER_SLOT_COVER.get(), blockedSlots), false);
 			ItemHelper.dropContents(level, worldPosition, coverInv);
 		}
-	}
-
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-		if (cap == ForgeCapabilities.ITEM_HANDLER)
-			return capability.cast();
-		return super.getCapability(cap, side);
 	}
 
 	public boolean canProcess() {
@@ -715,3 +713,4 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 		return true;
 	}
 }
+

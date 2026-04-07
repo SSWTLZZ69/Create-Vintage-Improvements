@@ -1,0 +1,24 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "828282",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/iron"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_iron_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "createaddition"
+                       }
+                   ],
+    "processing_time":  60
+}
+
+

@@ -16,7 +16,7 @@ import com.simibubi.create.content.processing.basin.BasinRecipe;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.recipe.HeatCondition;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
-import com.simibubi.create.foundation.fluid.FluidIngredient;
+import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.foundation.item.ItemHelper;
 import com.simibubi.create.foundation.utility.CreateLang;
@@ -31,7 +31,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.fluids.FluidStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.ArrayList;
@@ -52,7 +53,6 @@ public class VacuumizingCategory extends BasinCategory {
 		List<Pair<Ingredient, MutableInt>> condensedIngredients = ItemHelper.condenseIngredients(recipe.getIngredients());
 
 		int size = condensedIngredients.size() + recipe.getFluidIngredients().size();
-		// 原先仅计算输出流体槽位时剔除了副流体数量，其余槽位仍显示错误
 		if (recipe instanceof VacuumizingRecipe r) {
 			size -= r.getSecondaryFluidInputs() > -1 ? 1 : 0;
 		}
@@ -75,20 +75,18 @@ public class VacuumizingCategory extends BasinCategory {
 		}
 
 		int j = 0;
-		for (FluidIngredient fluidIngredient : recipe.getFluidIngredients()) {
+		for (SizedFluidIngredient SizedFluidIngredient : recipe.getFluidIngredients()) {
 			if (recipe instanceof VacuumizingRecipe r && j == r.getSecondaryFluidInputs())
-				CreateRecipeCategory.addFluidSlot(builder, 21, 14, fluidIngredient)
+				CreateRecipeCategory.addFluidSlot(builder, 21, 14, SizedFluidIngredient)
 						.addRichTooltipCallback(VintageRecipeUtil.addTooltip("jei.text.secondary_fluid_ingredient"));
 			else {
-				CreateRecipeCategory.addFluidSlot(builder, 17 + xOffset + (i % 3) * 19, 52 - (i / 3) * 19, fluidIngredient);
-				// 副流体不占据主原料的显示空间
+				CreateRecipeCategory.addFluidSlot(builder, 17 + xOffset + (i % 3) * 19, 52 - (i / 3) * 19, SizedFluidIngredient);
 				i++;
 			}
 			j++;
 		}
 
 		size = recipe.getRollableResults().size() + recipe.getFluidResults().size();
-		// 同上
 		if (recipe instanceof VacuumizingRecipe r) {
 			size -= r.getSecondaryFluidResults() > -1 ? 1 : 0;
 		}
@@ -125,7 +123,6 @@ public class VacuumizingCategory extends BasinCategory {
 					yPosition = -19 * (i / 2) + 52;
 
 					CreateRecipeCategory.addFluidSlot(builder, xPosition, yPosition, fluidResult);
-					// 同上
 					i++;
 				}
 				j++;
@@ -150,7 +147,6 @@ public class VacuumizingCategory extends BasinCategory {
 		HeatCondition requiredHeat = recipe.getRequiredHeat();
 
 		boolean noHeat = requiredHeat == HeatCondition.NONE;
-		// 修复工作盆默认显示逻辑箭头错位的问题
 		int size = recipe.getRollableResults().size() + recipe.getFluidResults().size();
 		if (recipe instanceof VacuumizingRecipe r) {
 			size -= r.getSecondaryFluidResults() > -1 ? 1 : 0;
@@ -169,7 +165,6 @@ public class VacuumizingCategory extends BasinCategory {
 				86, requiredHeat.getColor(), false);
 
 
-		// 防呆检测
 		if (recipe instanceof VacuumizingRecipe vrecipe) {
 			if (vrecipe.getSecondaryFluidResults() >= 0 && vrecipe.getFluidResults().size() > vrecipe.getSecondaryFluidResults())
 				VintageGuiTextures.JEI_UP_TO_RIGHT_ARROW.render(graphics, 120, 2);
@@ -184,11 +179,12 @@ public class VacuumizingCategory extends BasinCategory {
 	}
 
 	@Override
-	public void getTooltip(ITooltipBuilder tooltip, BasinRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+	public void getTooltip(ITooltipBuilder tooltip, RecipeHolder<BasinRecipe> recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
 		if (mouseX > 90 && mouseX < 120 && mouseY > 9 && mouseY < 76) {
-			int duration = recipe.getProcessingDuration();
+			int duration = recipe.value().getProcessingDuration();
 			if (duration == 0) duration = 100;
 			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
 		}
 	}
 }
+

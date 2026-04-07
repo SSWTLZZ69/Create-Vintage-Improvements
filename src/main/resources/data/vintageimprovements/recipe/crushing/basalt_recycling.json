@@ -1,0 +1,19 @@
+﻿{
+    "type":  "create:crushing",
+    "ingredients":  [
+                        {
+                            "tag":  "vintageimprovements:stone_types/basalt"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "chance":  0.3,
+                        "id":  "vintageimprovements:vanadium_nugget"
+                    },
+                    {
+                        "chance":  0.1,
+                        "id":  "vintageimprovements:vanadium_nugget"
+                    }
+                ],
+    "processing_time":  250
+}

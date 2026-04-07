@@ -13,7 +13,6 @@ import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinOperatingBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
 import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
@@ -30,30 +29,33 @@ import net.createmod.catnip.math.VecHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.IItemHandler;
+import com.simibubi.create.content.processing.recipe.StandardProcessingRecipe;
 
 public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 
@@ -65,13 +67,10 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 
 	public SmartFluidTankBehaviour outputTank;
 	public SmartFluidTankBehaviour inputTank;
-	public LazyOptional<IFluidHandler> fluidCapability;
+	public IFluidHandler fluidCapability;
 	boolean mode;
 	VintageAdvancementBehaviour advancementBehaviour;
 
-	// 配方自身无法肯定是否为序列装配配方的一部分，也不能知道在处理装配的第几步
-	// 在不修改本体代码的前提下，只能让机器来记忆是否在执行序列装配配方
-	// 默认值为0，表示非序列装配，因此从1开始定为序列装配的步骤数
 	private int sequencedAssemblyStep;
 
 	public VacuumChamberBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -114,7 +113,6 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
 		super.addBehaviours(behaviours);
 
-		// 检测到副流体内容变化，需要让工作盆重新检查配方
 		inputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.INPUT, this, 2, 1000, true)
 				.whenFluidUpdates(() -> basinChecker.scheduleUpdate());
 		outputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.OUTPUT, this, 2, 1000, true)
@@ -123,11 +121,9 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		behaviours.add(inputTank);
 		behaviours.add(outputTank);
 
-		fluidCapability = LazyOptional.of(() -> {
-			LazyOptional<? extends IFluidHandler> inputCap = inputTank.getCapability();
-			LazyOptional<? extends IFluidHandler> outputCap = outputTank.getCapability();
-			return new VacuumChamberTanksHandler(outputCap.orElse(null), inputCap.orElse(null));
-		});
+		IFluidHandler inputCap = inputTank.getCapability();
+		IFluidHandler outputCap = outputTank.getCapability();
+		fluidCapability = new VacuumChamberTanksHandler(outputCap, inputCap);
 
 		advancementBehaviour = new VintageAdvancementBehaviour(this);
 		behaviours.add(advancementBehaviour);
@@ -145,30 +141,29 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	}
 
 	@Override
-	protected void read(CompoundTag compound, boolean clientPacket) {
+	protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
 		running = compound.getBoolean("Running");
 		runningTicks = compound.getInt("Ticks");
 		mode = compound.getBoolean("Mode");
-		// 不存在时，默认读取到0
 		sequencedAssemblyStep = compound.getInt("sequencedAssemblyStep");
-		super.read(compound, clientPacket);
+		super.read(compound, registries, clientPacket);
 
 		if (clientPacket && hasLevel())
 			getBasin().ifPresent(bte -> bte.setAreFluidsMoving(running && runningTicks <= 20));
 	}
 
 	@Override
-	public void write(CompoundTag compound, boolean clientPacket) {
+	public void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
 		compound.putBoolean("Running", running);
 		compound.putInt("Ticks", runningTicks);
 		compound.putBoolean("Mode", mode);
 		compound.putInt("isSequencedAssembly", sequencedAssemblyStep);
-		super.write(compound, clientPacket);
+		super.write(compound, registries, clientPacket);
 	}
 
 	@Override
-	public void writeSafe(CompoundTag compound) {
-		super.writeSafe(compound);
+	public void writeSafe(CompoundTag compound, HolderLookup.Provider registries) {
+		super.writeSafe(compound, registries);
 		compound.putBoolean("Mode", mode);
 	}
 
@@ -191,8 +186,8 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 			if ((!level.isClientSide || isVirtual()) && runningTicks == 20) {
 				if (processingTicks < 0) {
 					float recipeSpeed = 1;
-					if (currentRecipe instanceof ProcessingRecipe) {
-						int t = ((ProcessingRecipe<?>) currentRecipe).getProcessingDuration();
+					if (currentRecipe instanceof StandardProcessingRecipe<?> processingRecipe) {
+						int t = processingRecipe.getProcessingDuration();
 						if (t != 0)
 							recipeSpeed = t / 100f;
 					}
@@ -262,7 +257,6 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 			return ImmutableList.of(assemblyRecipe.get());
 		}
 
-		//未匹配到序列配方
 		sequencedAssemblyStep = 0;
 
         List<Recipe<?>> res = new ArrayList<>();
@@ -272,15 +266,10 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		if ($basin.isEmpty() || (basin = $basin.get()).isEmpty())
 			return res;
 
-		// 利用机械动力6.0.7+快速查找配方特性
 		try {
-			IItemHandler availableItems = basin.getCapability(ForgeCapabilities.ITEM_HANDLER)
-					.orElse(null);
-			IFluidHandler availableBasinFluids = basin.getCapability(ForgeCapabilities.FLUID_HANDLER)
-					.orElse(null);
-			IFluidHandler availableVacuumFluids = this.getCapability(ForgeCapabilities.FLUID_HANDLER)
-					.orElse(null);
-			// 创建工作盆和压缩机流体容器的 combined 视图
+			IItemHandler availableItems = level.getCapability(Capabilities.ItemHandler.BLOCK, basin.getBlockPos(), null);
+			IFluidHandler availableBasinFluids = level.getCapability(Capabilities.FluidHandler.BLOCK, basin.getBlockPos(), null);
+			IFluidHandler availableVacuumFluids = fluidCapability;
 			IFluidHandler availableFluids = new CombinedTankWrapper(availableBasinFluids, availableVacuumFluids);
 
 			// no point even searching, since no recipe will ever match
@@ -298,18 +287,17 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 			Create.LOGGER.error("Failed to get recipe trie, falling back to slow logic", e);
 			res.clear();
 
-			for (Recipe<?> r : RecipeFinder.get(getRecipeCacheKey(), level, this::matchStaticFilters))
-				if (matchBasinRecipe(r))
-					res.add(r);
+			for (RecipeHolder<? extends Recipe<?>> holder : RecipeFinder.get(getRecipeCacheKey(), level, this::matchStaticFilters))
+				if (matchBasinRecipe(holder.value()))
+					res.add(holder.value());
 		}
 
-		// 根据语义，按原料数量比较优先级时不应该忽略流体原料
 		res.sort((r1, r2) -> {
 			int size1 = r1.getIngredients().size();
 			int size2 = r2.getIngredients().size();
-			if (r1 instanceof ProcessingRecipe<?> processingRecipe)
+			if (r1 instanceof StandardProcessingRecipe<?> processingRecipe)
 				size1 += processingRecipe.getFluidIngredients().size();
-			if (r2 instanceof ProcessingRecipe<?> processingRecipe)
+			if (r2 instanceof StandardProcessingRecipe<?> processingRecipe)
 				size2 += processingRecipe.getFluidIngredients().size();
 			return size2 - size1;
 		});
@@ -318,69 +306,56 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	}
 
 	protected Optional<? extends Recipe<?>> matchAssemblyRecipe(){
-		// 获取工作盆
 		Optional<BasinBlockEntity> basin = getBasin();
 		if (basin.isEmpty()) {
 			return Optional.empty();
 		}
 
-		// 获取盆内物品
-		IItemHandler availableItems = basin.get().getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
+		IItemHandler availableItems = level.getCapability(Capabilities.ItemHandler.BLOCK, basin.get().getBlockPos(), null);
 		if(availableItems == null){
 			return Optional.empty();
 		}
 
-		// 遍历物品判断能否序列装配
 		Optional<? extends Recipe<?>> assemblyRecipe;
 		for(int slot = 0; slot < availableItems.getSlots(); slot++){
 			ItemStack item = availableItems.getStackInSlot(slot);
 			String itemSequenceId;
 			int itemSequenceStep;
 
-			// 检查物品的序列装配标签
-			if (item.hasTag() && item.getTag().contains("SequencedAssembly")) {
-				CompoundTag tag = item.getTag().getCompound("SequencedAssembly");
+			CustomData customData = item.get(DataComponents.CUSTOM_DATA);
+			if (customData != null && customData.contains("SequencedAssembly")) {
+				CompoundTag tag = customData.copyTag().getCompound("SequencedAssembly");
 				itemSequenceId = tag.getString("id");
 				itemSequenceStep = tag.getInt("Step") + 1;
 			} else {
-				// 装配起始物品可以不带序列装配标签
 				itemSequenceId = "";
 				itemSequenceStep = 1;
 			}
 
-			if(mode){	// 加压模式
-				// getRecipe方法仅能匹配到相同主原料的一种序列装配配方，改用getRecipes
+			if(mode){
 				assemblyRecipe = SequencedAssemblyRecipe.getRecipes(level, item,
-								VintageRecipes.PRESSURIZING.getType(), PressurizingRecipe.class)
-						.filter((it) -> {
-							// 特别地，simibubi假定序列装配中间物品都是独一无二的
-							// 因此可能把正在装配的中间物品当作其他装配的起始物品
-							// 本体的代码暂且不做修改，临时性地在这里过滤
+								VintageRecipes.PRESSURIZING.getType(), PressurizingRecipe.class, it -> {
 							String id = PressurizingRecipe.getSequenceId(it);
 							if (id.isEmpty()) return false;
-							// 拒绝带序列装配标签且不匹配的物品
 							if (!itemSequenceId.isEmpty() && !id.equals(itemSequenceId)) return false;
 
-							// 然后才检查过滤、加热、盆内原料、机器副原料
-							return PressurizingRecipe.match(basin.get(), it, this, itemSequenceStep);
-						}).findFirst();
+							return PressurizingRecipe.match(basin.get(), it.value(), this, itemSequenceStep);
+						}).stream().findFirst().map(RecipeHolder::value);
 
-				// 记录机器将执行的序列配方步骤
 				if (assemblyRecipe.isPresent()) {
 					sequencedAssemblyStep = itemSequenceStep;
 					return assemblyRecipe;
 				}
-			} else {	// 减压模式，同上
+			} else {
 				assemblyRecipe = SequencedAssemblyRecipe.getRecipes(level, item,
-								VintageRecipes.VACUUMIZING.getType(), VacuumizingRecipe.class)
-						.filter((it) -> {
+								VintageRecipes.VACUUMIZING.getType(), VacuumizingRecipe.class, it -> {
 							String id = VacuumizingRecipe.getSequenceId(it);
 							if (id.isEmpty()) return false;
 
 							if (!itemSequenceId.isEmpty() && !id.equals(itemSequenceId)) return false;
 
-							return VacuumizingRecipe.match(basin.get(), it, this, itemSequenceStep);
-						}).findFirst();
+							return VacuumizingRecipe.match(basin.get(), it.value(), this, itemSequenceStep);
+						}).stream().findFirst().map(RecipeHolder::value);
 
 				if (assemblyRecipe.isPresent()) {
 					sequencedAssemblyStep = itemSequenceStep;
@@ -389,22 +364,21 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 			}
 		}
 
-		//无匹配序列装配配方
 		return Optional.empty();
 	}
 
 	@Override
-	protected <C extends Container> boolean matchBasinRecipe(Recipe<C> recipe) {
+	protected <I extends RecipeInput> boolean matchBasinRecipe(Recipe<I> recipe) {
 		if (recipe == null)
 			return false;
 		Optional<BasinBlockEntity> basin = getBasin();
 		if (!basin.isPresent())
 			return false;
 
-		if (!mode && recipe instanceof VacuumizingRecipe r)
-			return r.match(basin.get(), recipe, this, sequencedAssemblyStep);
-		if (mode && recipe instanceof PressurizingRecipe r)
-			return r.match(basin.get(), recipe, this, sequencedAssemblyStep);
+		if (!mode && recipe instanceof VacuumizingRecipe vacuumizingRecipe)
+			return VacuumizingRecipe.match(basin.get(), vacuumizingRecipe, this, sequencedAssemblyStep);
+		if (mode && recipe instanceof PressurizingRecipe pressurizingRecipe)
+			return PressurizingRecipe.match(basin.get(), pressurizingRecipe, this, sequencedAssemblyStep);
 
 		return false;
 	}
@@ -421,8 +395,7 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		if (!(blockState.getBlock() instanceof VacuumChamberBlock))
 			return false;
 
-		IFluidHandler targetTank = outputTank.getCapability()
-				.orElse(null);
+		IFluidHandler targetTank = outputTank.getCapability();
 
 		if (outputFluids.isEmpty())
 			return true;
@@ -447,13 +420,6 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		return true;
 	}
 
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-		if (cap == ForgeCapabilities.FLUID_HANDLER)
-			return fluidCapability.cast();
-		return super.getCapability(cap, side);
-	}
-
 	public void renderParticles() {
 		Optional<BasinBlockEntity> basin = getBasin();
 		if (!basin.isPresent() || level == null)
@@ -476,8 +442,9 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	}
 
 	@Override
-	protected <C extends Container> boolean matchStaticFilters(Recipe<C> r) {
-		return r.getType() == VintageRecipes.VACUUMIZING.getType() || r.getType() == VintageRecipes.PRESSURIZING.getType();
+	protected boolean matchStaticFilters(RecipeHolder<? extends Recipe<?>> r) {
+		Recipe<?> recipe = r.value();
+		return recipe.getType() == VintageRecipes.VACUUMIZING.getType() || recipe.getType() == VintageRecipes.PRESSURIZING.getType();
 	}
 
 	@Override
@@ -533,7 +500,7 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 				.add(VintageLang.text(" ")).add(VintageLang.translate("gui.goggles.vacuumizing_mode"))
 				.style(ChatFormatting.DARK_AQUA).forGoggles(tooltip);
 
-		IFluidHandler fluids = fluidCapability.orElse(new FluidTank(0));
+		IFluidHandler fluids = fluidCapability != null ? fluidCapability : new FluidTank(0);
 		boolean isEmpty = true;
 
 		LangBuilder mb = CreateLang.translate("generic.unit.millibuckets");
@@ -559,3 +526,4 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	}
 
 }
+

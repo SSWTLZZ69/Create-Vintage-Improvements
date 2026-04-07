@@ -1,0 +1,23 @@
+﻿{
+    "type":  "vintageimprovements:centrifugation",
+    "ingredients":  [
+                        {
+                            "tag":  "c:dyes/pink"
+                        },
+                        {
+                            "tag":  "c:dyes/pink"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "minecraft:red_dye"
+                    },
+                    {
+                        "count":  1,
+                        "id":  "minecraft:white_dye"
+                    }
+                ],
+    "processing_time":  1000
+}
+

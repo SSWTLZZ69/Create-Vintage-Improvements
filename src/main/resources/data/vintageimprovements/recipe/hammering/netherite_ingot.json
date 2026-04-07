@@ -1,0 +1,15 @@
+{
+    "type":  "vintageimprovements:hammering",
+    "hammer_blows":  3,
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/netherite"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:netherite_sheet"
+                    }
+                ]
+}
+

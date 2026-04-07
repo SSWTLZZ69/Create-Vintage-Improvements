@@ -5,10 +5,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.EnergyStorage;
-import net.minecraftforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.EnergyStorage;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 public class VintageInternalEnergyStorage extends EnergyStorage {
 
@@ -82,11 +81,10 @@ public class VintageInternalEnergyStorage extends EnergyStorage {
     
     @Deprecated
     public void outputToSide(Level world, BlockPos pos, Direction side, int max) {
-    	BlockEntity te = world.getBlockEntity(pos.relative(side));
+		BlockEntity te = world.getBlockEntity(pos.relative(side));
 		if(te == null)
 			return;
-		LazyOptional<IEnergyStorage> opt = te.getCapability(ForgeCapabilities.ENERGY, side.getOpposite());
-		IEnergyStorage ies = opt.orElse(null);
+		IEnergyStorage ies = world.getCapability(Capabilities.EnergyStorage.BLOCK, pos.relative(side), side.getOpposite());
 		if(ies == null)
 			return;
 		int ext = this.extractEnergy(max, false);

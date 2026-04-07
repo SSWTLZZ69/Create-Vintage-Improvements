@@ -14,7 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 public class VintagePonderScene {
 
     public static void register(PonderSceneRegistrationHelper<ResourceLocation> helper) {
-        PonderSceneRegistrationHelper<ItemProviderEntry<?>> HELPER = helper.withKeyFunction(RegistryEntry::getId);
+        PonderSceneRegistrationHelper<ItemProviderEntry<?, ?>> HELPER = helper.withKeyFunction(RegistryEntry::getId);
         HELPER.forComponents(VintageBlocks.BELT_GRINDER)
                 .addStoryBoard("belt_grinder/processing", BeltGrinderScenes::processing, AllCreatePonderTags.KINETIC_APPLIANCES);
 

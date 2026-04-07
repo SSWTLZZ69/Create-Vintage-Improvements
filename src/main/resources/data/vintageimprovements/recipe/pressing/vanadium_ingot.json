@@ -1,0 +1,14 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/vanadium"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:vanadium_sheet"
+                    }
+                ]
+}
+

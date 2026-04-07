@@ -19,7 +19,7 @@ import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.data.IntAttached;
 import net.createmod.catnip.math.AngleHelper;
 import net.createmod.catnip.math.VecHelper;
-import net.createmod.catnip.platform.ForgeCatnipServices;
+import net.createmod.catnip.platform.NeoForgeCatnipServices;
 import net.createmod.catnip.render.CachedBuffers;
 import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.Minecraft;
@@ -48,9 +48,9 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,7 +125,7 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 							RandomSource r = RandomSource.create(pos.hashCode());
 							Vec3 baseVector = new Vec3(.125, level, 0);
 
-							IItemHandlerModifiable inv = be.capability.orElse(new ItemStackHandler());
+							IItemHandlerModifiable inv = be.capability != null ? be.capability : new ItemStackHandler();
 							int itemCount = 0;
 							for (int slot = 0; slot < inv.getSlots(); slot++)
 								if (!inv.getStackInSlot(slot)
@@ -253,7 +253,7 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 
 				float partial = Mth.clamp(units / totalUnits, 0, 1);
 				xMax += partial * 12 / 16f;
-				ForgeCatnipServices.FLUID_RENDERER.renderFluidBox(renderedFluid, xMin, yMin, zMin, xMax, yMax, zMax, buffer, ms, light, false, false);
+				NeoForgeCatnipServices.FLUID_RENDERER.renderFluidBox(renderedFluid, xMin, yMin, zMin, xMax, yMax, zMax, buffer, ms, light, false, false);
 
 				xMin = xMax;
 			}
@@ -275,3 +275,4 @@ public class CentrifugeRenderer extends KineticBlockEntityRenderer<CentrifugeBlo
 		return KineticBlockEntityRenderer.shaft(KineticBlockEntityRenderer.getRotationAxisOf(be));
 	}
 }
+

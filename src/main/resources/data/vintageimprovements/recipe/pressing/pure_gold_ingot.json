@@ -1,0 +1,24 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/pure_gold"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:pure_gold_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/pure_gold"
+                                     }
+                       }
+                   ]
+}
+
+

@@ -1,0 +1,17 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "B57849",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/brass"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_brass_spring"
+                    }
+                ],
+    "processing_time":  60
+}
+

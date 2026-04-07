@@ -126,7 +126,7 @@ public class CurvingPressScenes {
 				.placeNearTarget()
 				.text("The Input items can be dropped or placed on a Depot under the Press");
 		scene.idle(50);
-		ItemStack iron = new ItemStack(AllItems.IRON_SHEET);
+		ItemStack iron = AllItems.IRON_SHEET.asStack();
 		scene.world().createItemOnBeltLike(depotPos, Direction.NORTH, iron);
 		Vec3 depotCenter = util.vector().centerOf(depotPos.south());
 		scene.overlay().showControls(depotCenter, Pointing.UP, 30).withItem(iron);
@@ -235,7 +235,7 @@ public class CurvingPressScenes {
 				ms -> ms.addRedstoneApp(module.copy()));
 		scene.idle(50);
 
-		ItemStack itemStack = new ItemStack(VintageItems.CONCAVE_CURVING_HEAD);
+		ItemStack itemStack = VintageItems.CONCAVE_CURVING_HEAD.asStack();
 
 		scene.overlay().showControls(
 				util.vector().blockSurface(centrifuge, Direction.NORTH), Pointing.RIGHT, 8)

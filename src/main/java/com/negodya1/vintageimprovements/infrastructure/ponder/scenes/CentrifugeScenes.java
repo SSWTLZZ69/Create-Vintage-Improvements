@@ -25,8 +25,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import static net.minecraft.world.level.block.HorizontalDirectionalBlock.FACING;
 import static net.minecraft.world.level.block.LeverBlock.POWERED;
@@ -102,7 +102,7 @@ public class CentrifugeScenes {
 
 		scene.overlay().showText(40)
 				.attachKeyFrame()
-				.text("Items and Fluids сan only be inserted when Centrifuge is stopped")
+				.text("Items and Fluids can only be inserted when Centrifuge is stopped")
 				.pointAt(centrifuge.north().getCenter())
 				.placeNearTarget();
 		scene.idle(50);
@@ -235,3 +235,4 @@ public class CentrifugeScenes {
 		scene.world().modifyEntities(ItemEntity.class, Entity::discard);
 	}
 }
+

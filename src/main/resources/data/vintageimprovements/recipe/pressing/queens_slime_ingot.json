@@ -1,0 +1,21 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/queens_slime"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:queens_slime_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "tconstruct"
+                       }
+                   ]
+}
+
+

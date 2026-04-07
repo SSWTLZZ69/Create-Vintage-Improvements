@@ -1,0 +1,10 @@
+{
+    "type": "minecraft:stonecutting",
+    "ingredient": {
+        "item": "vintageimprovements:concave_curving_head"
+    },
+    "result": {
+        "count": 1,
+        "id": "vintageimprovements:w_shaped_curving_head"
+    }
+}

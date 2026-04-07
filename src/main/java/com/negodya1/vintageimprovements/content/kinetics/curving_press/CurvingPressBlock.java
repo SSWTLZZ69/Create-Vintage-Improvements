@@ -20,6 +20,7 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -47,7 +48,7 @@ public class CurvingPressBlock extends HorizontalKineticBlock implements IBE<Cur
 		super.setPlacedBy(level, pos, state, placer, stack);
 	}
 
-	public static final TagKey<Item> headTag = ItemTags.create(new ResourceLocation("vintageimprovements", "curving_heads"));
+	public static final TagKey<Item> headTag = ItemTags.create(ResourceLocation.fromNamespaceAndPath("vintageimprovements", "curving_heads"));
 
 	public CurvingPressBlock(Properties properties) {
 		super(properties);
@@ -98,15 +99,14 @@ public class CurvingPressBlock extends HorizontalKineticBlock implements IBE<Cur
 	}
 
 	@Override
-	public boolean isPathfindable(BlockState state, BlockGetter reader, BlockPos pos, PathComputationType type) {
+	protected boolean isPathfindable(BlockState state, PathComputationType type) {
 		return false;
 	}
 
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
-								 BlockHitResult hit) {
-		ItemStack heldItem = player.getItemInHand(handIn);
-
-		return onBlockEntityUse(worldIn, pos, be -> {
+	@Override
+	protected ItemInteractionResult useItemOn(ItemStack heldItem, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
+											 BlockHitResult hit) {
+		InteractionResult result = onBlockEntityUse(worldIn, pos, be -> {
 			if (be.mode == 0) {
 
 				be.itemAsHead.clearContent();
@@ -184,6 +184,15 @@ public class CurvingPressBlock extends HorizontalKineticBlock implements IBE<Cur
 
 			return InteractionResult.PASS;
 		});
+
+		if (result.consumesAction())
+			return ItemInteractionResult.SUCCESS;
+		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+	}
+
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
+		return InteractionResult.PASS;
 	}
 
 	@Override

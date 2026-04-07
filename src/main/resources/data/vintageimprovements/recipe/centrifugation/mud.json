@@ -1,0 +1,19 @@
+﻿{
+    "type":  "vintageimprovements:centrifugation",
+    "ingredients":  [
+                        {
+                            "item":  "minecraft:mud"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "minecraft:dirt",
+                        "count":  1
+                    },
+                    {
+                        "id":  "minecraft:water",
+                        "amount":  250
+                    }
+                ],
+    "processing_time":  1000
+}

@@ -1,0 +1,28 @@
+﻿{
+    "type":  "create:crushing",
+    "ingredients":  [
+                        [
+                            {
+                                "tag":  "create:stone_types/scoria"
+                            },
+                            {
+                                "tag":  "create:stone_types/scorchia"
+                            }
+                        ]
+                    ],
+    "results":  [
+                    {
+                        "chance":  0.3,
+                        "id":  "vintageimprovements:sulfur_chunk"
+                    },
+                    {
+                        "chance":  0.1,
+                        "id":  "vintageimprovements:sulfur_chunk"
+                    },
+                    {
+                        "chance":  0.05,
+                        "id":  "vintageimprovements:sulfur_chunk"
+                    }
+                ],
+    "processing_time":  250
+}

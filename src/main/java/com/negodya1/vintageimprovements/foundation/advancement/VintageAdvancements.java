@@ -2,10 +2,15 @@ package com.negodya1.vintageimprovements.foundation.advancement;
 
 import com.negodya1.vintageimprovements.VintageImprovements;
 
-import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.advancements.CriterionTrigger;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.function.Supplier;
 
 public enum VintageAdvancements {
 
@@ -21,26 +26,29 @@ public enum VintageAdvancements {
     INSERT_RECIPE_CARD("insert_recipe_card"),
     BELT_GRINDER_SKIN_CHANGE("belt_grinder_skin_change");
 
-    private String id;
-    private SimpleVintageTrigger trigger;
+    private final String id;
+    private final Supplier<SimpleVintageTrigger> trigger;
 
 	VintageAdvancements(String id) {
         this.id = id;
-        trigger = new SimpleVintageTrigger(id);
+        trigger = Registers.TRIGGERS.register(id, () -> new SimpleVintageTrigger(id));
     };
 
     public void award(Level level, Player player) {
         if (level.isClientSide()) return;
         if (player instanceof ServerPlayer serverPlayer) {
-            trigger.trigger(serverPlayer);
+            trigger.get().trigger(serverPlayer);
         } else {
             VintageImprovements.logThis("Could not award Vintage Improvements Advancement " + id + " to client-side Player.");
         };
     };
 
-    public static void register() {
-        for (VintageAdvancements e : values()) {
-            CriteriaTriggers.register(e.trigger);
-        };
-    };
+    public static void register(IEventBus modEventBus) {
+        Registers.TRIGGERS.register(modEventBus);
+    }
+
+    private static class Registers {
+        private static final DeferredRegister<CriterionTrigger<?>> TRIGGERS =
+                DeferredRegister.create(Registries.TRIGGER_TYPE, VintageImprovements.MODID);
+    }
 }

@@ -1,0 +1,24 @@
+{
+    "type":  "vintageimprovements:pressurizing",
+    "secondary_fluid_input":  1,
+    "ingredients":  [
+                        {
+                            "amount":  1000,
+                            "tag":  "c:sulfur_trioxide",
+                            "type":  "neoforge:tag"
+                        },
+                        {
+                            "fluid":  "minecraft:water",
+                            "amount":  1000,
+                            "type":  "neoforge:single"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "amount":  1000,
+                        "id":  "vintageimprovements:sulfuric_acid"
+                    }
+                ],
+    "processing_time":  600
+}
+

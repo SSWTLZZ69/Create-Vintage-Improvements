@@ -14,9 +14,8 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 public class CentrifugeItem extends BlockItem {
 
@@ -35,7 +34,7 @@ public class CentrifugeItem extends BlockItem {
 				.relative(clickedFace), clickedFace));
 		if (result == InteractionResult.FAIL && ctx.getLevel()
 			.isClientSide())
-			DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> showBounds(ctx));
+			showBounds(ctx);
 		return result;
 	}
 
@@ -56,3 +55,4 @@ public class CentrifugeItem extends BlockItem {
 	}
 
 }
+

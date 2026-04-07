@@ -1,0 +1,17 @@
+﻿{
+    "type":  "vintageimprovements:auto_smithing",
+    "ingredients":  [
+                        {
+                            "tag":  "minecraft:trim_templates"
+                        },
+                        {
+                            "tag":  "minecraft:trimmable_armor"
+                        },
+                        {
+                            "tag":  "minecraft:trim_materials"
+                        }
+                    ],
+    "results":  [
+
+                ]
+}

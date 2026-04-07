@@ -2,14 +2,14 @@ package com.negodya1.vintageimprovements.content.kinetics.vibration;
 
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
+import com.simibubi.create.content.processing.recipe.ProcessingRecipeParams;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-public class LeavesVibratingRecipe extends ProcessingRecipe<RecipeWrapper> {
+public class LeavesVibratingRecipe extends ProcessingRecipe<RecipeWrapper, ProcessingRecipeParams> {
 	public LeavesVibratingRecipe(ProcessingRecipeParams params) {
 		super(VintageRecipes.LEAVES_VIBRATING, params);
 	}
@@ -37,3 +37,4 @@ public class LeavesVibratingRecipe extends ProcessingRecipe<RecipeWrapper> {
 		return true;
 	}
 }
+

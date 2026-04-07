@@ -1,35 +1,21 @@
 package com.negodya1.vintageimprovements.content.kinetics.lathe;
 
 import com.negodya1.vintageimprovements.VintageMenuTypes;
-import com.negodya1.vintageimprovements.VintageRecipes;
-import com.negodya1.vintageimprovements.content.kinetics.lathe.recipe_card.RecipeCardItem;
-import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
-import com.simibubi.create.foundation.gui.menu.GhostItemMenu;
 import com.simibubi.create.foundation.gui.menu.MenuBase;
-import com.simibubi.create.foundation.recipe.RecipeConditions;
-import com.simibubi.create.foundation.recipe.RecipeFinder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class LatheMenu extends MenuBase<LatheMovingBlockEntity> {
 
@@ -37,7 +23,7 @@ public class LatheMenu extends MenuBase<LatheMovingBlockEntity> {
 	List<TurningRecipe> recipes;
 	private Slot inputSlot;
 
-	public LatheMenu(MenuType<?> type, int id, Inventory inv, FriendlyByteBuf extraData) {
+	public LatheMenu(MenuType<?> type, int id, Inventory inv, RegistryFriendlyByteBuf extraData) {
 		super(type, id, inv, extraData);
 		recipes = new ArrayList<>();
 	}
@@ -56,11 +42,11 @@ public class LatheMenu extends MenuBase<LatheMovingBlockEntity> {
 	}
 
 	@Override
-	protected LatheMovingBlockEntity createOnClient(FriendlyByteBuf extraData) {
+	protected LatheMovingBlockEntity createOnClient(RegistryFriendlyByteBuf extraData) {
 		ClientLevel world = Minecraft.getInstance().level;
 		BlockEntity blockEntity = world.getBlockEntity(extraData.readBlockPos());
 		if (blockEntity instanceof LatheMovingBlockEntity lathe) {
-			lathe.readClient(extraData.readNbt());
+			lathe.readClient(extraData.readNbt(), extraData.registryAccess());
 			return lathe;
 		}
 		return null;
@@ -131,3 +117,4 @@ public class LatheMenu extends MenuBase<LatheMovingBlockEntity> {
 		return contentHolder.getTemporaryIndex();
 	}
 }
+

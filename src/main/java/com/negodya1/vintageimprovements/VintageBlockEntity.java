@@ -27,6 +27,8 @@ import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.OrientedRotatingVisual;
 import com.simibubi.create.content.kinetics.base.SingleAxisRotatingVisual;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 import static com.negodya1.vintageimprovements.VintageImprovements.MY_REGISTRATE;
 
@@ -110,4 +112,27 @@ public class VintageBlockEntity {
             .register();
 
     public static void register() {}
+
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, GRINDER.get(), (be, side) -> be.inventory);
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, COILING.get(), (be, side) -> be.inventory);
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, VIBRATION.get(), (be, side) -> be.capability);
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, LATHE_ROTATING.get(), (be, side) -> be.capability);
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, HELVE.get(), (be, side) -> be.capability);
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, CENTRIFUGE.get(), (be, side) -> be.capability);
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, CENTRIFUGE_STRUCTURAL.get(), (be, side) -> {
+            CentrifugeBlockEntity master = be.getMaster();
+            return master != null ? master.capability : null;
+        });
+
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, VACUUM.get(), (be, side) -> be.fluidCapability);
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, CENTRIFUGE.get(), (be, side) -> be.fluidCapability);
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, CENTRIFUGE_STRUCTURAL.get(), (be, side) -> {
+            CentrifugeBlockEntity master = be.getMaster();
+            return master != null ? master.fluidCapability : null;
+        });
+
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, LASER.get(), (be, side) ->
+                be.isEnergyInput(side) || be.isEnergyOutput(side) ? be.getEnergyStorage() : null);
+    }
 }

@@ -1,0 +1,27 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "fbc060",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/pure_gold"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:pure_gold_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/pure_gold"
+                                     }
+                       }
+                   ],
+    "processing_time":  120
+}
+
+

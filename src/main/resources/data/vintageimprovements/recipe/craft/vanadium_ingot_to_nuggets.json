@@ -1,0 +1,16 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "I":  {
+                          "tag":  "c:ingots/vanadium"
+                      }
+            },
+    "pattern":  [
+                    "I"
+                ],
+    "result":  {
+                   "count":  9,
+                   "id":  "vintageimprovements:vanadium_nugget"
+               }
+}
+

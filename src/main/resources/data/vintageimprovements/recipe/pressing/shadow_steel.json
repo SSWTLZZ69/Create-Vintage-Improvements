@@ -1,0 +1,14 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/shadow_steel"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:shadow_steel_sheet"
+                    }
+                ]
+}
+

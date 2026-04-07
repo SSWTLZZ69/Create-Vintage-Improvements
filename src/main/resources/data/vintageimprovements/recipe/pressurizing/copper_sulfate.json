@@ -1,0 +1,25 @@
+﻿{
+    "type":  "vintageimprovements:pressurizing",
+    "ingredients":  [
+                        {
+                            "amount":  200,
+                            "tag":  "c:sulfuric_acid",
+                            "type":  "neoforge:tag"
+                        },
+                        {
+                            "fluid":  "minecraft:water",
+                            "amount":  200,
+                            "type":  "neoforge:single"
+                        },
+                        {
+                            "tag":  "c:ingots/copper"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:copper_sulfate"
+                    }
+                ],
+    "processing_time":  800
+}
+

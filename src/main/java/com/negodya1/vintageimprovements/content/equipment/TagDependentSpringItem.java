@@ -8,9 +8,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class TagDependentSpringItem extends TagDependentIngredientItem {
@@ -25,7 +23,7 @@ public class TagDependentSpringItem extends TagDependentIngredientItem {
     public int getStiffness() {return stiffness;}
 
     @Override
-    public void appendHoverText(ItemStack itemStack, @Nullable Level level, List<Component> list, TooltipFlag flag) {
+    public void appendHoverText(ItemStack itemStack, Item.TooltipContext context, List<Component> list, TooltipFlag flag) {
         list.add(Component.translatable(VintageImprovements.MODID + ".item_description.spring_stiffness")
                 .append(" " + stiffness).withStyle(ChatFormatting.GOLD));
     }

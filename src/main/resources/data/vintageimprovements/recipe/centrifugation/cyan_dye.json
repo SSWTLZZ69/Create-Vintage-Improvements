@@ -1,0 +1,23 @@
+﻿{
+    "type":  "vintageimprovements:centrifugation",
+    "ingredients":  [
+                        {
+                            "tag":  "c:dyes/cyan"
+                        },
+                        {
+                            "tag":  "c:dyes/cyan"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "minecraft:blue_dye"
+                    },
+                    {
+                        "count":  1,
+                        "id":  "minecraft:green_dye"
+                    }
+                ],
+    "processing_time":  1000
+}
+

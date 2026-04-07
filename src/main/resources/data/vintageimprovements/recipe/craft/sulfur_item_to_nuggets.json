@@ -1,0 +1,16 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "G":  {
+                          "tag":  "c:gems/sulfur"
+                      }
+            },
+    "pattern":  [
+                    "G"
+                ],
+    "result":  {
+                   "count":  9,
+                   "id":  "vintageimprovements:sulfur_chunk"
+               }
+}
+

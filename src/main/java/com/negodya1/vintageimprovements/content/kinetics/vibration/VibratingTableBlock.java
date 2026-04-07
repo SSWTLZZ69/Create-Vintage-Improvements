@@ -14,12 +14,12 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -32,13 +32,10 @@ import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -65,11 +62,7 @@ public class VibratingTableBlock extends HorizontalKineticBlock implements IBE<V
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
-								 BlockHitResult hit) {
-		if (!player.getItemInHand(handIn)
-				.isEmpty())
-			return InteractionResult.PASS;
+	protected InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 		if (worldIn.isClientSide)
 			return InteractionResult.SUCCESS;
 
@@ -127,7 +120,7 @@ public class VibratingTableBlock extends HorizontalKineticBlock implements IBE<V
 	}
 
 	@Override
-	public boolean isPathfindable(BlockState state, BlockGetter reader, BlockPos pos, PathComputationType type) {
+	protected boolean isPathfindable(BlockState state, PathComputationType type) {
 		return false;
 	}
 
@@ -160,12 +153,11 @@ public class VibratingTableBlock extends HorizontalKineticBlock implements IBE<V
 			return;
 
 		ItemEntity itemEntity = (ItemEntity) entityIn;
-		LazyOptional<IItemHandler> capability = vibratingtable.getCapability(ForgeCapabilities.ITEM_HANDLER);
-		if (!capability.isPresent())
+		IItemHandler capability = vibratingtable.capability;
+		if (capability == null)
 			return;
 
-		ItemStack remainder = capability.orElse(new ItemStackHandler())
-				.insertItem(0, itemEntity.getItem(), false);
+		ItemStack remainder = capability.insertItem(0, itemEntity.getItem(), false);
 		if (remainder.isEmpty())
 			itemEntity.discard();
 		if (remainder.getCount() < itemEntity.getItem()
@@ -175,7 +167,8 @@ public class VibratingTableBlock extends HorizontalKineticBlock implements IBE<V
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void appendHoverText(ItemStack itemStack, @Nullable BlockGetter getter, List<Component> list, TooltipFlag flag) {
+	public void appendHoverText(ItemStack itemStack, Item.TooltipContext context, List<Component> list, TooltipFlag flag) {
 		list.add(Component.translatable(VintageImprovements.MODID + ".item_description.machine_rpm_requirements").append(" " + SpeedLevel.FAST.getSpeedValue()).withStyle(ChatFormatting.GOLD));
 	}
 }
+

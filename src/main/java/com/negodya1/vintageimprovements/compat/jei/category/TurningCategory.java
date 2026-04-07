@@ -12,6 +12,7 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
@@ -55,9 +56,9 @@ public class TurningCategory extends CreateRecipeCategory<TurningRecipe> {
 	}
 
 	@Override
-	public void getTooltip(ITooltipBuilder tooltip, TurningRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+	public void getTooltip(ITooltipBuilder tooltip, RecipeHolder<TurningRecipe> recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
 		if (mouseX > 54 && mouseX < 97 && mouseY > 24 && mouseY < 65) {
-			int duration = recipe.getProcessingDuration();
+			int duration = recipe.value().getProcessingDuration();
 			if (duration == 0) duration = 200;
 			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
 		}

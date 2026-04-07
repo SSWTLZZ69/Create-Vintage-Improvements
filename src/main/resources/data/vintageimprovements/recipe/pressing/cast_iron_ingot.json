@@ -1,0 +1,24 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/cast_iron"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:cast_iron_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/cast_iron"
+                                     }
+                       }
+                   ]
+}
+
+

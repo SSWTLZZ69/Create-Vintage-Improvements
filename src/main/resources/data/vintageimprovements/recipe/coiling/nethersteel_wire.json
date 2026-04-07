@@ -1,0 +1,24 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "756a65",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/nethersteel"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_nethersteel_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "createbigcannons"
+                       }
+                   ],
+    "processing_time":  60
+}
+
+

@@ -1,5 +1,6 @@
 package com.negodya1.vintageimprovements.content.kinetics.helve_hammer;
 
+import com.mojang.serialization.MapCodec;
 import com.negodya1.vintageimprovements.*;
 import com.negodya1.vintageimprovements.content.kinetics.centrifuge.CentrifugeBlockEntity;
 import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingTableBlockEntity;
@@ -26,6 +27,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -47,19 +49,18 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.AXIS;
 
 public class HelveBlock extends HorizontalDirectionalBlock implements IBE<HelveBlockEntity> {
+	public static final MapCodec<HelveBlock> CODEC = simpleCodec(HelveBlock::new);
 	public static final VoxelShaper HELVE_SHAPE = VintageShapes.shape(4, 4, 4, 12, 12, 16).add(5, 0, 5, 11, 14, 11).forDirectional();
 
 	@Override
@@ -70,6 +71,11 @@ public class HelveBlock extends HorizontalDirectionalBlock implements IBE<HelveB
 
 	public HelveBlock(Properties properties) {
 		super(properties);
+	}
+
+	@Override
+	protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
+		return CODEC;
 	}
 
 	@Override
@@ -93,7 +99,7 @@ public class HelveBlock extends HorizontalDirectionalBlock implements IBE<HelveB
 	}
 
 	@Override
-	public boolean isPathfindable(BlockState state, BlockGetter reader, BlockPos pos, PathComputationType type) {
+	protected boolean isPathfindable(BlockState state, PathComputationType type) {
 		return false;
 	}
 
@@ -197,13 +203,12 @@ public class HelveBlock extends HorizontalDirectionalBlock implements IBE<HelveB
 			return;
 
 		ItemEntity itemEntity = (ItemEntity) entityIn;
-		LazyOptional<IItemHandler> capability = centrifuge.getCapability(ForgeCapabilities.ITEM_HANDLER);
-		if (!capability.isPresent())
+		IItemHandler capability = centrifuge.capability;
+		if (capability == null)
 			return;
 
 		for (int i = 0; i < 3; i++) {
-			ItemStack remainder = capability.orElse(new ItemStackHandler())
-					.insertItem(i, itemEntity.getItem(), false);
+			ItemStack remainder = capability.insertItem(i, itemEntity.getItem(), false);
 			if (remainder.isEmpty())
 				itemEntity.discard();
 			if (remainder.getCount() < itemEntity.getItem()
@@ -234,13 +239,12 @@ public class HelveBlock extends HorizontalDirectionalBlock implements IBE<HelveB
 			return;
 
 		ItemEntity itemEntity = (ItemEntity) entityIn;
-		LazyOptional<IItemHandler> capability = centrifuge.getCapability(ForgeCapabilities.ITEM_HANDLER);
-		if (!capability.isPresent())
+		IItemHandler capability = centrifuge.capability;
+		if (capability == null)
 			return;
 
 		for (int i = 0; i < 3; i++) {
-			ItemStack remainder = capability.orElse(new ItemStackHandler())
-					.insertItem(i, itemEntity.getItem(), false);
+			ItemStack remainder = capability.insertItem(i, itemEntity.getItem(), false);
 			if (remainder.isEmpty())
 				itemEntity.discard();
 			if (remainder.getCount() < itemEntity.getItem()
@@ -252,32 +256,33 @@ public class HelveBlock extends HorizontalDirectionalBlock implements IBE<HelveB
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
+	protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn,
 								 BlockHitResult hit) {
-		if (!player.getItemInHand(handIn).isEmpty()) {
-			if (!player.getItemInHand(handIn).is(VintageItems.HELVE_HAMMER_SLOT_COVER.get())) {
-				if (!player.getItemInHand(handIn).is(AllItems.WRENCH.asItem()))
-					return InteractionResult.PASS;
-				withBlockEntityDo(worldIn, pos, helve -> {
-					ItemStack stackInSlot = helve.resetBlockedSlots();
-					player.getInventory()
-							.placeItemBackInInventory(stackInSlot);
-
-					helve.setChanged();
-					helve.sendData();
-				});
-				return InteractionResult.SUCCESS;
-			}
+		if (!stack.is(VintageItems.HELVE_HAMMER_SLOT_COVER.get())) {
+			if (!stack.is(AllItems.WRENCH.asItem()))
+				return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 			withBlockEntityDo(worldIn, pos, helve -> {
-				if (helve.addBlockedSlots() && !player.isCreative())
-					player.getItemInHand(handIn).shrink(1);
-
+				ItemStack stackInSlot = helve.resetBlockedSlots();
+				player.getInventory().placeItemBackInInventory(stackInSlot);
 				helve.setChanged();
 				helve.sendData();
 			});
-
-			return InteractionResult.SUCCESS;
+			return ItemInteractionResult.SUCCESS;
 		}
+
+		withBlockEntityDo(worldIn, pos, helve -> {
+			if (helve.addBlockedSlots() && !player.isCreative())
+				stack.shrink(1);
+
+			helve.setChanged();
+			helve.sendData();
+		});
+
+		return ItemInteractionResult.SUCCESS;
+	}
+
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 		if (worldIn.isClientSide)
 			return InteractionResult.SUCCESS;
 
@@ -288,16 +293,14 @@ public class HelveBlock extends HorizontalDirectionalBlock implements IBE<HelveB
 				ItemStack stackInSlot = inv.getStackInSlot(slot);
 				if (!stackInSlot.isEmpty())
 					emptyOutput = false;
-				player.getInventory()
-						.placeItemBackInInventory(stackInSlot);
+				player.getInventory().placeItemBackInInventory(stackInSlot);
 				inv.setStackInSlot(slot, ItemStack.EMPTY);
 			}
 
 			if (emptyOutput) {
 				inv = helve.inputInv;
 				for (int slot = 0; slot < inv.getSlots(); slot++) {
-					player.getInventory()
-							.placeItemBackInInventory(inv.getStackInSlot(slot));
+					player.getInventory().placeItemBackInInventory(inv.getStackInSlot(slot));
 					inv.setStackInSlot(slot, ItemStack.EMPTY);
 				}
 
@@ -312,3 +315,4 @@ public class HelveBlock extends HorizontalDirectionalBlock implements IBE<HelveB
 	}
 
 }
+

@@ -1,26 +1,14 @@
 package com.negodya1.vintageimprovements;
 
-import com.negodya1.vintageimprovements.content.kinetics.curving_press.CurvingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.grinder.PolishingRecipe;
-import com.simibubi.create.content.equipment.sandPaper.SandPaperPolishingRecipe;
-import mezz.jei.api.constants.RecipeTypes;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.crafting.ConditionalRecipe;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class VintageRecipesList {
     static List<CraftingRecipe> curving;
@@ -29,7 +17,7 @@ public class VintageRecipesList {
     static List<CraftingRecipe> curving4;
 
     static List<CraftingRecipe> unpacking;
-    static List<PolishingRecipe> polishing;
+    static List<RecipeHolder<PolishingRecipe>> polishing;
     static List<SmithingRecipe> smithing;
 
     static public void init(MinecraftServer level) {
@@ -48,11 +36,19 @@ public class VintageRecipesList {
     }
 
     static void initSmithing(MinecraftServer level) {
-        smithing = level.getRecipeManager().getAllRecipesFor(RecipeType.SMITHING);
+        smithing = level.getRecipeManager()
+                .getAllRecipesFor(RecipeType.SMITHING)
+                .stream()
+                .map(RecipeHolder::value)
+                .collect(Collectors.toList());
     }
 
     static void initUnpacking(MinecraftServer level) {
-        List<CraftingRecipe> recipes = level.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING);
+        List<CraftingRecipe> recipes = level.getRecipeManager()
+                .getAllRecipesFor(RecipeType.CRAFTING)
+                .stream()
+                .map(RecipeHolder::value)
+                .collect(Collectors.toList());
         for (CraftingRecipe recipe : recipes) {
             if (recipe.getIngredients().size() > 1) continue;
 
@@ -61,7 +57,11 @@ public class VintageRecipesList {
     }
 
     static void initCurving(MinecraftServer level) {
-        List<CraftingRecipe> recipes = level.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING);
+        List<CraftingRecipe> recipes = level.getRecipeManager()
+                .getAllRecipesFor(RecipeType.CRAFTING)
+                .stream()
+                .map(RecipeHolder::value)
+                .collect(Collectors.toList());
         Recipe: for (CraftingRecipe recipe : recipes) {
             if (recipe instanceof ShapelessRecipe) continue;
 
@@ -224,10 +224,11 @@ public class VintageRecipesList {
         if (polishing == null) return true;
         if (polishing.isEmpty()) return true;
 
-        for (PolishingRecipe recipe : polishing)
+        for (RecipeHolder<PolishingRecipe> holder : polishing)
             for (ItemStack stack : r.getIngredients().get(0).getItems())
-                if (recipe.getIngredients().get(0).test(stack)) return false;
+                if (holder.value().getIngredients().get(0).test(stack)) return false;
 
         return true;
     }
 }
+

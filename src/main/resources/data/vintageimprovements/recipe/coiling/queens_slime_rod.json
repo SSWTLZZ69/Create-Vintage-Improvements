@@ -1,0 +1,24 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "bf7600",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/queens_slime"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:queens_slime_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "tconstruct"
+                       }
+                   ],
+    "processing_time":  120
+}
+
+

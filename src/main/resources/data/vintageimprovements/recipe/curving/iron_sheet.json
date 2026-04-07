@@ -1,0 +1,15 @@
+﻿{
+    "type":  "vintageimprovements:curving",
+    "mode":  1,
+    "ingredients":  [
+                        {
+                            "tag":  "c:plates/iron"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "minecraft:bucket"
+                    }
+                ]
+}
+

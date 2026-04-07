@@ -1,0 +1,18 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "key":  {
+                "I":  {
+                          "tag":  "c:ingots/vanadium"
+                      }
+            },
+    "pattern":  [
+                    "III",
+                    "III",
+                    "III"
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "vintageimprovements:vanadium_block"
+               }
+}
+

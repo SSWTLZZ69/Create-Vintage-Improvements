@@ -1,0 +1,28 @@
+﻿{
+    "type":  "vintageimprovements:pressurizing",
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:dusts/sulfur"
+                                     }
+                       }
+                   ],
+    "secondary_fluid_output":  0,
+    "ingredients":  [
+                        {
+                            "tag":  "c:dusts/sulfur"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "amount":  1000,
+                        "id":  "vintageimprovements:sulfur_dioxide"
+                    }
+                ],
+    "processing_time":  400,
+    "heat_requirement":  "heated"
+}
+
+

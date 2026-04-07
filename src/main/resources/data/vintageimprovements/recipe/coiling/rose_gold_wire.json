@@ -1,0 +1,27 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "f4cbb9",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/rose_gold"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_rose_gold_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/rose_gold"
+                                     }
+                       }
+                   ],
+    "processing_time":  60
+}
+
+

@@ -33,6 +33,7 @@ import net.createmod.catnip.math.VecHelper;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
@@ -46,16 +47,14 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
 
@@ -67,7 +66,7 @@ public class CoilingBlockEntity extends KineticBlockEntity {
 
 	public ProcessingInventory inventory;
 	private int recipeIndex;
-	private final LazyOptional<IItemHandler> invProvider;
+	private final IItemHandler invProvider;
 	private FilteringBehaviour filtering;
 	private VintageAdvancementBehaviour advancementBehaviour;
 	private ItemStack playEvent;
@@ -80,7 +79,7 @@ public class CoilingBlockEntity extends KineticBlockEntity {
 		inventory = new ProcessingInventory(this::start).withSlotLimit(!AllConfigs.server().recipes.bulkCutting.get());
 		inventory.remainingTime = -1;
 		recipeIndex = 0;
-		invProvider = LazyOptional.of(() -> inventory);
+		invProvider = inventory;
 		playEvent = ItemStack.EMPTY;
 		springColor = 0x9aa49d;
 	}
@@ -100,27 +99,27 @@ public class CoilingBlockEntity extends KineticBlockEntity {
 	}
 
 	@Override
-	public void write(CompoundTag compound, boolean clientPacket) {
-		compound.put("Inventory", inventory.serializeNBT());
+	public void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+		compound.put("Inventory", inventory.serializeNBT(registries));
 		compound.putInt("RecipeIndex", recipeIndex);
 		compound.putInt("SpringColor", springColor);
-		super.write(compound, clientPacket);
+		super.write(compound, registries, clientPacket);
 
 		if (!clientPacket || playEvent.isEmpty())
 			return;
-		compound.put("PlayEvent", playEvent.serializeNBT());
+		compound.put("PlayEvent", playEvent.saveOptional(registries));
 		playEvent = ItemStack.EMPTY;
 	}
 
 	@Override
-	protected void read(CompoundTag compound, boolean clientPacket) {
-		super.read(compound, clientPacket);
-		inventory.deserializeNBT(compound.getCompound("Inventory"));
+	protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+		super.read(compound, registries, clientPacket);
+		inventory.deserializeNBT(registries, compound.getCompound("Inventory"));
 		recipeIndex = compound.getInt("RecipeIndex");
 		springColor = compound.getInt("SpringColor");
 
 		if (compound.contains("PlayEvent"))
-			playEvent = ItemStack.of(compound.getCompound("PlayEvent"));
+			playEvent = ItemStack.parseOptional(registries, compound.getCompound("PlayEvent"));
 	}
 
 	@Override
@@ -219,7 +218,7 @@ public class CoilingBlockEntity extends KineticBlockEntity {
 				if (stack.isEmpty())
 					continue;
 				ItemStack remainder = behaviour.handleInsertion(stack, itemMovementFacing, false);
-				if (remainder.equals(stack, false))
+				if (ItemStack.isSameItemSameComponents(remainder, stack) && remainder.getCount() == stack.getCount())
 					continue;
 				inventory.setStackInSlot(slot, remainder);
 				changed = true;
@@ -255,20 +254,12 @@ public class CoilingBlockEntity extends KineticBlockEntity {
 	@Override
 	public void invalidate() {
 		super.invalidate();
-		invProvider.invalidate();
 	}
 	
 	@Override
 	public void destroy() {
 		super.destroy();
 		ItemHelper.dropContents(level, worldPosition, inventory);
-	}
-
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-		if (cap == ForgeCapabilities.ITEM_HANDLER)
-			return invProvider.cast();
-		return super.getCapability(cap, side);
 	}
 
 	protected void spawnEventParticles(ItemStack stack) {
@@ -316,7 +307,7 @@ public class CoilingBlockEntity extends KineticBlockEntity {
 		for (int roll = 0; roll < rolls; roll++) {
 			List<ItemStack> results = new LinkedList<ItemStack>();
 			if (recipe instanceof CoilingRecipe)
-				results = ((CoilingRecipe) recipe).rollResults();
+				results = ((CoilingRecipe) recipe).rollResults(level.random);
 
 			for (int i = 0; i < results.size(); i++) {
 				ItemStack stack = results.get(i);
@@ -330,18 +321,18 @@ public class CoilingBlockEntity extends KineticBlockEntity {
 	}
 
 	private List<? extends Recipe<?>> getRecipes() {
-		Optional<CoilingRecipe> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, inventory.getStackInSlot(0),
+		Optional<RecipeHolder<CoilingRecipe>> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, inventory.getStackInSlot(0),
 			VintageRecipes.COILING.getType(), CoilingRecipe.class);
-		if (assemblyRecipe.isPresent() && filtering.test(assemblyRecipe.get()
+		if (assemblyRecipe.isPresent() && filtering.test(assemblyRecipe.get().value()
 			.getResultItem(level.registryAccess())))
-			return ImmutableList.of(assemblyRecipe.get());
+			return ImmutableList.of(assemblyRecipe.get().value());
 
-		Predicate<Recipe<?>> types = RecipeConditions.isOfType(VintageRecipes.COILING.getType());
-
-		List<Recipe<?>> startedSearch = RecipeFinder.get(coilingRecipesKey, level, types);
+		List<RecipeHolder<? extends Recipe<?>>> startedSearch =
+				RecipeFinder.get(coilingRecipesKey, level, RecipeConditions.isOfType(VintageRecipes.COILING.getType()));
 		return startedSearch.stream()
 			.filter(RecipeConditions.outputMatchesFilter(filtering))
 			.filter(RecipeConditions.firstIngredientMatches(inventory.getStackInSlot(0)))
+			.map(RecipeHolder::value)
 			.filter(r -> !VintageRecipes.shouldIgnoreInAutomation(r))
 			.collect(Collectors.toList());
 	}
@@ -389,7 +380,7 @@ public class CoilingBlockEntity extends KineticBlockEntity {
 		Recipe<?> recipe = recipes.get(recipeIndex);
 		if (recipe instanceof CoilingRecipe coilingRecipe) {
 			time = coilingRecipe.getProcessingDuration();
-			springColor = coilingRecipe.springColor;
+			springColor = coilingRecipe.getSpringColor();
 		}
 
 		inventory.remainingTime = time * Math.max(1, (inserted.getCount() / 5));
@@ -399,3 +390,4 @@ public class CoilingBlockEntity extends KineticBlockEntity {
 	}
 
 }
+

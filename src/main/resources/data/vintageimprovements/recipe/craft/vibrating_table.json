@@ -1,0 +1,23 @@
+﻿{
+    "type":  "minecraft:crafting_shaped",
+    "group":  "vacuum_chambers",
+    "key":  {
+                "S":  {
+                          "tag":  "vintageimprovements:springs/iron"
+                      },
+                "P":  {
+                          "item":  "create:mechanical_piston"
+                      },
+                "T":  {
+                          "tag":  "minecraft:wooden_slabs"
+                      }
+            },
+    "pattern":  [
+                    "STS",
+                    "SPS"
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "vintageimprovements:vibrating_table"
+               }
+}

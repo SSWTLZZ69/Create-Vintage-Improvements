@@ -1,0 +1,17 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "4D494D",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/netherite"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_netherite_spring"
+                    }
+                ],
+    "processing_time":  60
+}
+

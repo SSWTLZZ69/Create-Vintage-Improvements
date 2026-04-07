@@ -1,51 +1,45 @@
 package com.negodya1.vintageimprovements.content.kinetics.helve_hammer;
 
-import java.util.*;
-import java.util.function.Supplier;
-
-import javax.annotation.Nonnull;
-
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
 import com.negodya1.vintageimprovements.VintageBlocks;
 import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.compat.jei.category.assemblies.AssemblyHammering;
 import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemblySubCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
-import com.simibubi.create.foundation.item.SmartInventory;
-import com.simibubi.create.foundation.recipe.DummyCraftingContainer;
 import net.createmod.catnip.data.Iterate;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 
-public class HammeringRecipe extends ProcessingRecipe<Container> implements IAssemblyRecipe {
+import java.util.*;
+import java.util.function.Supplier;
 
-	int hammerBlows;
-	Item anvilBlock;
+public class HammeringRecipe extends ProcessingRecipe<RecipeInput, HammeringRecipeParams> implements IAssemblyRecipe {
 
-	public HammeringRecipe(ProcessingRecipeParams params) {
+	final int hammerBlows;
+	final Item anvilBlock;
+
+	public HammeringRecipe(HammeringRecipeParams params) {
 		super(VintageRecipes.HAMMERING, params);
-		hammerBlows = 1;
-		anvilBlock = Blocks.AIR.asItem();
+		hammerBlows = params.hammerBlows();
+		anvilBlock = params.anvilBlock();
 	}
 
 	public Item getAnvilBlock() {
@@ -61,8 +55,7 @@ public class HammeringRecipe extends ProcessingRecipe<Container> implements IAss
 	}
 
 	private static boolean apply(HelveBlockEntity centrifuge, Recipe<?> recipe, boolean test) {
-		IItemHandlerModifiable availableItems = (IItemHandlerModifiable) centrifuge.getCapability(ForgeCapabilities.ITEM_HANDLER)
-				.orElse(null);
+		IItemHandlerModifiable availableItems = centrifuge.capability;
 
 		if (availableItems == null)
 			return false;
@@ -104,13 +97,8 @@ public class HammeringRecipe extends ProcessingRecipe<Container> implements IAss
 
 			if (simulate) {
 				if (recipe instanceof HammeringRecipe hammeringRecipe) {
-					recipeOutputItems.addAll(hammeringRecipe.rollResults());
-
-					CraftingContainer remainderContainer = new DummyCraftingContainer(availableItems, extractedItemsFromSlot);
-
-					for (ItemStack stack : hammeringRecipe.getRemainingItems(remainderContainer))
-						if (!stack.isEmpty())
-							recipeOutputItems.add(stack);
+					RandomSource random = centrifuge.getLevel() != null ? centrifuge.getLevel().random : RandomSource.create();
+					recipeOutputItems.addAll(hammeringRecipe.rollResults(random));
 				}
 			}
 
@@ -170,39 +158,38 @@ public class HammeringRecipe extends ProcessingRecipe<Container> implements IAss
 		return () -> AssemblyHammering::new;
 	}
 
-	@Override
-	public void readAdditional(JsonObject json) {
-		if (json.has("hammerBlows")) hammerBlows = json.get("hammerBlows").getAsInt();
-		else hammerBlows = 1;
-
-		if (json.has("anvilBlock")) anvilBlock = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(json.get("anvilBlock").getAsString())).asItem();
-		else anvilBlock = Items.AIR;
-	}
-
-	@Override
-	public void readAdditional(FriendlyByteBuf buffer) {
-		hammerBlows = buffer.readInt();
-		anvilBlock = buffer.readItem().getItem();
-	}
-
-	@Override
-	public void writeAdditional(JsonObject json) {
-		json.addProperty("hammerBlows", hammerBlows);
-		if (!anvilBlock.equals(Blocks.AIR)) json.addProperty("anvilBlock", anvilBlock.toString());
-	}
-
-	@Override
-	public void writeAdditional(FriendlyByteBuf buffer) {
-		buffer.writeInt(hammerBlows);
-		buffer.writeItem(new ItemStack(anvilBlock));
-	}
-
 	public int getHammerBlows() {
 		return hammerBlows;
 	}
 
 	@Override
-	public boolean matches(Container container, Level level) {
+	public boolean matches(RecipeInput container, Level level) {
 		return false;
 	}
+
+	@FunctionalInterface
+	public interface Factory<R extends HammeringRecipe> extends ProcessingRecipe.Factory<HammeringRecipeParams, R> {
+		R create(HammeringRecipeParams params);
+	}
+
+	public static class Serializer<R extends HammeringRecipe> implements RecipeSerializer<R> {
+		private final MapCodec<R> codec;
+		private final StreamCodec<RegistryFriendlyByteBuf, R> streamCodec;
+
+		public Serializer(Factory<R> factory) {
+			this.codec = ProcessingRecipe.codec(factory, HammeringRecipeParams.CODEC);
+			this.streamCodec = ProcessingRecipe.streamCodec(factory, HammeringRecipeParams.STREAM_CODEC);
+		}
+
+		@Override
+		public MapCodec<R> codec() {
+			return codec;
+		}
+
+		@Override
+		public StreamCodec<RegistryFriendlyByteBuf, R> streamCodec() {
+			return streamCodec;
+		}
+	}
 }
+

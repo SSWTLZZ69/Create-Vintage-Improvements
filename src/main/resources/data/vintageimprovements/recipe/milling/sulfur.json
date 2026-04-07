@@ -1,0 +1,22 @@
+﻿{
+    "type":  "create:milling",
+    "ingredients":  [
+                        {
+                            "item":  "vintageimprovements:sulfur"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "tfmg:sulfur_dust"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "tfmg"
+                       }
+                   ],
+    "processing_time":  50
+}
+

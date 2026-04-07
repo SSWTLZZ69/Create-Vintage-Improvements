@@ -44,7 +44,6 @@ import com.simibubi.create.content.schematics.SchematicItem;
 import com.simibubi.create.content.trains.schedule.ScheduleItem;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.CreateRegistrate;
-import com.simibubi.create.foundation.item.CombustibleItem;
 import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.TagDependentIngredientItem;
 import com.tterrag.registrate.util.entry.ItemEntry;
@@ -55,14 +54,9 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ArmorMaterials;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.common.Tags;
 
 public class VintageItems {
-
-	static {
-		MY_REGISTRATE.setCreativeTab(VintageImprovements.VINTAGE_IMPROVEMENT_TAB);
-	}
 
 	public static final ItemEntry<TagDependentIngredientItem> ALUMINUM_SHEET = compatSheet(ALUMINUM);
 	public static final ItemEntry<TagDependentIngredientItem> AMETHYST_BRONZE_SHEET = compatSheet(AMETHYST_BRONZE);
@@ -319,7 +313,7 @@ public class VintageItems {
 		String metalName = metal.getName();
 		return MY_REGISTRATE
 			.item(metalName + "_rod",
-				props -> new TagDependentIngredientItem(props, AllTags.forgeItemTag("ingots/" + metalName)))
+				props -> new TagDependentIngredientItem(props, AllTags.commonItemTag("ingots/" + metalName)))
 			.register();
 	}
 
@@ -327,7 +321,7 @@ public class VintageItems {
 		String metalName = metal.getName();
 		return MY_REGISTRATE
 				.item(metalName + "_sheet",
-						props -> new TagDependentIngredientItem(props, AllTags.forgeItemTag("ingots/" + metalName)))
+						props -> new TagDependentIngredientItem(props, AllTags.commonItemTag("ingots/" + metalName)))
 				.register();
 	}
 
@@ -335,7 +329,7 @@ public class VintageItems {
 		String metalName = metal.getName();
 		return MY_REGISTRATE
 				.item(metalName + "_wire",
-						props -> new TagDependentIngredientItem(props, AllTags.forgeItemTag("ingots/" + metalName)))
+						props -> new TagDependentIngredientItem(props, AllTags.commonItemTag("ingots/" + metalName)))
 				.register();
 	}
 
@@ -343,7 +337,7 @@ public class VintageItems {
 		String metalName = metal.getName();
 		return MY_REGISTRATE
 				.item(metalName + "_rod",
-						props -> new TagDependentIngredientItem(props, AllTags.forgeItemTag("ingots/" + metalName)))
+						props -> new TagDependentIngredientItem(props, AllTags.commonItemTag("ingots/" + metalName)))
 				.properties(p -> p.rarity(rarity))
 				.register();
 	}
@@ -352,7 +346,7 @@ public class VintageItems {
 		String metalName = metal.getName();
 		return MY_REGISTRATE
 				.item(metalName + "_sheet",
-						props -> new TagDependentIngredientItem(props, AllTags.forgeItemTag("ingots/" + metalName)))
+						props -> new TagDependentIngredientItem(props, AllTags.commonItemTag("ingots/" + metalName)))
 				.properties(p -> p.rarity(rarity))
 				.register();
 	}
@@ -361,7 +355,7 @@ public class VintageItems {
 		String metalName = metal.getName();
 		return MY_REGISTRATE
 				.item(metalName + "_wire",
-						props -> new TagDependentIngredientItem(props, AllTags.forgeItemTag("ingots/" + metalName)))
+						props -> new TagDependentIngredientItem(props, AllTags.commonItemTag("ingots/" + metalName)))
 				.properties(p -> p.rarity(rarity))
 				.register();
 	}
@@ -381,14 +375,14 @@ public class VintageItems {
 		String metalName = metal.getName();
 		return MY_REGISTRATE
 				.item(metalName + "_spring",
-						props -> new TagDependentSpringItem(props, stiffness, AllTags.forgeItemTag("ingots/" + metalName)))
+						props -> new TagDependentSpringItem(props, stiffness, AllTags.commonItemTag("ingots/" + metalName)))
 				.register();
 	}
 	private static ItemEntry<TagDependentSpringItem> compatSpring(VintageCompatMetals metal, int stiffness, Rarity rarity) {
 		String metalName = metal.getName();
 		return MY_REGISTRATE
 				.item(metalName + "_spring",
-						props -> new TagDependentSpringItem(props, stiffness, AllTags.forgeItemTag("ingots/" + metalName)))
+						props -> new TagDependentSpringItem(props, stiffness, AllTags.commonItemTag("ingots/" + metalName)))
 				.properties(p -> p.rarity(rarity))
 				.register();
 	}
@@ -396,14 +390,14 @@ public class VintageItems {
 		String metalName = metal.getName();
 		return MY_REGISTRATE
 				.item("small_" + metalName + "_spring",
-						props -> new TagDependentSpringItem(props, stiffness, AllTags.forgeItemTag("ingots/" + metalName)))
+						props -> new TagDependentSpringItem(props, stiffness, AllTags.commonItemTag("ingots/" + metalName)))
 				.register();
 	}
 	private static ItemEntry<TagDependentSpringItem> compatSmallSpring(VintageCompatMetals metal, Rarity rarity, int stiffness) {
 		String metalName = metal.getName();
 		return MY_REGISTRATE
 				.item("small_" + metalName + "_spring",
-						props -> new TagDependentSpringItem(props, stiffness, AllTags.forgeItemTag("ingots/" + metalName)))
+						props -> new TagDependentSpringItem(props, stiffness, AllTags.commonItemTag("ingots/" + metalName)))
 				.properties(p -> p.rarity(rarity))
 				.register();
 	}
@@ -413,3 +407,4 @@ public class VintageItems {
 	public static void register() {}
 
 }
+

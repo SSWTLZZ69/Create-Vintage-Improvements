@@ -39,7 +39,7 @@ public class AssemblyCentrifugation extends SequencedAssemblySubCategory {
                 IRecipeSlotBuilder slot = builder
                         .addSlot(RecipeIngredientRole.INPUT, x + 4 + (offset % 2 == 1 ? -8 : +8), 15 + (offset / 2) * 16)
                         .setBackground(CreateRecipeCategory.getRenderedSlot(), -1, -1)
-                        .addFluidStack(recipe.getRecipe().getFluidIngredients().get(i).getMatchingFluidStacks().get(0).getFluid(), recipe.getRecipe().getFluidIngredients().get(i).getRequiredAmount());
+                        .addFluidStack(recipe.getRecipe().getFluidIngredients().get(i).getFluids()[0].getFluid(), recipe.getRecipe().getFluidIngredients().get(i).amount());
                 offset++;
             }
         }

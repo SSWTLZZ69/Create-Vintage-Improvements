@@ -1,0 +1,17 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "4D494D",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/netherite"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:netherite_spring"
+                    }
+                ],
+    "processing_time":  120
+}
+

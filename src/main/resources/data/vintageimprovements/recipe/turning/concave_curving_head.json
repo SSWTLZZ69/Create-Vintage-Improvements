@@ -1,0 +1,15 @@
+﻿{
+    "type":  "vintageimprovements:turning",
+    "ingredients":  [
+                        {
+                            "tag":  "c:storage_blocks/iron"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:concave_curving_head"
+                    }
+                ]
+}
+

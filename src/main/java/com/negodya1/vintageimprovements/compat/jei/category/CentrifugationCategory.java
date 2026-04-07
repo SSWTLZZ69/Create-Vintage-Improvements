@@ -5,7 +5,8 @@ import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedC
 import com.negodya1.vintageimprovements.content.kinetics.centrifuge.CentrifugationRecipe;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
-import com.simibubi.create.foundation.fluid.FluidIngredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.ITooltipBuilder;
@@ -16,7 +17,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
@@ -43,7 +44,7 @@ public class CentrifugationCategory extends CreateRecipeCategory<CentrifugationR
 					.addIngredients(input);
 			i++;
 		}
-		for (FluidIngredient input : recipe.getFluidIngredients()) {
+		for (SizedFluidIngredient input : recipe.getFluidIngredients()) {
 			int xOffset = i % 3 * 19;
 			int yOffset = (i / 3) * 19;
 			CreateRecipeCategory.addFluidSlot(builder, 10 + xOffset, 5 + yOffset * 16, input);
@@ -84,11 +85,12 @@ public class CentrifugationCategory extends CreateRecipeCategory<CentrifugationR
 	}
 
 	@Override
-	public void getTooltip(ITooltipBuilder tooltip, CentrifugationRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+	public void getTooltip(ITooltipBuilder tooltip, RecipeHolder<CentrifugationRecipe> recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
 		if (mouseX > 23 && mouseX < 105 && mouseY > 47 && mouseY < 97) {
-			int duration = recipe.getProcessingDuration();
+			int duration = recipe.value().getProcessingDuration();
 			if (duration == 0) duration = 100;
 			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));
 		}
 	}
 }
+

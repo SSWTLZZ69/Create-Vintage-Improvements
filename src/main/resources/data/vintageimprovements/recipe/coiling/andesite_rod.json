@@ -1,0 +1,17 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "a9afa1",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/andesite"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:andesite_spring"
+                    }
+                ],
+    "processing_time":  120
+}
+

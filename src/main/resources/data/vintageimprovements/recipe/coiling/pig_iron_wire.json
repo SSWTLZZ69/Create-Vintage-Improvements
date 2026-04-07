@@ -1,0 +1,27 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "eda6a2",
+    "ingredients":  [
+                        {
+                            "tag":  "c:wires/pig_iron"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:small_pig_iron_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/pig_iron"
+                                     }
+                       }
+                   ],
+    "processing_time":  60
+}
+
+

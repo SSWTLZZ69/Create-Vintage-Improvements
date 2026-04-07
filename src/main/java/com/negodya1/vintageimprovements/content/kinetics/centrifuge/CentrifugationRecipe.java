@@ -1,45 +1,44 @@
 package com.negodya1.vintageimprovements.content.kinetics.centrifuge;
 
-import java.util.*;
-import java.util.function.Supplier;
-
-import javax.annotation.Nonnull;
-
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
 import com.negodya1.vintageimprovements.VintageBlocks;
 import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.compat.jei.category.assemblies.AssemblyCentrifugation;
 import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemblySubCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour.TankSegment;
-import com.simibubi.create.foundation.fluid.FluidIngredient;
-import com.simibubi.create.foundation.item.SmartInventory;
-import com.simibubi.create.foundation.recipe.DummyCraftingContainer;
 import net.createmod.catnip.data.Iterate;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.Container;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 
-public class CentrifugationRecipe extends ProcessingRecipe<Container> implements IAssemblyRecipe {
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
 
-	int minimalRPM;
+public class CentrifugationRecipe extends ProcessingRecipe<RecipeInput, CentrifugationRecipeParams> implements IAssemblyRecipe {
+
+	private final int minimalRPM;
 
 	public static boolean match(CentrifugeBlockEntity centrifuge, Recipe<?> recipe) {
 		return apply(centrifuge, recipe, true);
@@ -50,10 +49,8 @@ public class CentrifugationRecipe extends ProcessingRecipe<Container> implements
 	}
 
 	private static boolean apply(CentrifugeBlockEntity centrifuge, Recipe<?> recipe, boolean test) {
-		IItemHandlerModifiable availableItems = (IItemHandlerModifiable) centrifuge.getCapability(ForgeCapabilities.ITEM_HANDLER)
-				.orElse(null);
-		IFluidHandler availableFluids = centrifuge.getCapability(ForgeCapabilities.FLUID_HANDLER)
-				.orElse(null);
+		IItemHandlerModifiable availableItems = centrifuge.capability;
+		IFluidHandler availableFluids = centrifuge.fluidCapability;
 
 		if (availableItems == null || availableFluids == null)
 			return false;
@@ -62,7 +59,7 @@ public class CentrifugationRecipe extends ProcessingRecipe<Container> implements
 		List<FluidStack> recipeOutputFluids = new ArrayList<>();
 
 		List<Ingredient> ingredients = new LinkedList<>(recipe.getIngredients());
-		List<FluidIngredient> fluidIngredients = ((CentrifugationRecipe) recipe).getFluidIngredients();
+		List<SizedFluidIngredient> fluidIngredients = ((CentrifugationRecipe) recipe).getFluidIngredients();
 
 		for (boolean simulate : Iterate.trueAndFalse) {
 			if (!simulate && test)
@@ -75,8 +72,7 @@ public class CentrifugationRecipe extends ProcessingRecipe<Container> implements
 				Ingredient ingredient = ingredients.get(i);
 
 				for (int slot = 0; slot < availableItems.getSlots(); slot++) {
-					if (simulate && availableItems.getStackInSlot(slot)
-							.getCount() <= extractedItemsFromSlot[slot])
+					if (simulate && availableItems.getStackInSlot(slot).getCount() <= extractedItemsFromSlot[slot])
 						continue;
 					ItemStack extracted = availableItems.getStackInSlot(slot);
 
@@ -89,20 +85,19 @@ public class CentrifugationRecipe extends ProcessingRecipe<Container> implements
 					continue Ingredients;
 				}
 
-				// something wasn't found
 				return false;
 			}
 
 			boolean fluidsAffected = false;
 			FluidIngredients: for (int i = 0; i < fluidIngredients.size(); i++) {
-				FluidIngredient fluidIngredient = fluidIngredients.get(i);
-				int amountRequired = fluidIngredient.getRequiredAmount();
+				SizedFluidIngredient SizedFluidIngredient = fluidIngredients.get(i);
+				int amountRequired = SizedFluidIngredient.amount();
 
 				for (int tank = 0; tank < availableFluids.getTanks(); tank++) {
 					FluidStack fluidStack = availableFluids.getFluidInTank(tank);
 					if (simulate && fluidStack.getAmount() <= extractedFluidsFromTank[tank])
 						continue;
-					if (!fluidIngredient.test(fluidStack))
+					if (!SizedFluidIngredient.test(fluidStack))
 						continue;
 					int drainedAmount = Math.min(amountRequired, fluidStack.getAmount());
 					if (!simulate) {
@@ -116,26 +111,19 @@ public class CentrifugationRecipe extends ProcessingRecipe<Container> implements
 					continue FluidIngredients;
 				}
 
-				// something wasn't found
 				return false;
 			}
 
 			if (fluidsAffected) {
-				centrifuge.getBehaviour(SmartFluidTankBehaviour.INPUT)
-						.forEach(TankSegment::onFluidStackChanged);
-				centrifuge.getBehaviour(SmartFluidTankBehaviour.OUTPUT)
-						.forEach(TankSegment::onFluidStackChanged);
+				centrifuge.getBehaviour(SmartFluidTankBehaviour.INPUT).forEach(TankSegment::onFluidStackChanged);
+				centrifuge.getBehaviour(SmartFluidTankBehaviour.OUTPUT).forEach(TankSegment::onFluidStackChanged);
 			}
 
 			if (simulate) {
 				if (recipe instanceof CentrifugationRecipe centrifugeRecipe) {
-					recipeOutputItems.addAll(centrifugeRecipe.rollResults());
+					RandomSource random = centrifuge.getLevel() != null ? centrifuge.getLevel().random : RandomSource.create();
+					recipeOutputItems.addAll(centrifugeRecipe.rollResults(random));
 					recipeOutputFluids.addAll(centrifugeRecipe.getFluidResults());
-					CraftingContainer remainderContainer = new DummyCraftingContainer(availableItems, extractedItemsFromSlot);
-
-					for (ItemStack stack : centrifugeRecipe.getRemainingItems(remainderContainer))
-						if (!stack.isEmpty())
-							recipeOutputItems.add(stack);
 				}
 			}
 
@@ -146,8 +134,9 @@ public class CentrifugationRecipe extends ProcessingRecipe<Container> implements
 		return true;
 	}
 
-	public CentrifugationRecipe(ProcessingRecipeParams params) {
+	public CentrifugationRecipe(CentrifugationRecipeParams params) {
 		super(VintageRecipes.CENTRIFUGATION, params);
+		minimalRPM = params.minimalRPM();
 	}
 
 	@Override
@@ -184,14 +173,14 @@ public class CentrifugationRecipe extends ProcessingRecipe<Container> implements
 		MutableComponent result = VintageLang.translateDirect("recipe.assembly.centrifugation");
 		if (ingredients.size() > 1 || !fluidIngredients.isEmpty())
 			result.append(" ").append(VintageLang.translateDirect("recipe.assembly.with")).append(" ");
-		else return result;
+		else
+			return result;
 		if (ingredients.size() > 1) {
 			if (ingredients.get(1).getItems().length > 0)
 				result.append(ingredients.get(1).getItems()[0].getItem().getDescription());
-		}
-		else if (!fluidIngredients.isEmpty()) {
-			if (!fluidIngredients.get(0).getMatchingFluidStacks().isEmpty())
-				result.append(fluidIngredients.get(0).getMatchingFluidStacks().get(0).getDisplayName());
+		} else if (!fluidIngredients.isEmpty()) {
+			if (fluidIngredients.get(0).getFluids().length != 0)
+				result.append(fluidIngredients.get(0).getFluids()[0].getDisplayName());
 		}
 
 		if (ingredients.size() > 2) {
@@ -200,7 +189,8 @@ public class CentrifugationRecipe extends ProcessingRecipe<Container> implements
 					result.append(", ").append(ingredients.get(i).getItems()[0].getItem().getDescription());
 			if (ingredients.get(ingredients.size() - 1).getItems().length > 0) {
 				if (fluidIngredients.isEmpty())
-					result.append(" ").append(VintageLang.translateDirect("recipe.assembly.and").append(" ").append(ingredients.get(ingredients.size() - 1).getItems()[0].getItem().getDescription()));
+					result.append(" ").append(VintageLang.translateDirect("recipe.assembly.and").append(" ")
+							.append(ingredients.get(ingredients.size() - 1).getItems()[0].getItem().getDescription()));
 				else
 					result.append(", ").append(ingredients.get(ingredients.size() - 1).getItems()[0].getItem().getDescription());
 			}
@@ -210,11 +200,11 @@ public class CentrifugationRecipe extends ProcessingRecipe<Container> implements
 
 		if (fluidIngredients.size() > startNum) {
 			for (int i = startNum; i < fluidIngredients.size() - 1; i++)
-				if (!fluidIngredients.get(i).getMatchingFluidStacks().isEmpty())
-					result.append(", ").append(fluidIngredients.get(i).getMatchingFluidStacks().get(0).getDisplayName());
-			if (!fluidIngredients.get(fluidIngredients.size() - 1).getMatchingFluidStacks().isEmpty())
+				if (fluidIngredients.get(i).getFluids().length != 0)
+					result.append(", ").append(fluidIngredients.get(i).getFluids()[0].getDisplayName());
+			if (fluidIngredients.get(fluidIngredients.size() - 1).getFluids().length != 0)
 				result.append(" ").append(VintageLang.translateDirect("recipe.assembly.and").append(" ")
-						.append(fluidIngredients.get(fluidIngredients.size() - 1).getMatchingFluidStacks().get(0).getDisplayName()));
+						.append(fluidIngredients.get(fluidIngredients.size() - 1).getFluids()[0].getDisplayName()));
 
 		}
 
@@ -231,33 +221,37 @@ public class CentrifugationRecipe extends ProcessingRecipe<Container> implements
 		return () -> AssemblyCentrifugation::new;
 	}
 
-	@Override
-	public void readAdditional(JsonObject json) {
-		if (json.has("minimalRPM")) minimalRPM = json.get("minimalRPM").getAsInt();
-		else minimalRPM = 100;
-	}
-
-	@Override
-	public void readAdditional(FriendlyByteBuf buffer) {
-		minimalRPM = buffer.readInt();
-	}
-
-	@Override
-	public void writeAdditional(JsonObject json) {
-		json.addProperty("minimalRPM", minimalRPM);
-	}
-
-	@Override
-	public void writeAdditional(FriendlyByteBuf buffer) {
-		buffer.writeInt(minimalRPM);
-	}
-
 	public int getMinimalRPM() {
 		return minimalRPM;
 	}
 
 	@Override
-	public boolean matches(Container container, Level level) {
+	public boolean matches(RecipeInput container, Level level) {
 		return false;
+	}
+
+	@FunctionalInterface
+	public interface Factory<R extends CentrifugationRecipe> extends ProcessingRecipe.Factory<CentrifugationRecipeParams, R> {
+		R create(CentrifugationRecipeParams params);
+	}
+
+	public static class Serializer<R extends CentrifugationRecipe> implements RecipeSerializer<R> {
+		private final MapCodec<R> codec;
+		private final StreamCodec<RegistryFriendlyByteBuf, R> streamCodec;
+
+		public Serializer(Factory<R> factory) {
+			this.codec = ProcessingRecipe.codec(factory, CentrifugationRecipeParams.CODEC);
+			this.streamCodec = ProcessingRecipe.streamCodec(factory, CentrifugationRecipeParams.STREAM_CODEC);
+		}
+
+		@Override
+		public MapCodec<R> codec() {
+			return codec;
+		}
+
+		@Override
+		public StreamCodec<RegistryFriendlyByteBuf, R> streamCodec() {
+			return streamCodec;
+		}
 	}
 }

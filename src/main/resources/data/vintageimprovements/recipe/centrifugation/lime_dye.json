@@ -1,0 +1,23 @@
+﻿{
+    "type":  "vintageimprovements:centrifugation",
+    "ingredients":  [
+                        {
+                            "tag":  "c:dyes/lime"
+                        },
+                        {
+                            "tag":  "c:dyes/lime"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "minecraft:white_dye"
+                    },
+                    {
+                        "count":  1,
+                        "id":  "minecraft:green_dye"
+                    }
+                ],
+    "processing_time":  1000
+}
+

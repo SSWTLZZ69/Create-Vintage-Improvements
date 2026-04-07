@@ -12,19 +12,21 @@ import java.util.Comparator;
 import com.simibubi.create.foundation.recipe.RecipeConditions;
 import com.simibubi.create.foundation.recipe.RecipeFinder;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.Container;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +42,7 @@ public class RecipeCardMenu extends GhostItemMenu<ItemStack> {
 	List<TurningRecipe> recipes;
 	public ItemStackHandler resultInventory;
 
-	public RecipeCardMenu(MenuType<?> type, int id, Inventory inv, FriendlyByteBuf extraData) {
+	public RecipeCardMenu(MenuType<?> type, int id, Inventory inv, RegistryFriendlyByteBuf extraData) {
 		super(type, id, inv, extraData);
 		level = inv.player.level();
 		selectedRecipeIndex.set(RecipeCardItem.getIndex(contentHolder));
@@ -87,8 +89,8 @@ public class RecipeCardMenu extends GhostItemMenu<ItemStack> {
 	}
 
 	@Override
-	protected ItemStack createOnClient(FriendlyByteBuf extraData) {
-		return extraData.readItem();
+	protected ItemStack createOnClient(RegistryFriendlyByteBuf extraData) {
+		return ItemStack.STREAM_CODEC.decode(extraData);
 	}
 
 	@Override
@@ -104,11 +106,13 @@ public class RecipeCardMenu extends GhostItemMenu<ItemStack> {
 
 	@Override
 	protected void saveData(ItemStack contentHolder) {
-		contentHolder.getOrCreateTag()
-			.put("Items", ghostInventory.serializeNBT());
-		contentHolder.getOrCreateTag()
-			.put("Results", resultInventory.serializeNBT());
-		contentHolder.getOrCreateTagElement("Recipe").putInt("Index", selectedRecipeIndex.get());
+		CustomData.update(DataComponents.CUSTOM_DATA, contentHolder, tag -> {
+			tag.put("Items", ghostInventory.serializeNBT(level.registryAccess()));
+			tag.put("Results", resultInventory.serializeNBT(level.registryAccess()));
+			CompoundTag recipeTag = tag.contains("Recipe") ? tag.getCompound("Recipe") : new CompoundTag();
+			recipeTag.putInt("Index", selectedRecipeIndex.get());
+			tag.put("Recipe", recipeTag);
+		});
 	}
 
 	@Override
@@ -132,20 +136,21 @@ public class RecipeCardMenu extends GhostItemMenu<ItemStack> {
 		if (recipes != null)
 			recipes.clear();
 
-		Optional<TurningRecipe> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, ghostInventory.getStackInSlot(0),
+		Optional<RecipeHolder<TurningRecipe>> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, ghostInventory.getStackInSlot(0),
 				VintageRecipes.TURNING.getType(), TurningRecipe.class);
 
 		List<TurningRecipe> startedSearch = new ArrayList<>();
 
 		if (assemblyRecipe.isPresent())
-			startedSearch.add(assemblyRecipe.get());
+			startedSearch.add(assemblyRecipe.get().value());
 
-		Predicate<Recipe<?>> types = RecipeConditions.isOfType(VintageRecipes.TURNING.getType());
+		Predicate<RecipeHolder<? extends Recipe<?>>> types = RecipeConditions.isOfType(VintageRecipes.TURNING.getType());
 
-		for (Recipe<?> recipe : RecipeFinder.get(turningRecipesKey, level, types))
-			if (recipe instanceof TurningRecipe turningRecipe) startedSearch.add(turningRecipe);
+		for (RecipeHolder<? extends Recipe<?>> holder : RecipeFinder.get(turningRecipesKey, level, types))
+			if (holder.value() instanceof TurningRecipe turningRecipe) startedSearch.add(turningRecipe);
 
-		startedSearch = startedSearch.stream().filter(RecipeConditions.firstIngredientMatches(ghostInventory.getStackInSlot(0)))
+		startedSearch = startedSearch.stream()
+				.filter(r -> !r.getIngredients().isEmpty() && r.getIngredients().get(0).test(ghostInventory.getStackInSlot(0)))
 				.filter(r -> !VintageRecipes.shouldIgnoreInAutomation(r))
 				.sorted(Comparator.comparing(r -> r.getResultItem(level.registryAccess()).getDescriptionId()))
 				.collect(Collectors.toList());
@@ -172,7 +177,7 @@ public class RecipeCardMenu extends GhostItemMenu<ItemStack> {
 		if (isValidRecipeIndex(index)) {
 			selectedRecipeIndex.set(index);
 			resultInventory.setSize(1);
-			resultInventory.setStackInSlot(0, getRecipes().get(index).getResultItem(RegistryAccess.EMPTY));
+			resultInventory.setStackInSlot(0, getRecipes().get(index).getResultItem(level.registryAccess()));
 		}
 
 		return true;
@@ -191,3 +196,4 @@ public class RecipeCardMenu extends GhostItemMenu<ItemStack> {
 			resultInventory.setStackInSlot(i, ItemStack.EMPTY);
 	}
 }
+

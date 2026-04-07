@@ -1,0 +1,24 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "CB4E4F",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/calorite"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:calorite_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "ad_astra"
+                       }
+                   ],
+    "processing_time":  120
+}
+
+

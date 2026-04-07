@@ -1,0 +1,61 @@
+﻿{
+    "type":  "create:sequenced_assembly",
+    "ingredient":  {
+                       "tag":  "c:plates/brass"
+                   },
+    "loops":  3,
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:recipe_card"
+                    }
+                ],
+    "sequence":  [
+                     {
+                         "type":  "create:deploying",
+                         "ingredients":  [
+                                             {
+                                                 "item":  "vintageimprovements:incomplete_recipe_card"
+                                             },
+                                             {
+                                                 "item":  "minecraft:redstone"
+                                             }
+                                         ],
+                         "results":  [
+                                         {
+                                             "id":  "vintageimprovements:incomplete_recipe_card"
+                                         }
+                                     ]
+                     },
+                     {
+                         "type":  "create:pressing",
+                         "ingredients":  [
+                                             {
+                                                 "item":  "vintageimprovements:incomplete_recipe_card"
+                                             }
+                                         ],
+                         "results":  [
+                                         {
+                                             "id":  "vintageimprovements:incomplete_recipe_card"
+                                         }
+                                     ]
+                     },
+                     {
+                         "type":  "vintageimprovements:polishing",
+                         "speed_limits":  2,
+                         "ingredients":  [
+                                             {
+                                                 "item":  "vintageimprovements:incomplete_recipe_card"
+                                             }
+                                         ],
+                         "results":  [
+                                         {
+                                             "id":  "vintageimprovements:incomplete_recipe_card"
+                                         }
+                                     ]
+                     }
+                 ],
+    "transitional_item":  {
+                              "id":  "vintageimprovements:incomplete_recipe_card"
+                          }
+}
+

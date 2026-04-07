@@ -1,0 +1,21 @@
+{
+    "type":  "vintageimprovements:hammering",
+    "hammer_blows":  3,
+    "ingredients":  [
+                        {
+                            "item":  "createbigcannons:nethersteel_ingot"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:nethersteel_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "createbigcannons"
+                       }
+                   ]
+}
+

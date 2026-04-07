@@ -16,7 +16,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.network.NetworkHooks;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
@@ -29,6 +29,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -40,9 +41,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientBlockExtensions;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions;
 
 public class LatheMovingBlock extends DirectionalKineticBlock implements IWrenchable, IProxyHoveringInformation, IBE<LatheMovingBlockEntity> {
 
@@ -83,7 +84,7 @@ public class LatheMovingBlock extends DirectionalKineticBlock implements IWrench
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {
+	public ItemStack getCloneItemStack(LevelReader pLevel, BlockPos pPos, BlockState pState) {
 		return VintageBlocks.LATHE_ROTATING.asStack();
 	}
 
@@ -110,14 +111,14 @@ public class LatheMovingBlock extends DirectionalKineticBlock implements IWrench
 			pLevel.destroyBlock(getMaster(pLevel, pPos, pState), true);
 	}
 
-	public void playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
+	public BlockState playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
 		if (stillValid(pLevel, pPos, pState, false)) {
 			BlockPos masterPos = getMaster(pLevel, pPos, pState);
 			pLevel.destroyBlockProgress(masterPos.hashCode(), masterPos, -1);
 			if (!pLevel.isClientSide() && pPlayer.isCreative())
 				pLevel.destroyBlock(masterPos, false);
 		}
-		super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
+		return super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
 	}
 
 	@Override
@@ -219,37 +220,42 @@ public class LatheMovingBlock extends DirectionalKineticBlock implements IWrench
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-		if (player.getItemInHand(handIn).isEmpty())
-			withBlockEntityDo(worldIn, pos, lathe -> {
-				if (lathe.recipeSlot.isEmpty()) {
-					lathe.currentRecipe = null;
-					lathe.resetRecipe();
-					if (worldIn.isClientSide) return;
-					if (player instanceof DeployerFakePlayer);
-					else NetworkHooks.openScreen((ServerPlayer) player, lathe, lathe::sendToMenu);
-				}
-				else {
-					lathe.resetRecipe();
-					if (worldIn.isClientSide) return;
-					player.getInventory()
-							.placeItemBackInInventory(lathe.recipeSlot.getStackInSlot(0));
-					lathe.recipeSlot.setStackInSlot(0, ItemStack.EMPTY);
-					lathe.setChanged();
-					lathe.sendData();
-				}
-			});
-		else if (player.getItemInHand(handIn).getItem() instanceof RecipeCardItem) {
-			withBlockEntityDo(worldIn, pos, lathe -> {
-				if (!lathe.recipeSlot.isEmpty()) return;
+	protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+		if (!(stack.getItem() instanceof RecipeCardItem))
+			return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+
+		withBlockEntityDo(worldIn, pos, lathe -> {
+			if (!lathe.recipeSlot.isEmpty()) return;
+			lathe.resetRecipe();
+			if (worldIn.isClientSide) return;
+			player.setItemInHand(handIn, lathe.recipeSlot.insertItem(0, stack, false));
+
+			lathe.setChanged();
+			lathe.sendData();
+		});
+
+		return ItemInteractionResult.SUCCESS;
+	}
+
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
+		withBlockEntityDo(worldIn, pos, lathe -> {
+			if (lathe.recipeSlot.isEmpty()) {
+				lathe.currentRecipe = null;
 				lathe.resetRecipe();
 				if (worldIn.isClientSide) return;
-				player.setItemInHand(handIn, lathe.recipeSlot.insertItem(0, player.getItemInHand(handIn), false));
-
+				if (player instanceof DeployerFakePlayer);
+				else ((ServerPlayer) player).openMenu(lathe, lathe::sendToMenu);
+			}
+			else {
+				lathe.resetRecipe();
+				if (worldIn.isClientSide) return;
+				player.getInventory().placeItemBackInInventory(lathe.recipeSlot.getStackInSlot(0));
+				lathe.recipeSlot.setStackInSlot(0, ItemStack.EMPTY);
 				lathe.setChanged();
 				lathe.sendData();
-			});
-		}
+			}
+		});
 
 		return InteractionResult.SUCCESS;
 	}

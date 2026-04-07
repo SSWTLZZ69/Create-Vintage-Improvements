@@ -7,12 +7,13 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayer;
 
 public class VintageAdvancementBehaviour extends BlockEntityBehaviour {
 
@@ -49,18 +50,18 @@ public class VintageAdvancementBehaviour extends BlockEntityBehaviour {
 		Player player = getPlayer();
 		if (player == null) return;
         advancement.award(getWorld(), getPlayer());
-	};
-
-    @Override
-    public void read(CompoundTag nbt, boolean clientPacket) {
-        super.read(nbt, clientPacket);
-        if (playerUUID != null) nbt.putUUID("Owner", playerUUID);
     };
 
     @Override
-    public void write(CompoundTag nbt, boolean clientPacket) {
-        super.write(nbt, clientPacket);
+    public void read(CompoundTag nbt, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(nbt, registries, clientPacket);
         if (nbt.contains("Owner")) playerUUID = nbt.getUUID("Owner");
+    };
+
+    @Override
+    public void write(CompoundTag nbt, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(nbt, registries, clientPacket);
+        if (playerUUID != null) nbt.putUUID("Owner", playerUUID);
     };
 
     @Override
@@ -69,3 +70,4 @@ public class VintageAdvancementBehaviour extends BlockEntityBehaviour {
     };
     
 };
+

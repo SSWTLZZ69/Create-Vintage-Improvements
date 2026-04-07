@@ -1,0 +1,23 @@
+﻿{
+    "type":  "vintageimprovements:centrifugation",
+    "ingredients":  [
+                        {
+                            "tag":  "c:dyes/gray"
+                        },
+                        {
+                            "tag":  "c:dyes/gray"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "minecraft:white_dye"
+                    },
+                    {
+                        "count":  1,
+                        "id":  "minecraft:black_dye"
+                    }
+                ],
+    "processing_time":  1000
+}
+

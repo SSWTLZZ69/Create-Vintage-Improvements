@@ -1,0 +1,15 @@
+﻿{
+    "type":  "vintageimprovements:centrifugation",
+    "ingredients":  [
+                        {
+                            "item":  "minecraft:honeycomb"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "amount":  100,
+                        "id":  "create:honey"
+                    }
+                ],
+    "processing_time":  1000
+}

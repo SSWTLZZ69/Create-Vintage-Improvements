@@ -16,6 +16,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 @ParametersAreNonnullByDefault
 public class UnpackingCategory extends CreateRecipeCategory<CraftingRecipe> {
@@ -53,7 +54,7 @@ public class UnpackingCategory extends CreateRecipeCategory<CraftingRecipe> {
 	}
 
 	@Override
-	public void getTooltip(ITooltipBuilder tooltip, CraftingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+	public void getTooltip(ITooltipBuilder tooltip, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
 		if (mouseX > 39 && mouseX < 73 && mouseY > 19 && mouseY < 57) {
 			int duration = 100;
 			tooltip.add(Component.translatable("vintageimprovements.jei.text.processing_duration", duration));

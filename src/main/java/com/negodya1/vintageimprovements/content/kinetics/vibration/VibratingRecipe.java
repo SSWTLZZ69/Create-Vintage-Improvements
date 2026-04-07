@@ -6,20 +6,20 @@ import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.compat.jei.category.assemblies.AssemblyVibrating;
 import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemblySubCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
+import com.simibubi.create.content.processing.recipe.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 @ParametersAreNonnullByDefault
-public class VibratingRecipe extends ProcessingRecipe<RecipeWrapper> implements IAssemblyRecipe {
+public class VibratingRecipe extends ProcessingRecipe<RecipeWrapper, ProcessingRecipeParams> implements IAssemblyRecipe {
 	public VibratingRecipe(ProcessingRecipeParams params) {
 		super(VintageRecipes.VIBRATING, params);
 	}
@@ -47,8 +47,7 @@ public class VibratingRecipe extends ProcessingRecipe<RecipeWrapper> implements 
 	}
 
 	private static boolean apply(VibratingTableBlockEntity centrifuge, Recipe<?> recipe, boolean test) {
-		IItemHandlerModifiable availableItems = (IItemHandlerModifiable) centrifuge.getCapability(ForgeCapabilities.ITEM_HANDLER)
-				.orElse(null);
+		IItemHandlerModifiable availableItems = (IItemHandlerModifiable) centrifuge.capability;
 
 		if (availableItems == null)
 			return false;
@@ -86,7 +85,8 @@ public class VibratingRecipe extends ProcessingRecipe<RecipeWrapper> implements 
 
 			if (simulate) {
 				if (recipe instanceof VibratingRecipe vibratingRecipe) {
-					recipeOutputItems.addAll(vibratingRecipe.rollResults());
+					RandomSource random = centrifuge.getLevel() != null ? centrifuge.getLevel().random : RandomSource.create();
+					recipeOutputItems.addAll(vibratingRecipe.rollResults(random));
 				}
 			}
 
@@ -132,3 +132,4 @@ public class VibratingRecipe extends ProcessingRecipe<RecipeWrapper> implements 
 	}
 
 }
+

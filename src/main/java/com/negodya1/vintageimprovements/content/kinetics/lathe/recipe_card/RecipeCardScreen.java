@@ -25,6 +25,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 
 public class RecipeCardScreen extends AbstractSimiContainerScreen<RecipeCardMenu> {
 
@@ -128,8 +129,7 @@ public class RecipeCardScreen extends AbstractSimiContainerScreen<RecipeCardMenu
 
 	@Override
 	protected void containerTick() {
-		if (!menu.player.getMainHandItem()
-			.equals(menu.contentHolder, false))
+		if (!ItemStack.isSameItemSameComponents(menu.player.getMainHandItem(), menu.contentHolder))
 			menu.player.closeContainer();
 
 		super.containerTick();
@@ -174,7 +174,7 @@ public class RecipeCardScreen extends AbstractSimiContainerScreen<RecipeCardMenu
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double scrollValue) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollValue) {
 		if (isScrollBarActive()) {
 			int i = getOffscreenRows();
 			float f = (float)scrollValue / (float)i;

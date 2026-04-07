@@ -1,12 +1,6 @@
 package com.negodya1.vintageimprovements.content.kinetics.curving_press;
 
-import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
-
-import javax.annotation.ParametersAreNonnullByDefault;
-
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
 import com.negodya1.vintageimprovements.VintageBlocks;
 import com.negodya1.vintageimprovements.VintageItems;
 import com.negodya1.vintageimprovements.VintageLang;
@@ -14,37 +8,37 @@ import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.compat.jei.category.assemblies.AssemblyCurving;
 import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemblySubCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
-
-import com.simibubi.create.foundation.utility.CreateLang;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
 
 @ParametersAreNonnullByDefault
-public class CurvingRecipe extends ProcessingRecipe<RecipeWrapper> implements IAssemblyRecipe {
+public class CurvingRecipe extends ProcessingRecipe<RecipeWrapper, CurvingRecipeParams> implements IAssemblyRecipe {
 
-	int mode;
-	int headDamage;
-	Item itemAsHead;
+	final int mode;
+	final int headDamage;
+	final Item itemAsHead;
 
-	public CurvingRecipe(ProcessingRecipeParams params) {
+	public CurvingRecipe(CurvingRecipeParams params) {
 		super(VintageRecipes.CURVING, params);
-		mode = 1;
-		itemAsHead = Items.AIR;
-		headDamage = 0;
+		mode = params.mode();
+		headDamage = params.headDamage();
+		itemAsHead = params.itemAsHead();
 	}
 
 	public int getMode() {return mode;}
@@ -101,43 +95,29 @@ public class CurvingRecipe extends ProcessingRecipe<RecipeWrapper> implements IA
 		return () -> AssemblyCurving::new;
 	}
 
-	@Override
-	public void readAdditional(JsonObject json) {
-		if (json.has("headDamage")) headDamage = json.get("headDamage").getAsInt();
-		else headDamage = 0;
+	@FunctionalInterface
+	public interface Factory<R extends CurvingRecipe> extends ProcessingRecipe.Factory<CurvingRecipeParams, R> {
+		R create(CurvingRecipeParams params);
+	}
 
-		if (json.has("itemAsHead")) {
-			itemAsHead = ForgeRegistries.ITEMS.getValue(new ResourceLocation(json.get("itemAsHead").getAsString()));
-			if (itemAsHead != null) {
-				mode = 5;
-				return;
-			}
+	public static class Serializer<R extends CurvingRecipe> implements RecipeSerializer<R> {
+		private final MapCodec<R> codec;
+		private final StreamCodec<RegistryFriendlyByteBuf, R> streamCodec;
+
+		public Serializer(Factory<R> factory) {
+			this.codec = ProcessingRecipe.codec(factory, CurvingRecipeParams.CODEC);
+			this.streamCodec = ProcessingRecipe.streamCodec(factory, CurvingRecipeParams.STREAM_CODEC);
 		}
 
-		if (json.has("mode")) mode = json.get("mode").getAsInt();
-		else mode = 1;
-	}
+		@Override
+		public MapCodec<R> codec() {
+			return codec;
+		}
 
-	@Override
-	public void readAdditional(FriendlyByteBuf buffer) {
-		mode = buffer.readInt();
-		itemAsHead = buffer.readItem().getItem();
-		if (itemAsHead != Items.AIR) mode = 5;
-		headDamage = buffer.readInt();
+		@Override
+		public StreamCodec<RegistryFriendlyByteBuf, R> streamCodec() {
+			return streamCodec;
+		}
 	}
-
-	@Override
-	public void writeAdditional(JsonObject json) {
-		json.addProperty("mode", mode);
-		if (itemAsHead != Items.AIR) json.addProperty("itemAsHead", itemAsHead.toString());
-		if (headDamage >= 0) json.addProperty("headDamage", mode);
-	}
-
-	@Override
-	public void writeAdditional(FriendlyByteBuf buffer) {
-		buffer.writeInt(mode);
-		buffer.writeItem(new ItemStack(itemAsHead));
-		buffer.writeInt(headDamage);
-	}
-
 }
+

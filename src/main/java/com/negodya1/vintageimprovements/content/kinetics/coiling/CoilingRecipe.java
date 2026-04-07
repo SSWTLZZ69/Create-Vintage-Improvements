@@ -1,48 +1,44 @@
 package com.negodya1.vintageimprovements.content.kinetics.coiling;
 
-import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
-
-import javax.annotation.ParametersAreNonnullByDefault;
-
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
 import com.negodya1.vintageimprovements.VintageBlocks;
 import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.compat.jei.category.assemblies.AssemblyCoiling;
 import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemblySubCategory;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
-import com.simibubi.create.content.processing.recipe.ProcessingRecipeBuilder.ProcessingRecipeParams;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
-
-import com.simibubi.create.foundation.utility.CreateLang;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
 
 @ParametersAreNonnullByDefault
-public class CoilingRecipe extends ProcessingRecipe<RecipeWrapper> implements IAssemblyRecipe {
+public class CoilingRecipe extends ProcessingRecipe<RecipeWrapper, CoilingRecipeParams> implements IAssemblyRecipe {
 
-	public int springColor;
+	private final int springColor;
 
-	public CoilingRecipe(ProcessingRecipeParams params) {
+	public CoilingRecipe(CoilingRecipeParams params) {
 		super(VintageRecipes.COILING, params);
-		springColor = 0x9aa49d;
+		springColor = params.springColor();
 	}
-
 
 	@Override
 	public boolean matches(RecipeWrapper inv, Level worldIn) {
 		if (inv.isEmpty())
 			return false;
-		return ingredients.get(0)
-			.test(inv.getItem(0));
+		return ingredients.get(0).test(inv.getItem(0));
 	}
 
 	@Override
@@ -68,36 +64,43 @@ public class CoilingRecipe extends ProcessingRecipe<RecipeWrapper> implements IA
 	public Component getDescriptionForAssembly() {
 		return VintageLang.translateDirect("recipe.assembly.coiling");
 	}
-	
+
 	@Override
 	public void addRequiredMachines(Set<ItemLike> list) {
 		list.add(VintageBlocks.SPRING_COILING_MACHINE.get());
 	}
-	
+
 	@Override
 	public Supplier<Supplier<SequencedAssemblySubCategory>> getJEISubCategory() {
 		return () -> AssemblyCoiling::new;
 	}
 
-	@Override
-	public void readAdditional(JsonObject json) {
-		if (json.has("springColor")) springColor = Integer.parseInt(json.get("springColor").getAsString(), 16);
-		else springColor = 0x9aa49d;
+	public int getSpringColor() {
+		return springColor;
 	}
 
-	@Override
-	public void readAdditional(FriendlyByteBuf buffer) {
-		springColor = buffer.readInt();
+	@FunctionalInterface
+	public interface Factory<R extends CoilingRecipe> extends ProcessingRecipe.Factory<CoilingRecipeParams, R> {
+		R create(CoilingRecipeParams params);
 	}
 
-	@Override
-	public void writeAdditional(JsonObject json) {
-		json.addProperty("springColor", springColor);
-	}
+	public static class Serializer<R extends CoilingRecipe> implements RecipeSerializer<R> {
+		private final MapCodec<R> codec;
+		private final StreamCodec<RegistryFriendlyByteBuf, R> streamCodec;
 
-	@Override
-	public void writeAdditional(FriendlyByteBuf buffer) {
-		buffer.writeInt(springColor);
-	}
+		public Serializer(Factory<R> factory) {
+			this.codec = ProcessingRecipe.codec(factory, CoilingRecipeParams.CODEC);
+			this.streamCodec = ProcessingRecipe.streamCodec(factory, CoilingRecipeParams.STREAM_CODEC);
+		}
 
+		@Override
+		public MapCodec<R> codec() {
+			return codec;
+		}
+
+		@Override
+		public StreamCodec<RegistryFriendlyByteBuf, R> streamCodec() {
+			return streamCodec;
+		}
+	}
 }

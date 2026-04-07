@@ -1,0 +1,27 @@
+{
+    "type":  "vintageimprovements:coiling",
+    "spring_color":  "fcd84e",
+    "ingredients":  [
+                        {
+                            "tag":  "c:rods/refined_glowstone"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  1,
+                        "id":  "vintageimprovements:refined_glowstone_spring"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:not",
+                           "value":  {
+                                         "type":  "neoforge:tag_empty",
+                                         "tag":  "c:ingots/refined_glowstone"
+                                     }
+                       }
+                   ],
+    "processing_time":  120
+}
+
+

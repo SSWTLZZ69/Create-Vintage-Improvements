@@ -157,7 +157,7 @@ public class LatheScreen extends AbstractSimiContainerScreen<LatheMenu> {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double scrollValue) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollValue) {
 		if (isScrollBarActive()) {
 			int i = getOffscreenRows();
 			float f = (float)scrollValue / (float)i;

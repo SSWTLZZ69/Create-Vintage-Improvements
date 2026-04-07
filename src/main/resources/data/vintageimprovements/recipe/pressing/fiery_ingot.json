@@ -1,0 +1,21 @@
+﻿{
+    "type":  "create:pressing",
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/fiery"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "id":  "vintageimprovements:fiery_sheet"
+                    }
+                ],
+    "neoforge:conditions":  [
+                       {
+                           "type":  "neoforge:mod_loaded",
+                           "modid":  "twilightforest"
+                       }
+                   ]
+}
+
+
