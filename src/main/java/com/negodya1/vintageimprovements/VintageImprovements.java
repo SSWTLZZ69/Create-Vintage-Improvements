@@ -629,6 +629,7 @@ public class VintageImprovements {
         VintagePartialModels.init();
 
         modEventBus.addListener(VintageImprovements::commonSetup);
+        modEventBus.addListener(VintageDataGen::gatherData);
 
         VintageConfig.register(modLoadingContext);
     }

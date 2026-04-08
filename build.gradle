@@ -48,7 +48,7 @@ neoForge {
             data()
             gameDirectory = project.file('run-data')
             programArgument '-mixin.config=create.mixins.json'
-            programArguments.addAll('--mod', mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath())
+            programArguments.addAll('--mod', mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath(), '--existing-mod', 'kubejs')
         }
     }
 
@@ -97,6 +97,21 @@ repositories {
             includeGroup "dev.latvian.mods"
         }
     }
+    maven {
+        url "https://maven.latvian.dev/releases"
+        content {
+            includeGroup "dev.latvian.mods"
+            includeGroup "dev.latvian.apps"
+        }
+    }
+
+    maven {
+        url 'https://jitpack.io'
+        content {
+            includeGroup "com.github.rtyley"
+        }
+    }
+
 }
 
 dependencies {
@@ -112,9 +127,14 @@ dependencies {
     implementation("com.tterrag.registrate:Registrate:${registrate_version}")
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
     implementation("io.github.llamalad7:mixinextras-neoforge:0.4.1")
+    api("dev.latvian.mods:kubejs-neoforge:$kubejs_version")
+    interfaceInjectionData("dev.latvian.mods:kubejs-neoforge:$kubejs_version") // optional
+    implementation("curse.maven:kubejs-create-429371:7213667")
 }
 
 tasks.named('processResources', ProcessResources).configure {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     var replaceProperties = [
             minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
             neo_version: neo_version, neo_version_range: neo_version_range,

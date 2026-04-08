@@ -1,6 +1,5 @@
 package com.negodya1.vintageimprovements.content.kinetics.lathe;
 
-import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingTableBlock;
 import com.simibubi.create.foundation.data.SpecialBlockStateGen;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider;
@@ -9,7 +8,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 
-import static net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
 
 public class LatheGenerator extends SpecialBlockStateGen {
@@ -21,7 +19,7 @@ public class LatheGenerator extends SpecialBlockStateGen {
 
 	@Override
 	protected int getYRotation(BlockState state) {
-		Direction facing = state.getValue(FACING);
+		Direction facing = state.getValue(HORIZONTAL_FACING);
 		return horizontalAngle(facing);
 	}
 

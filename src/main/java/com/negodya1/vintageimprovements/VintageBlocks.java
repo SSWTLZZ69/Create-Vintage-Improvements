@@ -9,6 +9,7 @@ import com.negodya1.vintageimprovements.content.kinetics.coiling.CoilingGenerato
 import com.negodya1.vintageimprovements.content.kinetics.curving_press.CurvingPressBlock;
 import com.negodya1.vintageimprovements.content.kinetics.helve_hammer.*;
 import com.negodya1.vintageimprovements.content.kinetics.laser.LaserBlock;
+import com.negodya1.vintageimprovements.content.kinetics.laser.LaserGenerator;
 import com.negodya1.vintageimprovements.content.kinetics.lathe.LatheGenerator;
 import com.negodya1.vintageimprovements.content.kinetics.lathe.LatheItem;
 import com.negodya1.vintageimprovements.content.kinetics.lathe.LatheMovingBlock;
@@ -191,7 +192,7 @@ public class VintageBlocks {
                     .addLayer(() -> RenderType::cutoutMipped)
                     .properties(p -> p.noOcclusion().mapColor(MapColor.PODZOL))
                     .transform(axeOrPickaxe())
-                    .blockstate(BlockStateGen.horizontalBlockProvider(true))
+                    .blockstate(new LaserGenerator()::generate)
                     .transform(VCStress.setImpact(2.0))
                     .item(AssemblyOperatorBlockItem::new)
                     .transform(customItemModel())
