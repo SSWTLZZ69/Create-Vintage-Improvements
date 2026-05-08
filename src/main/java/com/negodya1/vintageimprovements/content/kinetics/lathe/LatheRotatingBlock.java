@@ -148,18 +148,19 @@ public class LatheRotatingBlock extends HorizontalKineticBlock implements IBE<La
 
 	@Override
 	protected ItemInteractionResult useItemOn(ItemStack heldItem, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-		if (worldIn.isClientSide)
-			return ItemInteractionResult.SUCCESS;
-
+		final boolean[] inserted = { false };
 		withBlockEntityDo(worldIn, pos, lathe -> {
 			if (lathe.checkItem(heldItem)) {
+				inserted[0] = true;
+				if (worldIn.isClientSide)
+					return;
 				player.setItemInHand(handIn, lathe.inputInv.insertItem(0, heldItem, false));
 				lathe.setChanged();
 				lathe.sendData();
 			}
 		});
 
-		return ItemInteractionResult.SUCCESS;
+		return inserted[0] ? ItemInteractionResult.SUCCESS : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 	}
 
 	@Override

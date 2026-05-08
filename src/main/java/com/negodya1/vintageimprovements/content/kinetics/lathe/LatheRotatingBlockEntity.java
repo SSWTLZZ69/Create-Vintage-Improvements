@@ -118,7 +118,12 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 		if (be == null)
 			return Optional.empty();
 		if (be.manualMode()) {
-			return be.getTemporaryRecipe();
+			Optional<TurningRecipe> selectedRecipe = be.getTemporaryRecipe();
+			if (selectedRecipe.isPresent())
+				return selectedRecipe;
+			if (recipes.size() == 1)
+				return Optional.of(recipes.get(0));
+			return Optional.empty();
 		}
 		else {
 			int index = be.getIndex(inputInv.getStackInSlot(0));
