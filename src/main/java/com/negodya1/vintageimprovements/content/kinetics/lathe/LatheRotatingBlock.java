@@ -118,8 +118,20 @@ public class LatheRotatingBlock extends HorizontalKineticBlock implements IBE<La
 		if (worldIn.isClientSide)
 			return InteractionResult.SUCCESS;
 
-		if (player.getItemInHand(handIn)
-				.isEmpty())
+		boolean[] inserted = { false };
+		ItemStack heldItem = player.getItemInHand(handIn);
+		if (!heldItem.isEmpty()) {
+			withBlockEntityDo(worldIn, pos, lathe -> {
+				if (!lathe.checkItem(heldItem))
+					return;
+				inserted[0] = true;
+				player.setItemInHand(handIn, lathe.inputInv.insertItem(0, heldItem, false));
+				lathe.setChanged();
+				lathe.sendData();
+			});
+		}
+
+		if (!inserted[0]) {
 			withBlockEntityDo(worldIn, pos, lathe -> {
 				boolean emptyOutput = true;
 				IItemHandlerModifiable inv = lathe.outputInv;
@@ -141,24 +153,13 @@ public class LatheRotatingBlock extends HorizontalKineticBlock implements IBE<La
 					}
 				}
 
-					lathe.setChanged();
-					lathe.sendData();
-		});
-		else {
-			withBlockEntityDo(worldIn, pos, lathe -> {
-				if (lathe.checkItem(player.getItemInHand(handIn))) {
-					player.setItemInHand(handIn, lathe.inputInv.insertItem(0, player.getItemInHand(handIn), false));
-
-					lathe.setChanged();
-					lathe.sendData();
-				}
+				lathe.setChanged();
+				lathe.sendData();
 			});
 		}
 
 		return InteractionResult.SUCCESS;
 	}
-
-	@Override
 	public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
 		super.onPlace(state, level, pos, oldState, isMoving);
 		if (!level.getBlockTicks()

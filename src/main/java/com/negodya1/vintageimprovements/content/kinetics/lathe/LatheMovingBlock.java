@@ -226,8 +226,9 @@ public class LatheMovingBlock extends DirectionalKineticBlock implements IWrench
 					lathe.currentRecipe = null;
 					lathe.resetRecipe();
 					if (worldIn.isClientSide) return;
-					if (player instanceof DeployerFakePlayer);
-					else NetworkHooks.openScreen((ServerPlayer) player, lathe, lathe::sendToMenu);
+					if (player instanceof DeployerFakePlayer) return;
+					if (lathe.getRecipes().size() == 1) return;
+					NetworkHooks.openScreen((ServerPlayer) player, lathe, lathe::sendToMenu);
 				}
 				else {
 					lathe.resetRecipe();
@@ -245,7 +246,6 @@ public class LatheMovingBlock extends DirectionalKineticBlock implements IWrench
 				lathe.resetRecipe();
 				if (worldIn.isClientSide) return;
 				player.setItemInHand(handIn, lathe.recipeSlot.insertItem(0, player.getItemInHand(handIn), false));
-
 				lathe.setChanged();
 				lathe.sendData();
 			});

@@ -1,0 +1,15 @@
+{
+  "type": "vintageimprovements:turning",
+  "ingredients": [
+    {
+      "item": "minecraft:cobblestone"
+    }
+  ],
+  "results": [
+    {
+      "count": 1,
+      "id": "minecraft:gravel"
+    }
+  ],
+  "processing_time": 80
+}
