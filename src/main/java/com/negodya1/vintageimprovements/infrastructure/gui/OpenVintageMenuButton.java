@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.negodya1.vintageimprovements.VintageBlocks;
 import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
 import com.simibubi.create.infrastructure.gui.CreateMainMenuScreen;
@@ -25,6 +24,7 @@ import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
@@ -33,7 +33,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
 public class OpenVintageMenuButton extends Button {
 
-	public static final ItemStack ICON = VintageBlocks.BELT_GRINDER.asStack();
+	public static final ItemStack ICON = AllItems.GOGGLES.asStack();
 
 	public OpenVintageMenuButton(int x, int y) {
 		super(x, y, 20, 20, Component.empty(), OpenVintageMenuButton::click, DEFAULT_NARRATION);
@@ -41,6 +41,11 @@ public class OpenVintageMenuButton extends Button {
 
 	@Override
 	public void renderString(GuiGraphics graphics, Font pFont, int pColor) {
+		BakedModel bakedModel = Minecraft.getInstance()
+				.getItemRenderer()
+				.getModel(ICON, Minecraft.getInstance().level, Minecraft.getInstance().player, 0);
+		if (bakedModel == null)
+			return;
 		graphics.renderItem(ICON, getX() + 2, getY() + 2);
 	}
 	
