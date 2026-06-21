@@ -149,6 +149,11 @@ public class HammeringRecipe extends ProcessingRecipe<RecipeInput, HammeringReci
 	}
 
 	@Override
+	protected boolean canSpecifyDuration() {
+		return true;
+	}
+
+	@Override
 	public void addRequiredMachines(Set<ItemLike> list) {
 		list.add(VintageBlocks.HELVE.get());
 	}

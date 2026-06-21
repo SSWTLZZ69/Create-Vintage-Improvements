@@ -86,6 +86,11 @@ public class CurvingRecipe extends ProcessingRecipe<RecipeWrapper, CurvingRecipe
 	}
 	
 	@Override
+	protected boolean canSpecifyDuration() {
+		return true;
+	}
+
+	@Override
 	public void addRequiredMachines(Set<ItemLike> list) {
 		list.add(VintageBlocks.CURVING_PRESS.get());
 	}
