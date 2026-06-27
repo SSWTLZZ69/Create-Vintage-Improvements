@@ -208,7 +208,7 @@ public class LatheRotatingBlock extends HorizontalKineticBlock implements IBE<La
 				.setValue(HelveStructuralBlock.FACING, side);
 		if (occupiedState != requiredStructure) {
 			if (!occupiedState.canBeReplaced()) {
-				pLevel.destroyBlock(pPos, false);
+				pLevel.destroyBlock(pPos, true);
 				return;
 			}
 			pLevel.setBlockAndUpdate(structurePos, requiredStructure);
