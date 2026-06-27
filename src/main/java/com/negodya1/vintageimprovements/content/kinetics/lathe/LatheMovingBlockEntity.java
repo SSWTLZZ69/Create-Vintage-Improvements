@@ -17,6 +17,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -89,15 +90,16 @@ public class LatheMovingBlockEntity extends KineticBlockEntity implements MenuPr
 	}
 
 	public List<TurningRecipe> getRecipes() {
-		LatheRotatingBlockEntity be = (LatheRotatingBlockEntity) level.getBlockEntity(LatheMovingBlock.getMaster(level, worldPosition, this.getBlockState()));
+		LatheRotatingBlockEntity be = getMasterBlockEntity();
 		if (be == null)
 			return new ArrayList<>();
 		return be.getRecipes();
 	}
 
 	public void resetRecipe() {
-		LatheRotatingBlockEntity be = (LatheRotatingBlockEntity) level.getBlockEntity(LatheMovingBlock.getMaster(level, worldPosition, this.getBlockState()));
-		be.resetRecipe();
+		LatheRotatingBlockEntity be = getMasterBlockEntity();
+		if (be != null)
+			be.resetRecipe();
 	}
 
 	public int getIndex(ItemStack ingredient) {
@@ -123,10 +125,17 @@ public class LatheMovingBlockEntity extends KineticBlockEntity implements MenuPr
 	}
 
 	public SmartInventory getInputInventory() {
-		LatheRotatingBlockEntity be = (LatheRotatingBlockEntity) level.getBlockEntity(LatheMovingBlock.getMaster(level, worldPosition, this.getBlockState()));
+		LatheRotatingBlockEntity be = getMasterBlockEntity();
 		if (be == null)
 			return new SmartInventory(1, this);
 		return be.inputInv;
+	}
+
+	private LatheRotatingBlockEntity getMasterBlockEntity() {
+		BlockEntity blockEntity = level.getBlockEntity(LatheMovingBlock.getMaster(level, worldPosition, this.getBlockState()));
+		if (blockEntity instanceof LatheRotatingBlockEntity lathe)
+			return lathe;
+		return null;
 	}
 
 	public Optional<TurningRecipe> getTemporaryRecipe() {

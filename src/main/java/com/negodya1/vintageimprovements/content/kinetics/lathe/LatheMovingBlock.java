@@ -157,7 +157,8 @@ public class LatheMovingBlock extends DirectionalKineticBlock implements IWrench
 
 		if (!directlyAdjacent && stillValid(level, targetedPos, targetedState, true))
 			return true;
-		return targetedState.getBlock() instanceof LatheRotatingBlock;
+		return targetedState.getBlock() instanceof LatheRotatingBlock
+				&& targetedState.getValue(LatheRotatingBlock.HORIZONTAL_FACING) == direction;
 	}
 
 	@Override

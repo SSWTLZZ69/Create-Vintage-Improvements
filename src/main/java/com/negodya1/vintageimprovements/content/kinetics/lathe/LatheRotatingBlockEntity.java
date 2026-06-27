@@ -29,6 +29,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -115,7 +116,7 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 		List<TurningRecipe> recipes = getRecipes();
 		if (recipes.isEmpty()) return Optional.empty();
 
-		LatheMovingBlockEntity be = (LatheMovingBlockEntity) level.getBlockEntity(LatheRotatingBlock.getSlave(level, worldPosition, this.getBlockState()));
+		LatheMovingBlockEntity be = getSlaveBlockEntity();
 		if (be == null)
 			return Optional.empty();
 		if (be.manualMode()) {
@@ -136,7 +137,7 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 	}
 
 	private ItemStack getResultItem() {
-		LatheMovingBlockEntity be = (LatheMovingBlockEntity) level.getBlockEntity(LatheRotatingBlock.getSlave(level, worldPosition, this.getBlockState()));
+		LatheMovingBlockEntity be = getSlaveBlockEntity();
 		if (be == null)
 			return ItemStack.EMPTY;
 		if (!be.recipeSlot.getStackInSlot(0).isEmpty())
@@ -259,9 +260,9 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 		super.destroy();
 		ItemHelper.dropContents(level, worldPosition, inputInv);
 		ItemHelper.dropContents(level, worldPosition, outputInv);
-		LatheMovingBlockEntity be = (LatheMovingBlockEntity) level.getBlockEntity(LatheRotatingBlock.getSlave(level, worldPosition, this.getBlockState()));
+		LatheMovingBlockEntity be = getSlaveBlockEntity();
 		if (be != null)
-			ItemHelper.dropContents(level, LatheRotatingBlock.getSlave(level, worldPosition, this.getBlockState()), be.recipeSlot);
+			ItemHelper.dropContents(level, be.getBlockPos(), be.recipeSlot);
 	}
 
 	@Override
@@ -320,22 +321,29 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 				+ Mth.clamp((int) ((Math.abs(getSlaveSpeed()) - IRotate.SpeedLevel.MEDIUM.getSpeedValue()) / (256 - IRotate.SpeedLevel.MEDIUM.getSpeedValue())) / 2f, .0f, 0.5f);
 	}
 
+	private LatheMovingBlockEntity getSlaveBlockEntity() {
+		BlockEntity blockEntity = level.getBlockEntity(LatheRotatingBlock.getSlave(level, worldPosition, this.getBlockState()));
+		if (blockEntity instanceof LatheMovingBlockEntity lathe)
+			return lathe;
+		return null;
+	}
+
 	public float getSlaveSpeed() {
-		LatheMovingBlockEntity be = (LatheMovingBlockEntity) level.getBlockEntity(LatheRotatingBlock.getSlave(level, worldPosition, this.getBlockState()));
+		LatheMovingBlockEntity be = getSlaveBlockEntity();
 		if (be != null)
 			return be.getSpeed();
 		return 0;
 	}
 
 	public boolean isSlaveSpeedRequirementFulfilled() {
-		LatheMovingBlockEntity be = (LatheMovingBlockEntity) level.getBlockEntity(LatheRotatingBlock.getSlave(level, worldPosition, this.getBlockState()));
+		LatheMovingBlockEntity be = getSlaveBlockEntity();
 		if (be != null)
 			return be.isSpeedRequirementFulfilled();
 		return true;
 	}
 
 	public float calculateSlaveStressApplied() {
-		LatheMovingBlockEntity be = (LatheMovingBlockEntity) level.getBlockEntity(LatheRotatingBlock.getSlave(level, worldPosition, this.getBlockState()));
+		LatheMovingBlockEntity be = getSlaveBlockEntity();
 		if (be != null)
 			return be.calculateStressApplied();
 		return 0;
@@ -423,7 +431,7 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 
 		addStressImpactStats(tooltip, stressAtBase);
 
-		LatheMovingBlockEntity be = (LatheMovingBlockEntity) level.getBlockEntity(LatheRotatingBlock.getSlave(level, worldPosition, this.getBlockState()));
+		LatheMovingBlockEntity be = getSlaveBlockEntity();
 		if (be != null) {
 			if (be.manualMode()) {
 				VintageLang.translate("gui.goggles.current_mode")
