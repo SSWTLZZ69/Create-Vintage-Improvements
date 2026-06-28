@@ -54,12 +54,16 @@ public class LatheMovingBlock extends DirectionalKineticBlock implements IWrench
 
 	@Override
 	public Direction.Axis getRotationAxis(BlockState state) {
-		return state.getValue(FACING).getClockWise().getAxis();
+		Direction facing = state.getValue(FACING);
+		if (!isHorizontal(facing))
+			return Direction.Axis.X;
+		return facing.getClockWise().getAxis();
 	}
 
 	@Override
 	public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-		return face.getAxis() == state.getValue(FACING).getClockWise().getAxis();
+		Direction facing = state.getValue(FACING);
+		return isHorizontal(facing) && face.getAxis() == facing.getClockWise().getAxis();
 	}
 
 	@Override
@@ -80,6 +84,24 @@ public class LatheMovingBlock extends DirectionalKineticBlock implements IWrench
 	@Override
 	public InteractionResult onWrenched(BlockState state, UseOnContext context) {
 		return InteractionResult.PASS;
+	}
+
+	@Override
+	public BlockState getRotatedBlockState(BlockState state, Direction targetedFace) {
+		Direction facing = state.getValue(FACING);
+		if (!isHorizontal(facing) || facing.getAxis() == targetedFace.getAxis())
+			return state;
+		Direction rotated = facing.getClockWise(targetedFace.getAxis());
+		return isHorizontal(rotated) ? state.setValue(FACING, rotated) : state;
+	}
+
+	@Override
+	public BlockState rotate(BlockState state, Rotation rotation) {
+		Direction facing = state.getValue(FACING);
+		if (!isHorizontal(facing))
+			return state;
+		Direction rotated = rotation.rotate(facing);
+		return isHorizontal(rotated) ? state.setValue(FACING, rotated) : state;
 	}
 
 	@Override
@@ -152,12 +174,19 @@ public class LatheMovingBlock extends DirectionalKineticBlock implements IWrench
 			return false;
 
 		Direction direction = state.getValue(FACING);
+		if (!isHorizontal(direction))
+			return false;
 		BlockPos targetedPos = pos.relative(direction);
 		BlockState targetedState = level.getBlockState(targetedPos);
 
 		if (!directlyAdjacent && stillValid(level, targetedPos, targetedState, true))
 			return true;
-		return targetedState.getBlock() instanceof LatheRotatingBlock;
+		return targetedState.getBlock() instanceof LatheRotatingBlock
+				&& targetedState.getValue(LatheRotatingBlock.HORIZONTAL_FACING) == direction;
+	}
+
+	private static boolean isHorizontal(Direction direction) {
+		return direction.getAxis() != Direction.Axis.Y;
 	}
 
 	@Override

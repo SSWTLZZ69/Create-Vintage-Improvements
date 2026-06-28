@@ -66,6 +66,9 @@ public class LatheMovingRenderer extends KineticBlockEntityRenderer<LatheMovingB
 
 	@Override
 	protected void renderSafe(LatheMovingBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
+		if (be.getBlockState().getValue(FACING).getAxis() == Direction.Axis.Y)
+			return;
+
 		renderSlot(be, ms, buffer, light, overlay);
 
 
