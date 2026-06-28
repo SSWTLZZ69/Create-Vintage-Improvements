@@ -71,6 +71,11 @@ public class LaserCuttingRecipe extends ProcessingRecipe<RecipeWrapper, LaserCut
 	}
 	
 	@Override
+	protected boolean canSpecifyDuration() {
+		return true;
+	}
+
+	@Override
 	public void addRequiredMachines(Set<ItemLike> list) {
 		list.add(VintageBlocks.LASER.get());
 	}
