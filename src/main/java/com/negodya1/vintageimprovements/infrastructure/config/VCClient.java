@@ -7,20 +7,6 @@ public class VCClient extends ConfigBase {
 	public final ConfigBase.ConfigGroup client = group(0, "client",
 			Comments.client);
 
-
-	public final ConfigBool forceCompatItemsIntoCreativeTab = b(false, "forceCompatItemsIntoCreativeTab", Comments.forceCompatItemsIntoCreativeTab);
-	public final ConfigBool legacyMaterialsIntoCreativeTab = b(false, "legacyMaterialsIntoCreativeTab", Comments.legacyMaterialsIntoCreativeTab);
-
-	public final ConfigGroup hideItems = group(1, "hideItems",
-			Comments.hideItems);
-
-	public final ConfigBool hideSprings = b(false, "hideSprings", Comments.hideSprings);
-	public final ConfigBool hideSmallSprings = b(false, "hideSmallSprings", Comments.hideSmallSprings);
-	public final ConfigBool hideRods = b(false, "hideRods", Comments.hideRods);
-	public final ConfigBool hideSheets = b(false, "hideSheets", Comments.hideSheets);
-	public final ConfigBool hideWires = b(false, "hideWires", Comments.hideWires);
-
-
 	public final ConfigGroup configButton = group(1, "configButton",
 			Comments.configButton);
 
@@ -57,14 +43,6 @@ public class VCClient extends ConfigBase {
 				"Offset the Vintage Improvements config button in the in-game menu by this many pixels on the X axis",
 				"The sign (-/+) of this value determines what side of the row the button appears on (left/right)"
 		};
-		static String forceCompatItemsIntoCreativeTab = "If enabled, compat items with not loaded mod still appears in the creative tab";
-		static String legacyMaterialsIntoCreativeTab = "If enabled, Shadow Steel & Refined Radiance items appears in the creative tab";
 		static String configButton = "Position of Create: Vintage Improvements config button in the main menu & pause menu";
-		static String hideItems = "Choose items to hide from creative tab & JEI";
-		static String hideSprings = "Hides all Springs from creative tab & JEI (you still can craft it)";
-		static String hideSmallSprings = "Hides all Small Springs from creative tab & JEI (you still can craft it)";
-		static String hideRods = "Hides all Rods from creative tab & JEI (you still can craft it)";
-		static String hideSheets = "Hides all Sheets from creative tab & JEI (you still can craft it)";
-		static String hideWires = "Hides all Wires from creative tab & JEI (you still can craft it)";
 	}
 }

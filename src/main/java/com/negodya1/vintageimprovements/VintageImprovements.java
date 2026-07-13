@@ -129,7 +129,7 @@ public class VintageImprovements {
             .title(Component.translatable("itemGroup." + MODID))
             .icon(() -> VintageBlocks.BELT_GRINDER.get().asItem().getDefaultInstance())
             .displayItems((parameters, output) -> {
-                boolean forceItems = VintageConfig.client().forceCompatItemsIntoCreativeTab.get();
+                boolean forceItems = VintageConfig.common().forceCompatItemsIntoCreativeTab.get();
                 boolean adAstraLoaded = ModList.get().isLoaded("ad_astra");
                 boolean twilightForestLoaded = ModList.get().isLoaded("twilightforest");
                 boolean tConstructLoaded = ModList.get().isLoaded("tconstruct");
@@ -171,12 +171,12 @@ public class VintageImprovements {
 
                 output.accept(VintageItems.HELVE_HAMMER_SLOT_COVER);
 
-                if (VintageConfig.client().legacyMaterialsIntoCreativeTab.get()) {
+                if (VintageConfig.common().legacyMaterialsIntoCreativeTab.get()) {
                     output.accept(AllItems.REFINED_RADIANCE);
                     output.accept(AllItems.SHADOW_STEEL);
                 }
 
-                if (!VintageConfig.client().hideSheets.get()) {
+                if (!VintageConfig.common().hideSheets.get()) {
                     if (!VintageItems.ALUMINUM_SHEET.get().shouldHide() || forceItems)
                         output.accept(VintageItems.ALUMINUM_SHEET);
                     if (!VintageItems.AMETHYST_BRONZE_SHEET.get().shouldHide() || forceItems)
@@ -229,13 +229,13 @@ public class VintageImprovements {
                         output.accept(VintageItems.REFINED_GLOWSTONE_SHEET.get());
                     if (!VintageItems.REFINED_OBSIDIAN_SHEET.get().shouldHide() || forceItems)
                         output.accept(VintageItems.REFINED_OBSIDIAN_SHEET.get());
-                    if (VintageConfig.client().legacyMaterialsIntoCreativeTab.get())
+                    if (VintageConfig.common().legacyMaterialsIntoCreativeTab.get())
                         output.accept(VintageItems.REFINED_RADIANCE_SHEET.get());
                     if (!VintageItems.RHODIUM_SHEET.get().shouldHide() || forceItems)
                         output.accept(VintageItems.RHODIUM_SHEET.get());
                     if (!VintageItems.ROSE_GOLD_SHEET.get().shouldHide() || forceItems)
                         output.accept(VintageItems.ROSE_GOLD_SHEET.get());
-                    if (VintageConfig.client().legacyMaterialsIntoCreativeTab.get())
+                    if (VintageConfig.common().legacyMaterialsIntoCreativeTab.get())
                         output.accept(SHADOW_STEEL_SHEET.get());
                     if (!VintageItems.SIGNALUM_SHEET.get().shouldHide() || forceItems)
                         output.accept(VintageItems.SIGNALUM_SHEET.get());
@@ -251,7 +251,7 @@ public class VintageImprovements {
                     output.accept(ZINC_SHEET.get());
                 }
 
-                if (!VintageConfig.client().hideRods.get()) {
+                if (!VintageConfig.common().hideRods.get()) {
                     if (!VintageItems.ALUMINUM_ROD.get().shouldHide() || forceItems)
                         output.accept(VintageItems.ALUMINUM_ROD);
                     if (!VintageItems.AMETHYST_BRONZE_ROD.get().shouldHide() || forceItems)
@@ -308,13 +308,13 @@ public class VintageImprovements {
                         output.accept(VintageItems.REFINED_GLOWSTONE_ROD.get());
                     if (!VintageItems.REFINED_OBSIDIAN_ROD.get().shouldHide() || forceItems)
                         output.accept(VintageItems.REFINED_OBSIDIAN_ROD.get());
-                    if (VintageConfig.client().legacyMaterialsIntoCreativeTab.get())
+                    if (VintageConfig.common().legacyMaterialsIntoCreativeTab.get())
                         output.accept(VintageItems.REFINED_RADIANCE_ROD.get());
                     if (!VintageItems.RHODIUM_ROD.get().shouldHide() || forceItems)
                         output.accept(VintageItems.RHODIUM_ROD.get());
                     if (!VintageItems.ROSE_GOLD_ROD.get().shouldHide() || forceItems)
                         output.accept(VintageItems.ROSE_GOLD_ROD.get());
-                    if (VintageConfig.client().legacyMaterialsIntoCreativeTab.get())
+                    if (VintageConfig.common().legacyMaterialsIntoCreativeTab.get())
                         output.accept(SHADOW_STEEL_ROD.get());
                     if (!VintageItems.SIGNALUM_ROD.get().shouldHide() || forceItems)
                         output.accept(VintageItems.SIGNALUM_ROD.get());
@@ -332,7 +332,7 @@ public class VintageImprovements {
                     output.accept(ZINC_ROD.get());
                 }
 
-                if (!VintageConfig.client().hideWires.get()) {
+                if (!VintageConfig.common().hideWires.get()) {
                     if (!VintageItems.ALUMINUM_WIRE.get().shouldHide() || forceItems)
                         output.accept(VintageItems.ALUMINUM_WIRE);
                     if (!VintageItems.AMETHYST_BRONZE_WIRE.get().shouldHide() || forceItems)
@@ -392,13 +392,13 @@ public class VintageImprovements {
                         output.accept(VintageItems.REFINED_GLOWSTONE_WIRE.get());
                     if (!VintageItems.REFINED_OBSIDIAN_WIRE.get().shouldHide() || forceItems)
                         output.accept(VintageItems.REFINED_OBSIDIAN_WIRE.get());
-                    if (VintageConfig.client().legacyMaterialsIntoCreativeTab.get())
+                    if (VintageConfig.common().legacyMaterialsIntoCreativeTab.get())
                         output.accept(VintageItems.REFINED_RADIANCE_WIRE.get());
                     if (!VintageItems.RHODIUM_WIRE.get().shouldHide() || forceItems)
                         output.accept(VintageItems.RHODIUM_WIRE.get());
                     if (!VintageItems.ROSE_GOLD_WIRE.get().shouldHide() || forceItems)
                         output.accept(VintageItems.ROSE_GOLD_WIRE.get());
-                    if (VintageConfig.client().legacyMaterialsIntoCreativeTab.get())
+                    if (VintageConfig.common().legacyMaterialsIntoCreativeTab.get())
                         output.accept(SHADOW_STEEL_WIRE.get());
                     if (!VintageItems.SIGNALUM_WIRE.get().shouldHide() || forceItems)
                         output.accept(VintageItems.SIGNALUM_WIRE.get());
@@ -416,7 +416,7 @@ public class VintageImprovements {
                     output.accept(ZINC_WIRE.get());
                 }
 
-                if (!VintageConfig.client().hideSprings.get()) {
+                if (!VintageConfig.common().hideSprings.get()) {
                     if (!VintageItems.ALUMINUM_SPRING.get().shouldHide() || forceItems)
                         output.accept(VintageItems.ALUMINUM_SPRING);
                     if (!VintageItems.AMETHYST_BRONZE_SPRING.get().shouldHide() || forceItems)
@@ -480,13 +480,13 @@ public class VintageImprovements {
                         output.accept(VintageItems.REFINED_GLOWSTONE_SPRING.get());
                     if (!VintageItems.REFINED_OBSIDIAN_SPRING.get().shouldHide() || forceItems)
                         output.accept(VintageItems.REFINED_OBSIDIAN_SPRING.get());
-                    if (VintageConfig.client().legacyMaterialsIntoCreativeTab.get())
+                    if (VintageConfig.common().legacyMaterialsIntoCreativeTab.get())
                         output.accept(VintageItems.REFINED_RADIANCE_SPRING.get());
                     if (!VintageItems.RHODIUM_SPRING.get().shouldHide() || forceItems)
                         output.accept(VintageItems.RHODIUM_SPRING.get());
                     if (!VintageItems.ROSE_GOLD_SPRING.get().shouldHide() || forceItems)
                         output.accept(VintageItems.ROSE_GOLD_SPRING.get());
-                    if (VintageConfig.client().legacyMaterialsIntoCreativeTab.get())
+                    if (VintageConfig.common().legacyMaterialsIntoCreativeTab.get())
                         output.accept(VintageItems.SHADOW_STEEL_SPRING.get());
                     if (!VintageItems.SIGNALUM_SPRING.get().shouldHide() || forceItems)
                         output.accept(VintageItems.SIGNALUM_SPRING.get());
@@ -504,7 +504,7 @@ public class VintageImprovements {
                     output.accept(VintageItems.ZINC_SPRING.get());
                 }
 
-                if (!VintageConfig.client().hideSmallSprings.get()) {
+                if (!VintageConfig.common().hideSmallSprings.get()) {
                     if (!VintageItems.SMALL_ALUMINUM_SPRING.get().shouldHide() || forceItems)
                         output.accept(VintageItems.SMALL_ALUMINUM_SPRING);
                     if (!VintageItems.SMALL_AMETHYST_BRONZE_SPRING.get().shouldHide() || forceItems)
@@ -569,13 +569,13 @@ public class VintageImprovements {
                         output.accept(VintageItems.SMALL_REFINED_GLOWSTONE_SPRING.get());
                     if (!VintageItems.SMALL_REFINED_OBSIDIAN_SPRING.get().shouldHide() || forceItems)
                         output.accept(VintageItems.SMALL_REFINED_OBSIDIAN_SPRING.get());
-                    if (VintageConfig.client().legacyMaterialsIntoCreativeTab.get())
+                    if (VintageConfig.common().legacyMaterialsIntoCreativeTab.get())
                         output.accept(VintageItems.SMALL_REFINED_RADIANCE_SPRING.get());
                     if (!VintageItems.SMALL_RHODIUM_SPRING.get().shouldHide() || forceItems)
                         output.accept(VintageItems.SMALL_RHODIUM_SPRING.get());
                     if (!VintageItems.SMALL_ROSE_GOLD_SPRING.get().shouldHide() || forceItems)
                         output.accept(VintageItems.SMALL_ROSE_GOLD_SPRING.get());
-                    if (VintageConfig.client().legacyMaterialsIntoCreativeTab.get())
+                    if (VintageConfig.common().legacyMaterialsIntoCreativeTab.get())
                         output.accept(VintageItems.SMALL_SHADOW_STEEL_SPRING.get());
                     if (!VintageItems.SMALL_SIGNALUM_SPRING.get().shouldHide() || forceItems)
                         output.accept(VintageItems.SMALL_SIGNALUM_SPRING.get());
