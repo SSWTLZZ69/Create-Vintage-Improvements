@@ -396,7 +396,7 @@
 	"vintageimprovements.ponder.vacuum_chamber_secondary.text_4": "可以用动力泵向压缩机中输入",
 	"vintageimprovements.ponder.vibrating_table.header": "用振动台处理物品",
 	"vintageimprovements.ponder.vibrating_table.text_1": "振动台可以处理各种物品",
-	"vintageimprovements.ponder.vibrating_table.text_2": "振动台还可以解包存储方块",
+	"vintageimprovements.ponder.vibrating_table.text_2": "振动台可以自动识别并执行可逆的四合一或九合一解包配方",
 	"vintageimprovements.ponder.vibrating_table.text_3": "或者振动树叶获取对应掉落物,概率与使用时运III附魔的锄相同",
 	"vintageimprovements.ponder.vibrating_table.text_4": "可以用传动杆从侧面提供动力",
 	"vintageimprovements.ponder.vibrating_table.text_5": "在顶部扔下或置入物品",

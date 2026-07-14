@@ -32,6 +32,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -150,7 +151,12 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		runningTicks = compound.getInt("Ticks");
 		mode = compound.getBoolean("Mode");
 		// 不存在时，默认读取到0
-		sequencedAssemblyStep = compound.getInt("sequencedAssemblyStep");
+		if (compound.contains("SequencedAssemblyStep", Tag.TAG_INT))
+			sequencedAssemblyStep = compound.getInt("SequencedAssemblyStep");
+		else if (compound.contains("sequencedAssemblyStep", Tag.TAG_INT))
+			sequencedAssemblyStep = compound.getInt("sequencedAssemblyStep");
+		else
+			sequencedAssemblyStep = compound.getInt("isSequencedAssembly");
 		super.read(compound, clientPacket);
 
 		if (clientPacket && hasLevel())
@@ -162,7 +168,7 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		compound.putBoolean("Running", running);
 		compound.putInt("Ticks", runningTicks);
 		compound.putBoolean("Mode", mode);
-		compound.putInt("isSequencedAssembly", sequencedAssemblyStep);
+		compound.putInt("SequencedAssemblyStep", sequencedAssemblyStep);
 		super.write(compound, clientPacket);
 	}
 
@@ -231,6 +237,14 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	protected void applyBasinRecipe() {
 		if (currentRecipe == null)
 			return;
+		if (sequencedAssemblyStep > 0) {
+			// Sequenced assembly binds the next result to a shared recipe instance.
+			// Refresh it immediately before applying the basin recipe.
+			Optional<? extends Recipe<?>> assemblyRecipe = matchAssemblyRecipe();
+			if (assemblyRecipe.isEmpty())
+				return;
+			currentRecipe = assemblyRecipe.get();
+		}
 
 		Optional<BasinBlockEntity> optionalBasin = getBasin();
 		if (!optionalBasin.isPresent())

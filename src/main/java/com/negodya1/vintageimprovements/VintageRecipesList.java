@@ -2,7 +2,10 @@ package com.negodya1.vintageimprovements;
 
 import com.negodya1.vintageimprovements.content.kinetics.curving_press.CurvingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.grinder.PolishingRecipe;
+import com.simibubi.create.AllRecipeTypes;
+import com.simibubi.create.content.kinetics.crafter.MechanicalCraftingRecipe;
 import com.simibubi.create.content.equipment.sandPaper.SandPaperPolishingRecipe;
+import com.simibubi.create.foundation.item.ItemHelper;
 import mezz.jei.api.constants.RecipeTypes;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
@@ -20,7 +23,10 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class VintageRecipesList {
     static List<CraftingRecipe> curving;
@@ -28,12 +34,12 @@ public class VintageRecipesList {
     static List<CraftingRecipe> curving3;
     static List<CraftingRecipe> curving4;
 
-    static List<CraftingRecipe> unpacking;
+    static List<CraftingRecipe> unpacking = List.of();
+    static Map<Item, CraftingRecipe> unpackingByInput = Map.of();
     static List<PolishingRecipe> polishing;
     static List<SmithingRecipe> smithing;
 
     static public void init(MinecraftServer level) {
-        unpacking = new ArrayList<>();
         curving = new ArrayList<>();
         curving2 = new ArrayList<>();
         curving3 = new ArrayList<>();
@@ -53,11 +59,98 @@ public class VintageRecipesList {
 
     static void initUnpacking(MinecraftServer level) {
         List<CraftingRecipe> recipes = level.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING);
-        for (CraftingRecipe recipe : recipes) {
-            if (recipe.getIngredients().size() > 1) continue;
+        List<CraftingRecipe> unpackingRecipes = findUnpackingRecipes(recipes, level.registryAccess());
+        unpacking = List.copyOf(unpackingRecipes);
 
-            unpacking.add(recipe);
+        Map<Item, CraftingRecipe> recipesByInput = new HashMap<>();
+        List<CraftingRecipe> packingRecipes = findPackingRecipes(recipes);
+        for (CraftingRecipe unpackingRecipe : unpackingRecipes) {
+            for (CraftingRecipe packingRecipe : packingRecipes) {
+                if (!isReversePair(unpackingRecipe, packingRecipe, level.registryAccess())) continue;
+                ItemStack packedResult = packingRecipe.getResultItem(level.registryAccess());
+                recipesByInput.putIfAbsent(packedResult.getItem(), unpackingRecipe);
+            }
         }
+        unpackingByInput = Map.copyOf(recipesByInput);
+    }
+
+    /**
+     * Mirrors Create's automatic packing rule, then keeps only the reverse
+     * recipes that turn the packed result back into the same 4 or 9 items.
+     */
+    public static List<CraftingRecipe> findUnpackingRecipes(
+            List<? extends Recipe<?>> recipes, RegistryAccess registries) {
+        List<CraftingRecipe> result = new ArrayList<>();
+        List<CraftingRecipe> packingRecipes = findPackingRecipes(recipes);
+
+        for (Recipe<?> recipe : recipes) {
+            if (!(recipe instanceof CraftingRecipe unpackingRecipe)) continue;
+            if (!isUnpackingRecipe(unpackingRecipe, packingRecipes, registries)) continue;
+            result.add(unpackingRecipe);
+        }
+
+        return result;
+    }
+
+    private static List<CraftingRecipe> findPackingRecipes(List<? extends Recipe<?>> recipes) {
+        List<CraftingRecipe> packingRecipes = new ArrayList<>();
+
+        for (Recipe<?> recipe : recipes) {
+            if (!(recipe instanceof CraftingRecipe packingRecipe)) continue;
+            if (packingRecipe instanceof MechanicalCraftingRecipe) continue;
+            if (AllRecipeTypes.shouldIgnoreInAutomation(packingRecipe)) continue;
+
+            NonNullList<Ingredient> ingredients = packingRecipe.getIngredients();
+            if ((ingredients.size() != 4 && ingredients.size() != 9)
+                    || !ItemHelper.matchAllIngredients(ingredients)) continue;
+
+            packingRecipes.add(packingRecipe);
+        }
+
+        return packingRecipes;
+    }
+
+    private static boolean isUnpackingRecipe(CraftingRecipe unpackingRecipe,
+                                             List<CraftingRecipe> packingRecipes,
+                                             RegistryAccess registries) {
+        if (AllRecipeTypes.shouldIgnoreInAutomation(unpackingRecipe)) return false;
+
+        for (CraftingRecipe packingRecipe : packingRecipes) {
+            if (isReversePair(unpackingRecipe, packingRecipe, registries)) return true;
+        }
+
+        return false;
+    }
+
+    private static boolean isReversePair(CraftingRecipe unpackingRecipe, CraftingRecipe packingRecipe,
+                                         RegistryAccess registries) {
+        NonNullList<Ingredient> unpackingIngredients = unpackingRecipe.getIngredients();
+        if (unpackingIngredients.size() != 1 || unpackingIngredients.get(0).isEmpty()) return false;
+
+        ItemStack unpackedResult = unpackingRecipe.getResultItem(registries);
+        int unpackedCount = unpackedResult.getCount();
+        if (unpackedResult.isEmpty() || (unpackedCount != 4 && unpackedCount != 9)) return false;
+
+        NonNullList<Ingredient> packingIngredients = packingRecipe.getIngredients();
+        if (packingIngredients.size() != unpackedCount) return false;
+
+        ItemStack packedResult = packingRecipe.getResultItem(registries);
+        if (packedResult.isEmpty() || packedResult.getCount() != 1
+                || !unpackingIngredients.get(0).test(packedResult)) return false;
+
+        for (Ingredient ingredient : packingIngredients) {
+            if (!ingredient.test(unpackedResult)) return false;
+        }
+
+        return true;
+    }
+
+    public static Optional<CraftingRecipe> findUnpacking(ItemStack stack) {
+        if (stack.isEmpty()) return Optional.empty();
+
+        CraftingRecipe recipe = unpackingByInput.get(stack.getItem());
+        if (recipe == null || !recipe.getIngredients().get(0).test(stack)) return Optional.empty();
+        return Optional.of(recipe);
     }
 
     static void initCurving(MinecraftServer level) {

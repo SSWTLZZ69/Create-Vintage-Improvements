@@ -167,8 +167,7 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 		if(this.getLevel() == null) return false;
 		if (Mth.abs(getSpeed()) == 0) return false;
 		if(!inputInv.getStackInSlot(0).equals(stack, true)) {
-			inputInv.setStackInSlot(0, stack);
-			recipeCache = find(new RecipeWrapper(inputInv), this.getLevel());
+			recipeCache = findCurrentRecipe(stack);
 			chargeAccumulator = 0;
 		}
 		if(recipeCache.isPresent()) {
@@ -183,6 +182,15 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 
 			chargeAccumulator += energyRemoved;
 			if(chargeAccumulator >= recipe.getEnergy()) {
+				recipeCache = findCurrentRecipe(transported.stack);
+				if (recipeCache.isEmpty()) {
+					chargeAccumulator = 0;
+					return false;
+				}
+				recipe = recipeCache.get();
+				if (chargeAccumulator < recipe.getEnergy())
+					return true;
+
 				TransportedItemStack remainingStack = transported.copy();
 				int inputCount = recipe.getIngredients().get(0).getItems()[0].getCount();
 				List<ItemStack> outputs = RecipeApplier.applyRecipeOn(level,
@@ -208,9 +216,8 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 
 		if(this.getLevel() == null) return false;
 		if (Mth.abs(getSpeed()) == 0) return false;
-		if(!inputInv.getStackInSlot(0).is(item.getItem())) {
-			inputInv.setStackInSlot(0, item);
-			recipeCache = find(new RecipeWrapper(inputInv), this.getLevel());
+		if(!inputInv.getStackInSlot(0).equals(item, true)) {
+			recipeCache = findCurrentRecipe(item);
 			chargeAccumulator = 0;
 		}
 		if(recipeCache.isPresent()) {
@@ -225,6 +232,15 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 
 			chargeAccumulator += energyRemoved;
 			if(chargeAccumulator >= recipe.getEnergy()) {
+				recipeCache = findCurrentRecipe(item);
+				if (recipeCache.isEmpty()) {
+					chargeAccumulator = 0;
+					return false;
+				}
+				recipe = recipeCache.get();
+				if (chargeAccumulator < recipe.getEnergy())
+					return true;
+
 				ItemStack itemCreated = ItemStack.EMPTY;
 				for (ItemStack result : RecipeApplier.applyRecipeOn(level, ItemHandlerHelper.copyStackWithSize(item, 1),
 						recipe, true)) {
@@ -246,6 +262,11 @@ public class LaserBlockEntity extends ElectricKineticBlockEntity implements IHav
 		}
 
 		return false;
+	}
+
+	private Optional<LaserCuttingRecipe> findCurrentRecipe(ItemStack stack) {
+		inputInv.setStackInSlot(0, stack);
+		return find(new RecipeWrapper(inputInv), level);
 	}
 
 	public Optional<LaserCuttingRecipe> find(RecipeWrapper wrapper, Level world) {

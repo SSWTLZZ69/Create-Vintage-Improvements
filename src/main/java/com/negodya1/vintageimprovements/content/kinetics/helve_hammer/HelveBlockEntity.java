@@ -338,7 +338,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 					Optional<HammeringRecipe> assemblyRecipe = SequencedAssemblyRecipe.
 							getRecipe(level, inputInv.getStackInSlot(i),
 									VintageRecipes.HAMMERING.getType(), HammeringRecipe.class);
-					if (assemblyRecipe.isPresent()) {
+					if (assemblyRecipe.isPresent() && HammeringRecipe.match(this, assemblyRecipe.get())) {
 						boolean found = true;
 
 						for (Ingredient cur : assemblyRecipe.get().getIngredients()) {
@@ -456,17 +456,26 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	}
 
 	private void process() {
+		// Sequenced assembly binds the next result to a shared recipe instance.
+		// Refresh it at completion so another machine cannot overwrite that result.
+		if (lastRecipeIsAssembly)
+			lastHammeringRecipe = null;
+
 		if (lastHammeringRecipe == null || !HammeringRecipe.match(this, lastHammeringRecipe)) {
 			boolean found = false;
-			Optional<HammeringRecipe> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level, inputInv,
-					VintageRecipes.HAMMERING.getType(), HammeringRecipe.class);
-			if (assemblyRecipe.isPresent()) {
-				lastHammeringRecipe = assemblyRecipe.get();
-				lastRecipeIsAssembly = true;
-				found = true;
+			for (int i = 0; i < inputInv.getSlots(); i++) {
+				Optional<HammeringRecipe> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level,
+						inputInv.getStackInSlot(i), VintageRecipes.HAMMERING.getType(), HammeringRecipe.class);
+				if (assemblyRecipe.isPresent() && HammeringRecipe.match(this, assemblyRecipe.get())) {
+					lastHammeringRecipe = assemblyRecipe.get();
+					lastRecipeIsAssembly = true;
+					found = true;
+					break;
+				}
 			}
 
 			if (!found) {
+				lastRecipeIsAssembly = false;
 				List<Recipe<?>> recipes = getRecipes();
 				if (!recipes.isEmpty()) {
 					lastHammeringRecipe = (HammeringRecipe) recipes.get(0);

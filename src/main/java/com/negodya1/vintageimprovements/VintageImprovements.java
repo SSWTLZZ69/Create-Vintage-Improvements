@@ -33,6 +33,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -642,6 +643,13 @@ public class VintageImprovements {
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         VintageRecipesList.init(event.getServer());
+        logThis("Loaded auto_unpacking=" + VintageRecipesList.getUnpacking().size());
+    }
+
+    @SubscribeEvent
+    public void onDatapackSync(OnDatapackSyncEvent event) {
+        if (event.getPlayer() == null)
+            VintageRecipesList.init(event.getPlayerList().getServer());
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
