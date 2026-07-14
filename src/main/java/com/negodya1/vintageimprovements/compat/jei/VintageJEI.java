@@ -23,7 +23,6 @@ import com.negodya1.vintageimprovements.content.kinetics.laser.LaserCuttingRecip
 import com.negodya1.vintageimprovements.content.kinetics.lathe.TurningRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.vibration.LeavesVibratingRecipe;
 import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingRecipe;
-import com.negodya1.vintageimprovements.content.kinetics.vibration.VibratingTableBlockEntity;
 import com.negodya1.vintageimprovements.infrastructure.config.VCRecipes;
 import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
 import com.simibubi.create.AllBlocks;
@@ -159,10 +158,11 @@ private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath
 
 		ALL.add(builder(CraftingRecipe.class)
 				.enableWhen(c -> c.allowUnpackingOnVibratingTable)
-				.addAllRecipesIf(r -> r instanceof CraftingRecipe && !(r instanceof ShapedRecipe)
-						&& r.getIngredients()
-						.size() == 1
-						&& VibratingTableBlockEntity.canUnpack(r))
+				.addRecipeListConsumer(recipes -> {
+					List<RecipeHolder<?>> allRecipes = new ArrayList<>();
+					consumeAllRecipes(allRecipes::add);
+					recipes.addAll(VintageRecipesList.findUnpackingRecipes(allRecipes, RegistryAccess.EMPTY));
+				})
 				.catalyst(VintageBlocks.VIBRATING_TABLE::get)
 				.doubleItemIcon(VintageBlocks.VIBRATING_TABLE.get(), Blocks.IRON_BLOCK)
 				.emptyBackground(177, 70)

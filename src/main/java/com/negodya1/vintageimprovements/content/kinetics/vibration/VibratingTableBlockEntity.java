@@ -22,7 +22,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -34,8 +33,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -67,7 +64,6 @@ public class VibratingTableBlockEntity extends KineticBlockEntity {
 	boolean lastRecipeIsAssembly;
 	VintageAdvancementBehaviour advancementBehaviour;
 
-	public static final TagKey<Item> storageTag = ItemTags.create(ResourceLocation.fromNamespaceAndPath("forge", "storage_blocks"));
 	public static final TagKey<Item> leavesTag = ItemTags.create(ResourceLocation.fromNamespaceAndPath("minecraft", "leaves"));
 
 	public VibratingTableBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -229,13 +225,6 @@ public class VibratingTableBlockEntity extends KineticBlockEntity {
 		return canProcess(inputInv.getStackInSlot(0));
 	}
 
-	public static boolean canUnpack(Recipe<?> recipe) {
-		if (!(recipe instanceof CraftingRecipe) || !VintageConfig.server().recipes.allowUnpackingOnVibratingTable.get()) return false;
-		NonNullList<Ingredient> ingredients = recipe.getIngredients();
-		if (ingredients.size() == 1) return ingredients.get(0).getItems()[0].is(storageTag);
-		return false;
-	}
-
 	private boolean canProcess(ItemStack stack) {
 		if (Mth.abs(getSpeed()) < IRotate.SpeedLevel.FAST.getSpeedValue()) return false;
 
@@ -255,7 +244,8 @@ public class VibratingTableBlockEntity extends KineticBlockEntity {
 		if (VintageConfig.server().recipes.allowVibratingLeaves.get() && VintageRecipes.LEAVES_VIBRATING.find(inventoryIn, level)
 				.isPresent()) return true;
 
-		return (tester.getStackInSlot(0).is(storageTag) && VintageConfig.server().recipes.allowUnpackingOnVibratingTable.get());
+		return VintageConfig.server().recipes.allowUnpackingOnVibratingTable.get()
+				&& VintageRecipesList.findUnpacking(stack).isPresent();
 	}
 
 	private void process() {
@@ -279,31 +269,22 @@ public class VibratingTableBlockEntity extends KineticBlockEntity {
 				}
 			}
 
-			if (!found && VintageConfig.server().recipes.allowUnpackingOnVibratingTable.get() && inputInv.getStackInSlot(0).is(storageTag)) {
-				List<CraftingRecipe> recipes = VintageRecipesList.getUnpacking();
-				for (CraftingRecipe recipe : recipes) {
-					if (recipe.getIngredients().size() > 1) continue;
+			if (!found && VintageConfig.server().recipes.allowUnpackingOnVibratingTable.get()) {
+				Optional<CraftingRecipe> unpackingRecipe =
+						VintageRecipesList.findUnpacking(inputInv.getStackInSlot(0));
+				if (unpackingRecipe.isPresent()) {
+					ItemStack stackInSlot = inputInv.getStackInSlot(0);
+					stackInSlot.shrink(1);
+					inputInv.setStackInSlot(0, stackInSlot);
 
-					NonNullList<Ingredient> in = recipe.getIngredients();
-					for (Ingredient i : in) {
-						for (ItemStack stack : i.getItems()) {
-							Item ingredient = stack.getItem();
-							if (ingredient == inputInv.getStackInSlot(0).getItem()) {
-								ItemStack stackInSlot = inputInv.getStackInSlot(0);
-								stackInSlot.shrink(1);
-								inputInv.setStackInSlot(0, stackInSlot);
+					ItemStack result = unpackingRecipe.get().getResultItem(level.registryAccess()).copy();
+					ItemHandlerHelper.insertItemStacked(outputInv, result, false);
+					advancementBehaviour.awardVintageAdvancement(VintageAdvancements.USE_VIBRATION_TABLE);
 
-								ItemStack result = recipe.getResultItem(RegistryAccess.EMPTY).copy();
-								ItemHandlerHelper.insertItemStacked(outputInv, result, false);
-								advancementBehaviour.awardVintageAdvancement(VintageAdvancements.USE_VIBRATION_TABLE);
+					sendData();
+					setChanged();
 
-								sendData();
-								setChanged();
-
-								return;
-							}
-						}
-					}
+					return;
 				}
 			}
 

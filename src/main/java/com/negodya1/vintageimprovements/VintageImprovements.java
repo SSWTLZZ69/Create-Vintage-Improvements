@@ -35,6 +35,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -665,7 +666,14 @@ public class VintageImprovements {
                 + ", hammering=" + event.getServer().getRecipeManager().getAllRecipesFor(VintageRecipes.HAMMERING.getType()).size()
                 + ", auto_smithing=" + event.getServer().getRecipeManager().getAllRecipesFor(VintageRecipes.AUTO_SMITHING.getType()).size()
                 + ", turning=" + event.getServer().getRecipeManager().getAllRecipesFor(VintageRecipes.TURNING.getType()).size()
-                + ", laser_cutting=" + event.getServer().getRecipeManager().getAllRecipesFor(VintageRecipes.LASER_CUTTING.getType()).size());
+                + ", laser_cutting=" + event.getServer().getRecipeManager().getAllRecipesFor(VintageRecipes.LASER_CUTTING.getType()).size()
+                + ", auto_unpacking=" + VintageRecipesList.getUnpacking().size());
+    }
+
+    @SubscribeEvent
+    public void onDatapackSync(OnDatapackSyncEvent event) {
+        if (event.getPlayer() == null)
+            VintageRecipesList.init(event.getPlayerList().getServer());
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent

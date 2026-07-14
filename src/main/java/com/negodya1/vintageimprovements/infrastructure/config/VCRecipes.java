@@ -55,7 +55,7 @@ public class VCRecipes extends ConfigBase {
 		static String mediumSpeedValue = "Medium speed value for grinder crafts, speedLimits = 2.";
 		static String allowSandpaperPolishingOnGrinder = "Allows sandpaper crafts on belt grinder, when recipes collides belt grinder recipe have priority.";
 		static String speedLimitsForSandpaperPolishingRecipes = "Works only when \"allowSandpaperPolishingOnGrinder\" is true. Defines speed limits for sandpaper recipes on belt grinder.";
-		static String allowUnpackingOnVibratingTable = "Allows unpacking storage blocks crafts on vibrating table.";
+		static String allowUnpackingOnVibratingTable = "Allows reversible 4-to-1 and 9-to-1 packing crafts to be unpacked on the vibrating table.";
 		static String allowVibratingLeaves = "Allows vibrating leaves on vibrating table to get matching drops.";
 		static String allowAutoCurvingRecipes = "Allows automatic recognize recipes for curving press";
 		static String grinder = "Grinder settings";
