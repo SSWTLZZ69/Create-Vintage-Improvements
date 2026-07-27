@@ -69,7 +69,6 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	public LazyOptional<IFluidHandler> fluidCapability;
 	boolean mode;
 	VintageAdvancementBehaviour advancementBehaviour;
-	private int recipeContextVersion;
 
 	// 配方自身无法肯定是否为序列装配配方的一部分，也不能知道在处理装配的第几步
 	// 在不修改本体代码的前提下，只能让机器来记忆是否在执行序列装配配方
@@ -83,19 +82,10 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	}
 
 	public boolean changeMode() {
+		basinChecker.scheduleUpdate();
 		mode = !mode;
-		scheduleRecipeContextUpdate();
         notifyUpdate();
 		return mode;
-	}
-
-	private void scheduleRecipeContextUpdate() {
-		recipeContextVersion++;
-		basinChecker.scheduleUpdate();
-	}
-
-	public int vintageImprovements$getRecipeContextVersion() {
-		return recipeContextVersion;
 	}
 
 	public float getRenderedHeadOffset(float partialTicks) {
@@ -127,9 +117,9 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 
 		// 检测到副流体内容变化，需要让工作盆重新检查配方
 		inputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.INPUT, this, 2, 1000, true)
-				.whenFluidUpdates(this::scheduleRecipeContextUpdate);
+				.whenFluidUpdates(() -> basinChecker.scheduleUpdate());
 		outputTank = new SmartFluidTankBehaviour(SmartFluidTankBehaviour.OUTPUT, this, 2, 1000, true)
-				.whenFluidUpdates(this::scheduleRecipeContextUpdate)
+				.whenFluidUpdates(() -> basinChecker.scheduleUpdate())
 				.forbidInsertion();
 		behaviours.add(inputTank);
 		behaviours.add(outputTank);
