@@ -1,25 +1,27 @@
 ﻿{
     "type":  "createaddition:rolling",
-    "input":  {
-                  "tag":  "c:ingots/tin"
-              },
-    "result":  {
-                   "count":  2,
-                   "id":  "vintageimprovements:tin_rod"
-               },
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/tin"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  2,
+                        "id":  "vintageimprovements:tin_rod"
+                    }
+                ],
     "neoforge:conditions":  [
-                       {
-                           "type":  "neoforge:mod_loaded",
-                           "modid":  "createaddition"
-                       },
-                       {
-                           "type":  "neoforge:not",
-                           "value":  {
-                                         "type":  "neoforge:tag_empty",
-                                         "tag":  "c:ingots/tin"
-                                     }
-                       }
-                   ]
+                                {
+                                    "type":  "neoforge:mod_loaded",
+                                    "modid":  "createaddition"
+                                },
+                                {
+                                    "type":  "neoforge:not",
+                                    "value":  {
+                                                  "type":  "neoforge:tag_empty",
+                                                  "tag":  "c:ingots/tin"
+                                              }
+                                }
+                            ]
 }
-
-

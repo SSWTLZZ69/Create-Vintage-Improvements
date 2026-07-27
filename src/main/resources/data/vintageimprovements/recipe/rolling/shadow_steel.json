@@ -1,18 +1,20 @@
 ﻿{
     "type":  "createaddition:rolling",
-    "input":  {
-                  "tag":  "c:ingots/shadow_steel"
-              },
-    "result":  {
-                   "count":  2,
-                   "id":  "vintageimprovements:shadow_steel_rod"
-               },
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/shadow_steel"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  2,
+                        "id":  "vintageimprovements:shadow_steel_rod"
+                    }
+                ],
     "neoforge:conditions":  [
-                       {
-                           "type":  "neoforge:mod_loaded",
-                           "modid":  "createaddition"
-                       }
-                   ]
+                                {
+                                    "type":  "neoforge:mod_loaded",
+                                    "modid":  "createaddition"
+                                }
+                            ]
 }
-
-

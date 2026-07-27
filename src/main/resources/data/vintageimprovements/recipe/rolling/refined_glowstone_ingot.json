@@ -1,25 +1,27 @@
 ﻿{
     "type":  "createaddition:rolling",
-    "input":  {
-                  "tag":  "c:ingots/refined_glowstone"
-              },
-    "result":  {
-                   "count":  2,
-                   "id":  "vintageimprovements:refined_glowstone_rod"
-               },
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/refined_glowstone"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  2,
+                        "id":  "vintageimprovements:refined_glowstone_rod"
+                    }
+                ],
     "neoforge:conditions":  [
-                       {
-                           "type":  "neoforge:mod_loaded",
-                           "modid":  "createaddition"
-                       },
-                       {
-                           "type":  "neoforge:not",
-                           "value":  {
-                                         "type":  "neoforge:tag_empty",
-                                         "tag":  "c:ingots/refined_glowstone"
-                                     }
-                       }
-                   ]
+                                {
+                                    "type":  "neoforge:mod_loaded",
+                                    "modid":  "createaddition"
+                                },
+                                {
+                                    "type":  "neoforge:not",
+                                    "value":  {
+                                                  "type":  "neoforge:tag_empty",
+                                                  "tag":  "c:ingots/refined_glowstone"
+                                              }
+                                }
+                            ]
 }
-
-

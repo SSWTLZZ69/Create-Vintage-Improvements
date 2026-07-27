@@ -1,25 +1,27 @@
 ﻿{
     "type":  "createaddition:rolling",
-    "input":  {
-                  "tag":  "c:ingots/nickel"
-              },
-    "result":  {
-                   "count":  2,
-                   "id":  "vintageimprovements:nickel_rod"
-               },
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/nickel"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  2,
+                        "id":  "vintageimprovements:nickel_rod"
+                    }
+                ],
     "neoforge:conditions":  [
-                       {
-                           "type":  "neoforge:mod_loaded",
-                           "modid":  "createaddition"
-                       },
-                       {
-                           "type":  "neoforge:not",
-                           "value":  {
-                                         "type":  "neoforge:tag_empty",
-                                         "tag":  "c:ingots/nickel"
-                                     }
-                       }
-                   ]
+                                {
+                                    "type":  "neoforge:mod_loaded",
+                                    "modid":  "createaddition"
+                                },
+                                {
+                                    "type":  "neoforge:not",
+                                    "value":  {
+                                                  "type":  "neoforge:tag_empty",
+                                                  "tag":  "c:ingots/nickel"
+                                              }
+                                }
+                            ]
 }
-
-

@@ -1,25 +1,27 @@
 ﻿{
     "type":  "createaddition:rolling",
-    "input":  {
-                  "tag":  "c:ingots/aluminum"
-              },
-    "result":  {
-                   "count":  2,
-                   "id":  "vintageimprovements:aluminum_rod"
-               },
+    "ingredients":  [
+                        {
+                            "tag":  "c:ingots/aluminum"
+                        }
+                    ],
+    "results":  [
+                    {
+                        "count":  2,
+                        "id":  "vintageimprovements:aluminum_rod"
+                    }
+                ],
     "neoforge:conditions":  [
-                       {
-                           "type":  "neoforge:mod_loaded",
-                           "modid":  "createaddition"
-                       },
-                       {
-                           "type":  "neoforge:not",
-                           "value":  {
-                                         "type":  "neoforge:tag_empty",
-                                         "tag":  "c:ingots/aluminum"
-                                     }
-                       }
-                   ]
+                                {
+                                    "type":  "neoforge:mod_loaded",
+                                    "modid":  "createaddition"
+                                },
+                                {
+                                    "type":  "neoforge:not",
+                                    "value":  {
+                                                  "type":  "neoforge:tag_empty",
+                                                  "tag":  "c:ingots/aluminum"
+                                              }
+                                }
+                            ]
 }
-
-
