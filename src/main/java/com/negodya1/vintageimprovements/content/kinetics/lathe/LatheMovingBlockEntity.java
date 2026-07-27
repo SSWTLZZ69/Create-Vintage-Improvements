@@ -13,6 +13,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -27,7 +28,7 @@ import java.util.*;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class LatheMovingBlockEntity extends KineticBlockEntity implements MenuProvider, IHaveGoggleInformation {
+public class LatheMovingBlockEntity extends KineticBlockEntity implements MenuProvider, IHaveGoggleInformation, Clearable {
 
 	public SmartInventory recipeSlot;
 	public TurningRecipe currentRecipe;
@@ -73,6 +74,11 @@ public class LatheMovingBlockEntity extends KineticBlockEntity implements MenuPr
 	
 	@Override
 	public void destroy() {super.destroy();}
+
+	@Override
+	public void clearContent() {
+		recipeSlot.clearContent();
+	}
 
 	@Override
 	public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {

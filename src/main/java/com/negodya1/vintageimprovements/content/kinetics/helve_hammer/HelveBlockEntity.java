@@ -31,6 +31,7 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -56,7 +57,7 @@ import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInformation {
+public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInformation, Clearable {
 	public SmartInventory inputInv;
 	public SmartInventory bufInv;
 	public SmartInventory outputInv;
@@ -574,6 +575,14 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 			ItemHandlerHelper.insertItemStacked(coverInv, new ItemStack(VintageItems.HELVE_HAMMER_SLOT_COVER.get(), blockedSlots), false);
 			ItemHelper.dropContents(level, worldPosition, coverInv);
 		}
+	}
+
+	@Override
+	public void clearContent() {
+		inputInv.clearContent();
+		bufInv.clearContent();
+		outputInv.clearContent();
+		blockedSlots = 0;
 	}
 
 	public boolean canProcess() {

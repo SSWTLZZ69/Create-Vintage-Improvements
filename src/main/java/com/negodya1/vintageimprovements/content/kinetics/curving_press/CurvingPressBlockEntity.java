@@ -34,6 +34,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
@@ -45,7 +46,7 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 
-public class CurvingPressBlockEntity extends KineticBlockEntity implements CurvingBehaviourSpecifics {
+public class CurvingPressBlockEntity extends KineticBlockEntity implements CurvingBehaviourSpecifics, Clearable {
 
 	private static final Object curvingRecipesKey = new Object();
 
@@ -148,6 +149,14 @@ public class CurvingPressBlockEntity extends KineticBlockEntity implements Curvi
 			ItemHandlerHelper.insertItemStacked(headInv, VintageItems.REDSTONE_MODULE.asStack(), false);
 			ItemHelper.dropContents(level, worldPosition, headInv);
 		}
+	}
+
+	@Override
+	public void clearContent() {
+		itemAsHead.clearContent();
+		mode = 0;
+		durability = 0;
+		redstoneModule = false;
 	}
 
 	public CurvingBehaviour getPressingBehaviour() {

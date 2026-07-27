@@ -1,6 +1,7 @@
 package com.negodya1.vintageimprovements;
 
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancements;
+import com.negodya1.vintageimprovements.foundation.contraption.VintageBlockMovementChecks;
 import com.negodya1.vintageimprovements.foundation.data.VintageRegistrate;
 import com.negodya1.vintageimprovements.infrastructure.config.VintageConfig;
 import com.negodya1.vintageimprovements.infrastructure.ponder.VintagePonderPlugin;
@@ -636,6 +637,7 @@ public class VintageImprovements {
     }
 
     private static void commonSetup(final FMLCommonSetupEvent event) {
+        VintageBlockMovementChecks.register();
         VintageFluids.registerFluidInteractions();
     }
 

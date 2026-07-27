@@ -118,8 +118,10 @@ public class HelveKineticBlock extends DirectionalKineticBlock implements IWrenc
 
 	@Override
 	public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
+		if (pState.is(pNewState.getBlock()))
+			return;
 		pLevel.removeBlockEntity(pPos);
-		if (stillValid(pLevel, pPos, pState, false))
+		if (!pIsMoving && stillValid(pLevel, pPos, pState, false))
 			pLevel.destroyBlock(getMaster(pLevel, pPos, pState), true);
 	}
 

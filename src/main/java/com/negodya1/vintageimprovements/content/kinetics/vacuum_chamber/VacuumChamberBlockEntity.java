@@ -145,7 +145,9 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		running = compound.getBoolean("Running");
 		runningTicks = compound.getInt("Ticks");
 		mode = compound.getBoolean("Mode");
-		sequencedAssemblyStep = compound.getInt("sequencedAssemblyStep");
+		sequencedAssemblyStep = compound.contains("sequencedAssemblyStep")
+				? compound.getInt("sequencedAssemblyStep")
+				: compound.getInt("isSequencedAssembly");
 		super.read(compound, registries, clientPacket);
 
 		if (clientPacket && hasLevel())
@@ -157,7 +159,7 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		compound.putBoolean("Running", running);
 		compound.putInt("Ticks", runningTicks);
 		compound.putBoolean("Mode", mode);
-		compound.putInt("isSequencedAssembly", sequencedAssemblyStep);
+		compound.putInt("sequencedAssemblyStep", sequencedAssemblyStep);
 		super.write(compound, registries, clientPacket);
 	}
 

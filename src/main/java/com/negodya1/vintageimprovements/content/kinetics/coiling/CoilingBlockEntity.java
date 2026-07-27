@@ -43,6 +43,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -60,7 +61,7 @@ import static net.minecraft.world.level.block.state.properties.BlockStatePropert
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CoilingBlockEntity extends KineticBlockEntity {
+public class CoilingBlockEntity extends KineticBlockEntity implements Clearable {
 
 	private static final Object coilingRecipesKey = new Object();
 
@@ -260,6 +261,13 @@ public class CoilingBlockEntity extends KineticBlockEntity {
 	public void destroy() {
 		super.destroy();
 		ItemHelper.dropContents(level, worldPosition, inventory);
+	}
+
+	@Override
+	public void clearContent() {
+		inventory.clear();
+		if (filtering != null)
+			filtering.setFilter(ItemStack.EMPTY);
 	}
 
 	protected void spawnEventParticles(ItemStack stack) {

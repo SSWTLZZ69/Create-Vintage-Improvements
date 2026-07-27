@@ -27,6 +27,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -50,7 +51,7 @@ import static net.minecraft.ChatFormatting.GOLD;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHaveGoggleInformation {
+public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHaveGoggleInformation, Clearable {
 
 	private static final Object turningRecipesKey = new Object();
 
@@ -260,6 +261,12 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 		LatheMovingBlockEntity be = (LatheMovingBlockEntity) level.getBlockEntity(LatheRotatingBlock.getSlave(level, worldPosition, this.getBlockState()));
 		if (be != null)
 			ItemHelper.dropContents(level, LatheRotatingBlock.getSlave(level, worldPosition, this.getBlockState()), be.recipeSlot);
+	}
+
+	@Override
+	public void clearContent() {
+		inputInv.clearContent();
+		outputInv.clearContent();
 	}
 
 	public boolean checkItem(ItemStack stack) {

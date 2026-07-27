@@ -32,6 +32,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -54,7 +55,7 @@ import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGoggleInformation {
+public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGoggleInformation, Clearable {
 	public SmartInventory inputInv;
 	public SmartInventory outputInv;
 	public SmartFluidTankBehaviour inputTank;
@@ -366,6 +367,14 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 		}
 		ItemHelper.dropContents(level, worldPosition, inputInv);
 		ItemHelper.dropContents(level, worldPosition, outputInv);
+	}
+
+	@Override
+	public void clearContent() {
+		inputInv.clearContent();
+		outputInv.clearContent();
+		basins = 0;
+		redstoneApp = false;
 	}
 
 	public boolean canProcess() {

@@ -31,6 +31,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -54,7 +55,7 @@ import java.util.*;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class VibratingTableBlockEntity extends KineticBlockEntity {
+public class VibratingTableBlockEntity extends KineticBlockEntity implements Clearable {
 	public SmartInventory inputInv;
 	public SmartInventory outputInv;
 	public IItemHandler capability;
@@ -219,6 +220,12 @@ public class VibratingTableBlockEntity extends KineticBlockEntity {
 		super.destroy();
 		ItemHelper.dropContents(level, worldPosition, inputInv);
 		ItemHelper.dropContents(level, worldPosition, outputInv);
+	}
+
+	@Override
+	public void clearContent() {
+		inputInv.clearContent();
+		outputInv.clearContent();
 	}
 
 	public boolean haveRecipe() {

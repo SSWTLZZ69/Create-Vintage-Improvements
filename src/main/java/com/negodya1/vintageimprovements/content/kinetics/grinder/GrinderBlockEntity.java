@@ -48,6 +48,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -65,7 +66,7 @@ import static net.minecraft.world.level.block.state.properties.BlockStatePropert
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggleInformation {
+public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggleInformation, Clearable {
 
 	private static final Object polishingRecipesKey = new Object();
 
@@ -273,6 +274,13 @@ public class GrinderBlockEntity extends KineticBlockEntity implements IHaveGoggl
 	public void destroy() {
 		super.destroy();
 		ItemHelper.dropContents(level, worldPosition, inventory);
+	}
+
+	@Override
+	public void clearContent() {
+		inventory.clear();
+		if (filtering != null)
+			filtering.setFilter(ItemStack.EMPTY);
 	}
 
 	protected void spawnEventParticles(ItemStack stack) {
