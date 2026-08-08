@@ -1,6 +1,9 @@
 {
     "type":  "vintageimprovements:pressurizing",
-    "secondary_fluid_output":  0,
+    "secondary_fluid_output":  {
+                               "id": "vintageimprovements:sulfur_trioxide",
+                               "amount": 250
+                           },
     "ingredients":  [
                         {
                             "amount":  250,
@@ -11,12 +14,7 @@
                             "tag":  "c:nuggets/vanadium"
                         }
                     ],
-    "results":  [
-                    {
-                        "amount":  250,
-                        "id":  "vintageimprovements:sulfur_trioxide"
-                    }
-                ],
+    "results":  [],
     "processing_time":  400,
     "heat_requirement":  "heated"
 }

@@ -1,3 +1,35 @@
 {
-  "parent": "create:base/processing_with_time"
+  "parent": "create:base/processing_with_time",
+  "hidden": false,
+  "keys": [
+    {
+      "name": "secondary_fluid_output",
+      "role": "output",
+      "type": {
+        "type": "either",
+        "left": "optional_fluid_stack",
+        "right": {
+          "type": "int"
+        }
+      },
+      "alternative_names": ["secondary_fluid_output", "secondaryFluidOutput"],
+      "optional": {}
+    },
+    {
+      "name": "secondary_fluid_input",
+      "role": "input",
+      "type": {
+        "type": "either",
+        "left": "optional_fluid_stack",
+        "right": {
+          "type": "int"
+        }
+      },
+      "alternative_names": ["secondary_fluid_input", "secondaryFluidInput"],
+      "optional": {}
+    }
+  ],
+  "merge": {
+    "keys": true
+  }
 }

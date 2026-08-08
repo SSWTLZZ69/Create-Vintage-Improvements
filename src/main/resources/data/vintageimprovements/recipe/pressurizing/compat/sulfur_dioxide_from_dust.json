@@ -9,18 +9,16 @@
                                      }
                        }
                    ],
-    "secondary_fluid_output":  0,
+    "secondary_fluid_output":  {
+                               "id": "vintageimprovements:sulfur_dioxide",
+                               "amount": 1000
+                           },
     "ingredients":  [
                         {
                             "tag":  "c:dusts/sulfur"
                         }
                     ],
-    "results":  [
-                    {
-                        "amount":  1000,
-                        "id":  "vintageimprovements:sulfur_dioxide"
-                    }
-                ],
+    "results":  [],
     "processing_time":  400,
     "heat_requirement":  "heated"
 }

@@ -1,18 +1,16 @@
 ﻿{
     "type":  "vintageimprovements:pressurizing",
-    "secondary_fluid_output": 0,
+    "secondary_fluid_output": {
+                               "id": "vintageimprovements:sulfur_dioxide",
+                               "amount": 1000
+                           },
     "heat_requirement":  "heated",
     "ingredients":  [
                         {
                             "tag":  "c:gems/sulfur"
                         }
                     ],
-    "results":  [
-                    {
-                        "id":  "vintageimprovements:sulfur_dioxide",
-                        "amount":  1000
-                    }
-                ],
+    "results":  [],
     "processing_time":  600
 }
 

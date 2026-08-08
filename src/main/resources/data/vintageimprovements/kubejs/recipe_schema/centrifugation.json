@@ -1,3 +1,17 @@
 {
-  "parent": "create:base/processing_unwrapped"
+  "parent": "create:base/processing_unwrapped",
+  "hidden": false,
+  "keys": [
+    {
+      "name": "minimal_rpm",
+      "type": {
+        "type": "int"
+      },
+      "alternative_names": ["minimal_rpm", "minimalRPM"],
+      "optional": 100
+    }
+  ],
+  "merge": {
+    "keys": true
+  }
 }

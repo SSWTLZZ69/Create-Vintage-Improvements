@@ -1,12 +1,15 @@
 package com.negodya1.vintageimprovements;
 
+import com.mojang.datafixers.util.Either;
 import dev.latvian.mods.kubejs.recipe.RecipeKey;
 import dev.latvian.mods.kubejs.recipe.RecipeSchemaProvider;
 import dev.latvian.mods.kubejs.recipe.component.BooleanComponent;
+import dev.latvian.mods.kubejs.recipe.component.FluidStackComponent;
 import dev.latvian.mods.kubejs.recipe.component.NumberComponent;
 import dev.latvian.mods.kubejs.recipe.component.StringComponent;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 public class VintageDataGen {
@@ -31,8 +34,12 @@ public class VintageDataGen {
                 );
 
                 addProcessingSchema("vacuumizing",
-                        NumberComponent.INT.otherKey("secondary_fluid_output").alt("secondaryFluidOutput").optional(-1),
-                        NumberComponent.INT.otherKey("secondary_fluid_input").alt("secondaryFluidInput").optional(-1)
+                        FluidStackComponent.OPTIONAL_FLUID_STACK.instance().or(NumberComponent.INT)
+                                .outputKey("secondary_fluid_output")
+                                .alt("secondaryFluidOutput").optional(Either.left(FluidStack.EMPTY)),
+                        FluidStackComponent.OPTIONAL_FLUID_STACK.instance().or(NumberComponent.INT)
+                                .inputKey("secondary_fluid_input")
+                                .alt("secondaryFluidInput").optional(Either.left(FluidStack.EMPTY))
                 );
 
                 addProcessingSchema("vibrating");
@@ -49,8 +56,12 @@ public class VintageDataGen {
                 );
 
                 addProcessingSchema("pressurizing",
-                        NumberComponent.INT.otherKey("secondary_fluid_output").alt("secondaryFluidOutput").optional(-1),
-                        NumberComponent.INT.otherKey("secondary_fluid_input").alt("secondaryFluidInput").optional(-1)
+                        FluidStackComponent.OPTIONAL_FLUID_STACK.instance().or(NumberComponent.INT)
+                                .outputKey("secondary_fluid_output")
+                                .alt("secondaryFluidOutput").optional(Either.left(FluidStack.EMPTY)),
+                        FluidStackComponent.OPTIONAL_FLUID_STACK.instance().or(NumberComponent.INT)
+                                .inputKey("secondary_fluid_input")
+                                .alt("secondaryFluidInput").optional(Either.left(FluidStack.EMPTY))
                 );
 
                 addProcessingSchema("hammering",

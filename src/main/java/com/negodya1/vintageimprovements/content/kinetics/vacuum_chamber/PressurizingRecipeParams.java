@@ -4,9 +4,12 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipeParams;
+import com.mojang.datafixers.util.Either;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -14,16 +17,20 @@ import java.util.function.Function;
 public class PressurizingRecipeParams extends ProcessingRecipeParams {
 	public static final int DEFAULT_SECONDARY_FLUID_OUTPUT = -1;
 	public static final int DEFAULT_SECONDARY_FLUID_INPUT = -1;
+	private static final Codec<Either<Integer, FluidStack>> SECONDARY_FLUID_CODEC =
+			Codec.either(Codec.INT, FluidStack.CODEC);
 
 	public static final MapCodec<PressurizingRecipeParams> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 			codec(PressurizingRecipeParams::new).forGetter(Function.identity()),
-			Codec.INT.optionalFieldOf("secondary_fluid_output").forGetter(params -> Optional.of(params.secondaryFluidResults)),
-			Codec.INT.optionalFieldOf("secondaryFluidOutput").forGetter(params -> Optional.empty()),
-			Codec.INT.optionalFieldOf("secondary_fluid_input").forGetter(params -> Optional.of(params.secondaryFluidInputs)),
-			Codec.INT.optionalFieldOf("secondaryFluidInput").forGetter(params -> Optional.empty())
+			SECONDARY_FLUID_CODEC.optionalFieldOf("secondary_fluid_output")
+					.forGetter(params -> params.secondaryFluidField(params.secondaryFluidResults, params.secondaryFluidOutput)),
+			SECONDARY_FLUID_CODEC.optionalFieldOf("secondaryFluidOutput").forGetter(params -> Optional.empty()),
+			SECONDARY_FLUID_CODEC.optionalFieldOf("secondary_fluid_input")
+					.forGetter(params -> params.secondaryFluidField(params.secondaryFluidInputs, params.secondaryFluidInput)),
+			SECONDARY_FLUID_CODEC.optionalFieldOf("secondaryFluidInput").forGetter(params -> Optional.empty())
 	).apply(instance, (params, secondaryOutput, legacySecondaryOutput, secondaryInput, legacySecondaryInput) -> {
-		params.secondaryFluidResults = secondaryOutput.or(() -> legacySecondaryOutput).orElse(DEFAULT_SECONDARY_FLUID_OUTPUT);
-		params.secondaryFluidInputs = secondaryInput.or(() -> legacySecondaryInput).orElse(DEFAULT_SECONDARY_FLUID_INPUT);
+		params.setSecondaryOutput(secondaryOutput.or(() -> legacySecondaryOutput).orElse(null));
+		params.setSecondaryInput(secondaryInput.or(() -> legacySecondaryInput).orElse(null));
 		return params;
 	}));
 
@@ -32,6 +39,44 @@ public class PressurizingRecipeParams extends ProcessingRecipeParams {
 
 	protected int secondaryFluidResults = DEFAULT_SECONDARY_FLUID_OUTPUT;
 	protected int secondaryFluidInputs = DEFAULT_SECONDARY_FLUID_INPUT;
+	protected FluidStack secondaryFluidOutput = FluidStack.EMPTY;
+	protected FluidStack secondaryFluidInput = FluidStack.EMPTY;
+
+	private Optional<Either<Integer, FluidStack>> secondaryFluidField(int index, FluidStack stack) {
+		if (!stack.isEmpty())
+			return Optional.of(Either.right(stack));
+		return index >= 0 ? Optional.of(Either.left(index)) : Optional.empty();
+	}
+
+	private void setSecondaryOutput(Either<Integer, FluidStack> secondaryOutput) {
+		if (secondaryOutput == null) {
+			secondaryFluidResults = DEFAULT_SECONDARY_FLUID_OUTPUT;
+			secondaryFluidOutput = FluidStack.EMPTY;
+			return;
+		}
+
+		secondaryOutput.ifLeft(index -> secondaryFluidResults = index)
+				.ifRight(stack -> {
+					secondaryFluidOutput = stack.copy();
+					secondaryFluidResults = fluidResults.size();
+					fluidResults.add(stack.copy());
+				});
+	}
+
+	private void setSecondaryInput(Either<Integer, FluidStack> secondaryInput) {
+		if (secondaryInput == null) {
+			secondaryFluidInputs = DEFAULT_SECONDARY_FLUID_INPUT;
+			secondaryFluidInput = FluidStack.EMPTY;
+			return;
+		}
+
+		secondaryInput.ifLeft(index -> secondaryFluidInputs = index)
+				.ifRight(stack -> {
+					secondaryFluidInput = stack.copy();
+					secondaryFluidInputs = fluidIngredients.size();
+					fluidIngredients.add(SizedFluidIngredient.of(stack));
+				});
+	}
 
 	protected final int secondaryFluidResults() {
 		return secondaryFluidResults;
@@ -57,6 +102,13 @@ public class PressurizingRecipeParams extends ProcessingRecipeParams {
 		params.requiredHeat = recipe.getRequiredHeat();
 		params.secondaryFluidResults = recipe.getSecondaryFluidResults();
 		params.secondaryFluidInputs = recipe.getSecondaryFluidInputs();
+		if (params.secondaryFluidResults >= 0 && params.secondaryFluidResults < params.fluidResults.size())
+			params.secondaryFluidOutput = params.fluidResults.get(params.secondaryFluidResults).copy();
+		if (params.secondaryFluidInputs >= 0 && params.secondaryFluidInputs < params.fluidIngredients.size()) {
+			FluidStack[] fluids = params.fluidIngredients.get(params.secondaryFluidInputs).getFluids();
+			if (fluids.length > 0)
+				params.secondaryFluidInput = fluids[0].copy();
+		}
 		return params;
 	}
 
@@ -72,5 +124,14 @@ public class PressurizingRecipeParams extends ProcessingRecipeParams {
 		super.decode(buffer);
 		secondaryFluidResults = ByteBufCodecs.VAR_INT.decode(buffer);
 		secondaryFluidInputs = ByteBufCodecs.VAR_INT.decode(buffer);
+		secondaryFluidOutput = FluidStack.EMPTY;
+		secondaryFluidInput = FluidStack.EMPTY;
+		if (secondaryFluidResults >= 0 && secondaryFluidResults < fluidResults.size())
+			secondaryFluidOutput = fluidResults.get(secondaryFluidResults).copy();
+		if (secondaryFluidInputs >= 0 && secondaryFluidInputs < fluidIngredients.size()) {
+			FluidStack[] fluids = fluidIngredients.get(secondaryFluidInputs).getFluids();
+			if (fluids.length > 0)
+				secondaryFluidInput = fluids[0].copy();
+		}
 	}
 }
