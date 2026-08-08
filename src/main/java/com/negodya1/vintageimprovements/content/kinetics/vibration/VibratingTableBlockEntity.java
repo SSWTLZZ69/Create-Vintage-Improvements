@@ -42,6 +42,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.client.event.RegisterColorHandlersEvent.Item;
+import net.minecraftforge.common.Tags;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -65,7 +67,8 @@ public class VibratingTableBlockEntity extends KineticBlockEntity implements Cle
 	boolean lastRecipeIsAssembly;
 	VintageAdvancementBehaviour advancementBehaviour;
 
-	public static final TagKey<Item> leavesTag = ItemTags.create(ResourceLocation.fromNamespaceAndPath("minecraft", "leaves"));
+	public static final TagKey<net.minecraft.world.item.Item> leavesTag = 
+    ItemTags.create(ResourceLocation.fromNamespaceAndPath("minecraft", "leaves"));
 
 	public VibratingTableBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -150,6 +153,7 @@ public class VibratingTableBlockEntity extends KineticBlockEntity implements Cle
 		level.addParticle(data, center.x, center.y + 8 / 16f + getRenderedHeadOffset(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false)), center.z, target.x, target.y, target.z);
 	}
 
+	
 	@Override
 	public void tick() {
 		super.tick();
@@ -193,6 +197,24 @@ public class VibratingTableBlockEntity extends KineticBlockEntity implements Cle
 
 			lastRecipeIsAssembly = false;
 
+			// 检查树叶配方（在普通配方之前）
+			if (VintageConfig.server().recipes.allowVibratingLeaves.get()
+					&& inputInv.getStackInSlot(0).is(leavesTag)) {
+				// 使用树叶配方类型的 find 方法
+				Optional<RecipeHolder<LeavesVibratingRecipe>> leafRecipe =
+						VintageRecipes.LEAVES_VIBRATING.find(inventoryIn, level);	
+				if (leafRecipe.isPresent()) {
+					// 不保存 lastRecipe，避免 process() 误用
+					lastRecipe = null;
+					timer = leafRecipe.get().value().getProcessingDuration();
+					// 如果 JSON 中未定义时长，则回退到 100（由配方类决定）
+					if (timer == 0) timer = 100;
+					lastRecipeIsAssembly = false;
+					sendData();
+					return;
+				}
+			}
+			
 			Optional<RecipeHolder<VibratingRecipe>> recipe = VintageRecipes.VIBRATING.find(inventoryIn, level);
 			if (!recipe.isPresent()) {
 				timer = 100;
@@ -203,6 +225,7 @@ public class VibratingTableBlockEntity extends KineticBlockEntity implements Cle
 				sendData();
 			}
 			return;
+			
 		}
 
 		timer = lastRecipe.getProcessingDuration();
@@ -301,13 +324,24 @@ public class VibratingTableBlockEntity extends KineticBlockEntity implements Cle
 				if (stackInSlot.getItem() instanceof BlockItem) {
 					Block leaves = Block.byItem(stackInSlot.getItem());
 
-					ItemStack hoe = Items.DIAMOND_HOE.getDefaultInstance();
+					ItemStack hoe = new ItemStack(Items.DIAMOND_HOE);
 					hoe.enchant(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE), 3);
 
 					List<ItemStack> list = Block.getDrops(leaves.defaultBlockState(), (ServerLevel) level, this.worldPosition, null, null, hoe.copy());
 
 					for (ItemStack result : list) {
 						ItemHandlerHelper.insertItemStacked(outputInv, result, false);
+					}
+				}
+
+				// ---- 额外：从树叶配方读取额外输出 ----
+				RecipeWrapper inv = new RecipeWrapper(inputInv);
+				Optional<RecipeHolder<LeavesVibratingRecipe>> leafRecipe =
+						VintageRecipes.LEAVES_VIBRATING.find(inv, level);
+				if (leafRecipe.isPresent()) {
+					List<ItemStack> extra = leafRecipe.get().value().rollResults(level.random);
+					for (ItemStack stack : extra) {
+						ItemHandlerHelper.insertItemStacked(outputInv, stack, false);
 					}
 				}
 
