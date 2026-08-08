@@ -1,3 +1,23 @@
 {
-  "parent": "create:base/processing_unwrapped"
+  "parent": "create:base/processing_unwrapped",
+  "hidden": false,
+  "keys": [
+    {
+      "name": "hammer_blows",
+      "type": {
+        "type": "int"
+      },
+      "alternative_names": ["hammer_blows", "hammerBlows"],
+      "optional": 1
+    },
+    {
+      "name": "anvil_block",
+      "type": "id",
+      "alternative_names": ["anvil_block", "anvilBlock"],
+      "optional": "minecraft:air"
+    }
+  ],
+  "merge": {
+    "keys": true
+  }
 }

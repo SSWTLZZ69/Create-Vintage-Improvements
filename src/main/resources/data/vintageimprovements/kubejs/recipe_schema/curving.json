@@ -1,3 +1,31 @@
 {
-  "parent": "create:base/processing_with_time"
+  "parent": "create:base/processing_with_time",
+  "hidden": false,
+  "keys": [
+    {
+      "name": "mode",
+      "type": {
+        "type": "int"
+      },
+      "alternative_names": ["mode"],
+      "optional": 1
+    },
+    {
+      "name": "head_damage",
+      "type": {
+        "type": "int"
+      },
+      "alternative_names": ["head_damage", "headDamage"],
+      "optional": 0
+    },
+    {
+      "name": "item_as_head",
+      "type": "id",
+      "alternative_names": ["item_as_head", "itemAsHead"],
+      "optional": "minecraft:air"
+    }
+  ],
+  "merge": {
+    "keys": true
+  }
 }

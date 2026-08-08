@@ -1,3 +1,25 @@
 {
-  "parent": "create:base/processing_unwrapped"
+  "parent": "create:base/processing_unwrapped",
+  "hidden": false,
+  "keys": [
+    {
+      "name": "energy",
+      "type": {
+        "type": "int"
+      },
+      "alternative_names": ["energy"],
+      "optional": 0
+    },
+    {
+      "name": "max_charge_rate",
+      "type": {
+        "type": "int"
+      },
+      "alternative_names": ["max_charge_rate", "maxChargeRate"],
+      "optional": 0
+    }
+  ],
+  "merge": {
+    "keys": true
+  }
 }
