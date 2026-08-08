@@ -442,6 +442,7 @@
 	"vintageimprovements.jei.text.leaves_vibrating.text4": "获得概率与使用",
 	"vintageimprovements.jei.text.leaves_vibrating.text5": "具有时运III附魔",
 	"vintageimprovements.jei.text.leaves_vibrating.text6": "的锄相同",
+	"vintageimprovements.jei.text.leaves_vibrating.text7": "额外产出：",
 	"vintageimprovements.jei.text.auto_smithing.text1": "下方放有",
 	"vintageimprovements.jei.text.auto_smithing.text2": "锻造台的",
 	"vintageimprovements.jei.text.auto_smithing.text3": "杠杆锤,",
@@ -476,5 +477,5 @@
 	"trim_material.vintageimprovements.shadow": "暗影钢质",
 	"trim_material.vintageimprovements.radiance": "光辉石质",
 	"trim_material.vintageimprovements.zinc": "锌质",
-	"vintageimprovements.jei.text.fragile": "易碎, 材料将以错误的速度销毁"
+	"vintageimprovements.jei.text.fragile": "易碎, 错误的速度将销毁材料"
 }
