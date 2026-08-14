@@ -292,8 +292,15 @@ public class LatheRotatingBlockEntity extends KineticBlockEntity implements IHav
 
 	private void process() {
 		RecipeWrapper inventoryIn = new RecipeWrapper(inputInv);
+		Optional<RecipeHolder<TurningRecipe>> assemblyRecipe = SequencedAssemblyRecipe.getRecipe(level,
+				inputInv.getStackInSlot(0), VintageRecipes.TURNING.getType(), TurningRecipe.class);
 
-		if (lastRecipe == null || !lastRecipe.matches(inventoryIn, level)) {
+		// The sequenced child recipe is shared and its enforced result can be
+		// overwritten by another lookup. Rebind it to the item actually processed.
+		if (lastRecipe != null && assemblyRecipe.isPresent()
+				&& lastRecipe == assemblyRecipe.get().value()) {
+			lastRecipe = assemblyRecipe.get().value();
+		} else if (lastRecipe == null || !lastRecipe.matches(inventoryIn, level)) {
 			Optional<TurningRecipe> recipe = getRecipe();
 			if (!recipe.isPresent()) return;
 			lastRecipe = recipe.get();

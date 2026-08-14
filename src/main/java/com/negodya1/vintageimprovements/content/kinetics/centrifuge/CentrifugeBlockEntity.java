@@ -473,13 +473,18 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 	}
 
 	private void process() {
+		// Sequenced assembly binds the next result to a shared recipe instance.
+		// Refresh it at completion so another lookup cannot overwrite that result.
+		if (lastRecipeIsAssembly)
+			lastRecipe = null;
+
 		if (lastRecipe == null || !CentrifugationRecipe.match(this, lastRecipe)) {
 			boolean found = false;
 			for (int i = 0; i < inputInv.getSlots(); i++) {
 				Optional<RecipeHolder<CentrifugationRecipe>> assemblyRecipe = SequencedAssemblyRecipe.
 						getRecipe(level, inputInv.getStackInSlot(i),
 								VintageRecipes.CENTRIFUGATION.getType(), CentrifugationRecipe.class);
-				if (assemblyRecipe.isPresent()) {
+				if (assemblyRecipe.isPresent() && CentrifugationRecipe.match(this, assemblyRecipe.get().value())) {
 					lastRecipe = assemblyRecipe.get().value();
 					lastRecipeIsAssembly = true;
 					found = true;
@@ -488,6 +493,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 			}
 
 			if (!found) {
+				lastRecipeIsAssembly = false;
 				List<Recipe<?>> recipes = getRecipes();
 				if (!recipes.isEmpty()) {
 					lastRecipe = (CentrifugationRecipe) recipes.get(0);

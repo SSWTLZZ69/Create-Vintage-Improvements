@@ -458,6 +458,11 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 	}
 
 	private void process() {
+		// Sequenced assembly binds the next result to a shared recipe instance.
+		// Refresh it at completion so another lookup cannot overwrite that result.
+		if (lastRecipeIsAssembly)
+			lastHammeringRecipe = null;
+
 		if (lastHammeringRecipe == null || !HammeringRecipe.match(this, lastHammeringRecipe)) {
 			boolean found = false;
 			for (int i = 0; i < inputInv.getSlots(); i++) {
@@ -472,6 +477,7 @@ public class HelveBlockEntity extends SmartBlockEntity implements IHaveGoggleInf
 			}
 
 			if (!found) {
+				lastRecipeIsAssembly = false;
 				List<Recipe<?>> recipes = getRecipes();
 				if (!recipes.isEmpty()) {
 					lastHammeringRecipe = (HammeringRecipe) recipes.get(0);

@@ -7,6 +7,7 @@ import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancementBehaviour;
 import com.negodya1.vintageimprovements.foundation.advancement.VintageAdvancements;
+import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.kinetics.base.IRotate;
@@ -30,7 +31,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -38,7 +38,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeInput;
@@ -228,6 +227,13 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	protected void applyBasinRecipe() {
 		if (currentRecipe == null)
 			return;
+		if (sequencedAssemblyStep > 0) {
+			// Rebind the shared sequenced child recipe immediately before applying it.
+			Optional<? extends Recipe<?>> assemblyRecipe = matchAssemblyRecipe();
+			if (assemblyRecipe.isEmpty())
+				return;
+			currentRecipe = assemblyRecipe.get();
+		}
 
 		Optional<BasinBlockEntity> optionalBasin = getBasin();
 		if (!optionalBasin.isPresent())
@@ -324,11 +330,10 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 			String itemSequenceId;
 			int itemSequenceStep;
 
-			CustomData customData = item.get(DataComponents.CUSTOM_DATA);
-			if (customData != null && customData.contains("SequencedAssembly")) {
-				CompoundTag tag = customData.copyTag().getCompound("SequencedAssembly");
-				itemSequenceId = tag.getString("id");
-				itemSequenceStep = tag.getInt("Step") + 1;
+			SequencedAssemblyRecipe.SequencedAssembly sequence = item.get(AllDataComponents.SEQUENCED_ASSEMBLY);
+			if (sequence != null) {
+				itemSequenceId = sequence.id().toString();
+				itemSequenceStep = sequence.step() + 1;
 			} else {
 				itemSequenceId = "";
 				itemSequenceStep = 1;

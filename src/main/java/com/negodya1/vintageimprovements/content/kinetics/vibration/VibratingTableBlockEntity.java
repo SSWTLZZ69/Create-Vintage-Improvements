@@ -258,6 +258,11 @@ public class VibratingTableBlockEntity extends KineticBlockEntity implements Cle
 	private void process() {
 		RecipeWrapper inventoryIn = new RecipeWrapper(inputInv);
 
+		// Sequenced assembly binds the next result to a shared recipe instance.
+		// Refresh it at completion so another lookup cannot overwrite that result.
+		if (lastRecipeIsAssembly)
+			lastRecipe = null;
+
 		if (lastRecipe == null || !lastRecipe.matches(inventoryIn, level)) {
 			boolean found = false;
 
@@ -265,10 +270,12 @@ public class VibratingTableBlockEntity extends KineticBlockEntity implements Cle
 					VintageRecipes.VIBRATING.getType(), VibratingRecipe.class);
 			if (assemblyRecipe.isPresent()) {
 				lastRecipe = assemblyRecipe.get().value();
+				lastRecipeIsAssembly = true;
 				found = true;
 			}
 
 			if (!found) {
+				lastRecipeIsAssembly = false;
 				Optional<RecipeHolder<VibratingRecipe>> recipe = VintageRecipes.VIBRATING.find(inventoryIn, level);
 				if (recipe.isPresent()) {
 					lastRecipe = recipe.get().value();
