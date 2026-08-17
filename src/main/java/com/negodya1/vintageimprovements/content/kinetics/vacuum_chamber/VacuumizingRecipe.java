@@ -355,9 +355,15 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 	public static String getSequenceId(RecipeHolder<? extends Recipe<?>> recipeHolder) {
 		Recipe<?> recipe = recipeHolder.value();
 		if (recipe instanceof VacuumizingRecipe vacuumizingRecipe) {
-			String key = recipeHolder.id().toString();
-			int last = key.lastIndexOf("_step_");
-			if (last > -1) return key.substring(0, last);
+			// SequencedAssemblyRecipe.getRecipes() re-wraps each matching step recipe in a
+			// RecipeHolder that reuses the PARENT create:sequenced_assembly recipe's own id (see
+			// SequencedAssemblyRecipe#getRecipes), not a per-step id -- there is no "_step_"
+			// suffix to strip here for a normally-authored (inline) sequence step, so truncating
+			// on it always returned "" and made this disambiguation check reject every candidate.
+			// The parent id itself, compared as-is against the item's stored SequencedAssembly id,
+			// is exactly what distinguishes "this candidate belongs to the sequence this item is
+			// actually in" from Create's known ambiguity around shared transitional items.
+			return recipeHolder.id().toString();
 		}
 
 		return "";

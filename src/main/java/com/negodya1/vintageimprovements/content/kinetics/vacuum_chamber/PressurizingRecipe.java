@@ -355,9 +355,12 @@ public class PressurizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 	public static String getSequenceId(RecipeHolder<? extends Recipe<?>> recipeHolder) {
 		Recipe<?> recipe = recipeHolder.value();
 		if (recipe instanceof PressurizingRecipe pressurizingRecipe) {
-			String key = recipeHolder.id().toString();
-			int last = key.lastIndexOf("_step_");
-			if (last > -1) return key.substring(0, last);
+			// See VacuumizingRecipe.getSequenceId(): SequencedAssemblyRecipe.getRecipes() wraps
+			// each matching step in a RecipeHolder keyed by the PARENT sequenced_assembly recipe's
+			// own id, which never contains "_step_" for a normally-authored inline step, so this
+			// truncation always returned "" and made every candidate get rejected before it could
+			// even be compared against the item's stored sequence id. Compare the parent id as-is.
+			return recipeHolder.id().toString();
 		}
 
 		return "";
