@@ -7,25 +7,24 @@ import com.negodya1.vintageimprovements.VintageBlocks;
 import com.negodya1.vintageimprovements.VintageLang;
 import com.negodya1.vintageimprovements.VintageRecipes;
 import com.negodya1.vintageimprovements.compat.jei.category.assemblies.AssemblyVacuumizing;
+import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.compat.jei.category.sequencedAssembly.SequencedAssemblySubCategory;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinRecipe;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.sequenced.IAssemblyRecipe;
+import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
 import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
 import com.simibubi.create.foundation.recipe.DummyCraftingContainer;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -187,12 +186,17 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 					if (!ingredient.test(extracted))
 						continue;
 					if (step != 0) {
-						CustomData customData = extracted.get(DataComponents.CUSTOM_DATA);
-						if (customData != null && customData.contains("SequencedAssembly")) {
+						// Was reading the legacy "SequencedAssembly" CustomData/NBT tag, which
+						// current Create no longer writes -- sequence progress is now stored in
+						// the AllDataComponents.SEQUENCED_ASSEMBLY data component (see
+						// VacuumChamberBlockEntity#matchAssemblyRecipe, already updated to read
+						// it). The stale check here always missed, so incompleteItemFound stayed
+						// false for every step past the first and this always returned false.
+						SequencedAssemblyRecipe.SequencedAssembly sequence = extracted.get(AllDataComponents.SEQUENCED_ASSEMBLY);
+						if (sequence != null) {
 							if (incompleteItemFound) continue;
 
-							CompoundTag tag = customData.copyTag().getCompound("SequencedAssembly");
-							if (step == tag.getInt("Step") + 1) {
+							if (step == sequence.step() + 1) {
 								incompleteItemFound = true;
 							} else {
 								continue;
