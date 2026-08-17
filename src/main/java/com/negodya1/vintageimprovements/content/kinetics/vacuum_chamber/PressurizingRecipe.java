@@ -186,11 +186,8 @@ public class PressurizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 					if (!ingredient.test(extracted))
 						continue;
 					if (step != 0) {
-						// Same stale-NBT bug as VacuumizingRecipe.apply(): current Create stores
-						// sequence progress in the AllDataComponents.SEQUENCED_ASSEMBLY data
-						// component, not the legacy "SequencedAssembly" CustomData tag, so this
-						// always missed and every step past the first always returned false.
-						SequencedAssemblyRecipe.SequencedAssembly sequence = extracted.get(AllDataComponents.SEQUENCED_ASSEMBLY);
+						SequencedAssemblyRecipe.SequencedAssembly sequence =
+								extracted.get(AllDataComponents.SEQUENCED_ASSEMBLY);
 						if (sequence != null) {
 							if (incompleteItemFound) continue;
 
@@ -357,11 +354,6 @@ public class PressurizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 	public static String getSequenceId(RecipeHolder<? extends Recipe<?>> recipeHolder) {
 		Recipe<?> recipe = recipeHolder.value();
 		if (recipe instanceof PressurizingRecipe pressurizingRecipe) {
-			// See VacuumizingRecipe.getSequenceId(): SequencedAssemblyRecipe.getRecipes() wraps
-			// each matching step in a RecipeHolder keyed by the PARENT sequenced_assembly recipe's
-			// own id, which never contains "_step_" for a normally-authored inline step, so this
-			// truncation always returned "" and made every candidate get rejected before it could
-			// even be compared against the item's stored sequence id. Compare the parent id as-is.
 			return recipeHolder.id().toString();
 		}
 
