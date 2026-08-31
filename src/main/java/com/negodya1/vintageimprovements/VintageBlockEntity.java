@@ -125,7 +125,7 @@ public class VintageBlockEntity {
             return master != null ? master.capability : null;
         });
 
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, VACUUM.get(), (be, side) -> be.fluidCapability);
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, VACUUM.get(), (be, side) -> be.getFluidCapability(side));
         event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, CENTRIFUGE.get(), (be, side) -> be.fluidCapability);
         event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, CENTRIFUGE_STRUCTURAL.get(), (be, side) -> {
             CentrifugeBlockEntity master = be.getMaster();

@@ -67,6 +67,7 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	public SmartFluidTankBehaviour outputTank;
 	public SmartFluidTankBehaviour inputTank;
 	public IFluidHandler fluidCapability;
+	private IFluidHandler topFluidCapability;
 	boolean mode;
 	VintageAdvancementBehaviour advancementBehaviour;
 
@@ -123,6 +124,7 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		IFluidHandler inputCap = inputTank.getCapability();
 		IFluidHandler outputCap = outputTank.getCapability();
 		fluidCapability = new VacuumChamberTanksHandler(outputCap, inputCap);
+		topFluidCapability = new TopFluidHandler(outputCap, inputCap);
 
 		advancementBehaviour = new VintageAdvancementBehaviour(this);
 		behaviours.add(advancementBehaviour);
@@ -132,6 +134,29 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		public VacuumChamberTanksHandler(IFluidHandler... fluidHandlers) {
 			super(fluidHandlers);
 		}
+	}
+
+	private class TopFluidHandler extends CombinedTankWrapper {
+		private final IFluidHandler outputHandler;
+
+		public TopFluidHandler(IFluidHandler outputHandler, IFluidHandler inputHandler) {
+			super(outputHandler, inputHandler);
+			this.outputHandler = outputHandler;
+		}
+
+		@Override
+		public FluidStack drain(FluidStack resource, FluidAction action) {
+			return outputHandler.drain(resource, action);
+		}
+
+		@Override
+		public FluidStack drain(int maxDrain, FluidAction action) {
+			return outputHandler.drain(maxDrain, action);
+		}
+	}
+
+	public IFluidHandler getFluidCapability(Direction side) {
+		return side == Direction.UP ? topFluidCapability : fluidCapability;
 	}
 
 	@Override
