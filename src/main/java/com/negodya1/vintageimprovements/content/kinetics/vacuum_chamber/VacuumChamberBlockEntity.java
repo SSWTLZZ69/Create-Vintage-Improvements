@@ -67,6 +67,7 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	public SmartFluidTankBehaviour outputTank;
 	public SmartFluidTankBehaviour inputTank;
 	public LazyOptional<IFluidHandler> fluidCapability;
+	private LazyOptional<IFluidHandler> topFluidCapability;
 	boolean mode;
 	VintageAdvancementBehaviour advancementBehaviour;
 
@@ -124,11 +125,12 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 		behaviours.add(inputTank);
 		behaviours.add(outputTank);
 
-		fluidCapability = LazyOptional.of(() -> {
-			LazyOptional<? extends IFluidHandler> inputCap = inputTank.getCapability();
-			LazyOptional<? extends IFluidHandler> outputCap = outputTank.getCapability();
-			return new VacuumChamberTanksHandler(outputCap.orElse(null), inputCap.orElse(null));
-		});
+		LazyOptional<? extends IFluidHandler> inputCap = inputTank.getCapability();
+		LazyOptional<? extends IFluidHandler> outputCap = outputTank.getCapability();
+		fluidCapability = LazyOptional.of(() ->
+				new VacuumChamberTanksHandler(outputCap.orElse(null), inputCap.orElse(null)));
+		topFluidCapability = LazyOptional.of(() ->
+				new TopFluidHandler(outputCap.orElse(null), inputCap.orElse(null)));
 
 		advancementBehaviour = new VintageAdvancementBehaviour(this);
 		behaviours.add(advancementBehaviour);
@@ -137,6 +139,25 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 	private class VacuumChamberTanksHandler extends CombinedTankWrapper {
 		public VacuumChamberTanksHandler(IFluidHandler... fluidHandlers) {
 			super(fluidHandlers);
+		}
+	}
+
+	private class TopFluidHandler extends CombinedTankWrapper {
+		private final IFluidHandler outputHandler;
+
+		public TopFluidHandler(IFluidHandler outputHandler, IFluidHandler inputHandler) {
+			super(outputHandler, inputHandler);
+			this.outputHandler = outputHandler;
+		}
+
+		@Override
+		public FluidStack drain(FluidStack resource, FluidAction action) {
+			return outputHandler.drain(resource, action);
+		}
+
+		@Override
+		public FluidStack drain(int maxDrain, FluidAction action) {
+			return outputHandler.drain(maxDrain, action);
 		}
 	}
 
@@ -463,8 +484,11 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 
 	@Override
 	public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-		if (cap == ForgeCapabilities.FLUID_HANDLER)
+		if (cap == ForgeCapabilities.FLUID_HANDLER) {
+			if (side == Direction.UP)
+				return topFluidCapability.cast();
 			return fluidCapability.cast();
+		}
 		return super.getCapability(cap, side);
 	}
 
