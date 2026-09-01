@@ -4,6 +4,7 @@ import com.negodya1.vintageimprovements.VintageImprovements;
 import com.negodya1.vintageimprovements.compat.jei.category.animations.AnimatedVibratingTable;
 import com.negodya1.vintageimprovements.content.kinetics.vibration.LeavesVibratingRecipe;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
+import com.simibubi.create.content.processing.recipe.ProcessingOutput;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.ITooltipBuilder;
@@ -14,6 +15,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.RecipeHolder;
+
+import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -32,6 +35,21 @@ public class LeavesVibratingCategory extends CreateRecipeCategory<LeavesVibratin
 				.addSlot(RecipeIngredientRole.INPUT, 15, 9)
 				.setBackground(getRenderedSlot(), -1, -1)
 				.addIngredients(recipe.getIngredients().get(0));
+		List<ProcessingOutput> results = recipe.getRollableResults();
+		int globalYOffset = (results.size() / 4 - 1) * 19 / 2;
+		int i = 0;
+		for (ProcessingOutput output : results) {
+			int xOffset = (i % 4) * 19;
+			int yOffset = (i / 4) * 19;
+
+			builder
+					.addSlot(RecipeIngredientRole.OUTPUT, 88 + xOffset, 64 + yOffset - globalYOffset)
+					.setBackground(getRenderedSlot(output), -1, -1)
+					.addItemStack(output.getStack())
+					.addRichTooltipCallback(addStochasticTooltip(output));
+
+			i++;
+		}
 	}
 
 	@Override
@@ -48,6 +66,8 @@ public class LeavesVibratingCategory extends CreateRecipeCategory<LeavesVibratin
 		graphics.drawString(Minecraft.getInstance().font,  Component.translatable(VintageImprovements.MODID + ".jei.text.leaves_vibrating.text4"), 87, 36, 0xFAFAFA);
 		graphics.drawString(Minecraft.getInstance().font,  Component.translatable(VintageImprovements.MODID + ".jei.text.leaves_vibrating.text5"), 87, 47, 0xFAFAFA);
 		graphics.drawString(Minecraft.getInstance().font,  Component.translatable(VintageImprovements.MODID + ".jei.text.leaves_vibrating.text6"), 87, 58, 0xFAFAFA);
+		if (recipe.getRollableResults().size() == 0) {return;}
+		graphics.drawString(Minecraft.getInstance().font,  Component.translatable(VintageImprovements.MODID + ".jei.text.leaves_vibrating.text7"), 15, 74, 0xFAFAFA);
 	}
 
 	@Override
