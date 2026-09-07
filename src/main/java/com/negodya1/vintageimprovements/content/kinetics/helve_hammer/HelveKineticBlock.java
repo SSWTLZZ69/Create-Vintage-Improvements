@@ -58,6 +58,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.material.PushReaction;
@@ -74,12 +75,16 @@ public class HelveKineticBlock extends DirectionalKineticBlock implements IWrenc
 
 	@Override
 	public Direction.Axis getRotationAxis(BlockState state) {
-		return state.getValue(FACING).getClockWise().getAxis();
+		Direction facing = state.getValue(FACING);
+		if (!isHorizontal(facing))
+			return Direction.Axis.X;
+		return facing.getClockWise().getAxis();
 	}
 
 	@Override
 	public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-		return face.getAxis() == state.getValue(FACING).getClockWise().getAxis();
+		Direction facing = state.getValue(FACING);
+		return isHorizontal(facing) && face.getAxis() == facing.getClockWise().getAxis();
 	}
 
 	@Override
@@ -100,6 +105,24 @@ public class HelveKineticBlock extends DirectionalKineticBlock implements IWrenc
 	@Override
 	public InteractionResult onWrenched(BlockState state, UseOnContext context) {
 		return InteractionResult.PASS;
+	}
+
+	@Override
+	public BlockState getRotatedBlockState(BlockState state, Direction targetedFace) {
+		Direction facing = state.getValue(FACING);
+		if (!isHorizontal(facing) || facing.getAxis() == targetedFace.getAxis())
+			return state;
+		Direction rotated = facing.getClockWise(targetedFace.getAxis());
+		return isHorizontal(rotated) ? state.setValue(FACING, rotated) : state;
+	}
+
+	@Override
+	public BlockState rotate(BlockState state, Rotation rotation) {
+		Direction facing = state.getValue(FACING);
+		if (!isHorizontal(facing))
+			return state;
+		Direction rotated = rotation.rotate(facing);
+		return isHorizontal(rotated) ? state.setValue(FACING, rotated) : state;
 	}
 
 	@Override
@@ -177,13 +200,19 @@ public class HelveKineticBlock extends DirectionalKineticBlock implements IWrenc
 
 		if (!directlyAdjacent && stillValid(level, targetedPos, targetedState, true))
 			return true;
-		return targetedState.getBlock() instanceof HelveStructuralBlock;
+		return targetedState.getBlock() instanceof HelveStructuralBlock
+				&& targetedState.getValue(HelveStructuralBlock.FACING) == direction
+				&& HelveStructuralBlock.getMaster(level, targetedPos, targetedState).equals(pos.relative(direction, 2));
 	}
 
 	@Override
 	public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
 		if (!stillValid(pLevel, pPos, pState, false))
 			pLevel.setBlockAndUpdate(pPos, Blocks.AIR.defaultBlockState());
+	}
+
+	private static boolean isHorizontal(Direction direction) {
+		return direction.getAxis() != Direction.Axis.Y;
 	}
 
 	@OnlyIn(Dist.CLIENT)
