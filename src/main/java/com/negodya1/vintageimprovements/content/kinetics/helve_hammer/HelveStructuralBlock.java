@@ -66,6 +66,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientBlockExtensions;
 
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
+
 public class HelveStructuralBlock extends DirectionalBlock implements IWrenchable, IProxyHoveringInformation {
 	public static final VoxelShaper CENTRIFUGE_SHAPE = VintageShapes.shape(5, 0, 5, 11, 16, 11).forDirectional();
 
@@ -181,7 +183,8 @@ public class HelveStructuralBlock extends DirectionalBlock implements IWrenchabl
 
 		if (!directlyAdjacent && stillValid(level, targetedPos, targetedState, true))
 			return true;
-		return targetedState.getBlock() instanceof HelveBlock;
+		return targetedState.getBlock() instanceof HelveBlock
+				&& targetedState.getValue(HORIZONTAL_FACING) == direction;
 	}
 
 	@Override

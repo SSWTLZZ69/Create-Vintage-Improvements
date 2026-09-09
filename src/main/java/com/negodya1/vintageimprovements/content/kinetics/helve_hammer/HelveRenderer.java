@@ -67,6 +67,9 @@ public class HelveRenderer extends KineticBlockEntityRenderer<HelveKineticBlockE
 
 	@Override
 	protected void renderSafe(HelveKineticBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
+		if (be.getBlockState().getValue(FACING).getAxis() == Direction.Axis.Y)
+			return;
+
 		BlockState blockState = be.getBlockState();
 		VertexConsumer vb = buffer.getBuffer(RenderType.solid());
 		SuperByteBuffer superBuffer = CachedBuffers.partial(VintagePartialModels.HELVE_HAMMER, blockState);
