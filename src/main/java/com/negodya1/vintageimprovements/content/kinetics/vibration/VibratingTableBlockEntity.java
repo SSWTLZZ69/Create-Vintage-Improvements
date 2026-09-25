@@ -228,8 +228,29 @@ public class VibratingTableBlockEntity extends KineticBlockEntity implements Cle
 		outputInv.clearContent();
 	}
 
+	private ItemStack haveRecipeCachedInput = ItemStack.EMPTY;
+	private boolean haveRecipeCachedFastEnough;
+	private Object haveRecipeCachedRecipeManager;
+	private boolean haveRecipeCachedResult;
+
 	public boolean haveRecipe() {
-		return canProcess(inputInv.getStackInSlot(0));
+		// Called every frame by the renderer (renderTable + renderItems) and every
+		// client tick by spawnParticles, so the full recipe lookup in canProcess()
+		// must be cached. The result only depends on the input stack, whether the
+		// speed threshold is met, and the current recipe manager (which is swapped
+		// on datapack reload).
+		ItemStack stack = inputInv.getStackInSlot(0);
+		boolean fastEnough = Mth.abs(getSpeed()) >= IRotate.SpeedLevel.FAST.getSpeedValue();
+		Object recipeManager = level == null ? null : level.getRecipeManager();
+		if (fastEnough == haveRecipeCachedFastEnough && recipeManager == haveRecipeCachedRecipeManager
+				&& ItemStack.isSameItemSameComponents(haveRecipeCachedInput, stack))
+			return haveRecipeCachedResult;
+
+		haveRecipeCachedFastEnough = fastEnough;
+		haveRecipeCachedRecipeManager = recipeManager;
+		haveRecipeCachedInput = stack.copy();
+		haveRecipeCachedResult = canProcess(stack);
+		return haveRecipeCachedResult;
 	}
 
 	private boolean canProcess(ItemStack stack) {
