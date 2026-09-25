@@ -371,6 +371,12 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 							if (id.isEmpty()) return false;
 							if (!itemSequenceId.isEmpty() && !id.equals(itemSequenceId)) return false;
 
+							// Cheap pre-filter: the sequenced item must be the recipe's
+							// first ingredient before we pay for the full simulated match.
+							if (!it.value().getIngredients().isEmpty()
+									&& !it.value().getIngredients().get(0).test(item))
+								return false;
+
 							return PressurizingRecipe.match(basin.get(), it.value(), this, itemSequenceStep);
 						}).stream().findFirst().map(RecipeHolder::value);
 
@@ -385,6 +391,12 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 							if (id.isEmpty()) return false;
 
 							if (!itemSequenceId.isEmpty() && !id.equals(itemSequenceId)) return false;
+
+							// Cheap pre-filter: the sequenced item must be the recipe's
+							// first ingredient before we pay for the full simulated match.
+							if (!it.value().getIngredients().isEmpty()
+									&& !it.value().getIngredients().get(0).test(item))
+								return false;
 
 							return VacuumizingRecipe.match(basin.get(), it.value(), this, itemSequenceStep);
 						}).stream().findFirst().map(RecipeHolder::value);
