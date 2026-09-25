@@ -182,6 +182,9 @@ public class VacuumizingRecipe extends BasinRecipe implements IAssemblyRecipe {
 					if (simulate && availableItems.getStackInSlot(slot)
 							.getCount() <= extractedItemsFromSlot[slot])
 						continue;
+					// 廉价预筛：extractItem 会复制 ItemStack，先直接测槽内物品
+					if (!ingredient.test(availableItems.getStackInSlot(slot)))
+						continue;
 					ItemStack extracted = availableItems.extractItem(slot, 1, true);
 					if (!ingredient.test(extracted))
 						continue;

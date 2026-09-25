@@ -396,6 +396,9 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 							// 拒绝带序列装配标签且不匹配的物品
 							if (!itemSequenceId.isEmpty() && !id.equals(itemSequenceId)) return false;
 
+							// 廉价预筛：主原料必须是配方第一个配料，否则跳过昂贵的模拟匹配
+							if (!it.getIngredients().isEmpty() && !it.getIngredients().get(0).test(item)) return false;
+
 							// 然后才检查过滤、加热、盆内原料、机器副原料
 							return PressurizingRecipe.match(basin.get(), it, this, itemSequenceStep);
 						}).findFirst();
@@ -413,6 +416,9 @@ public class VacuumChamberBlockEntity extends BasinOperatingBlockEntity {
 							if (id.isEmpty()) return false;
 
 							if (!itemSequenceId.isEmpty() && !id.equals(itemSequenceId)) return false;
+
+							// 廉价预筛：主原料必须是配方第一个配料，否则跳过昂贵的模拟匹配
+							if (!it.getIngredients().isEmpty() && !it.getIngredients().get(0).test(item)) return false;
 
 							return VacuumizingRecipe.match(basin.get(), it, this, itemSequenceStep);
 						}).findFirst();
