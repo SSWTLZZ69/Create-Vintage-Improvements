@@ -173,7 +173,7 @@ private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath
 				.addTypedRecipes(VintageRecipes.LEAVES_VIBRATING::getType)
 				.catalyst(VintageBlocks.VIBRATING_TABLE::get)
 				.doubleItemIcon(VintageBlocks.VIBRATING_TABLE.get(), Blocks.OAK_LEAVES)
-				.emptyBackground(177, 70)
+				.emptyBackground(177, 90)
 				.build("leaves_vibrating", LeavesVibratingCategory::new));
 
 		ALL.add(builder(CraftingRecipe.class)
