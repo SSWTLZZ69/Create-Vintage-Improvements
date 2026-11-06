@@ -269,14 +269,24 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements IHaveGo
 			contentsChanged = false;
 		}
 
-		if (timer > 0) {
-			if (getSpeed() == 0) {
+		// A stopped centrifuge used to clear lastRecipe and then fall through
+		// into a full recipe search plus sendData() every tick while it had
+		// items or fluids. That runs 20 times a second on both sides (the
+		// client-side early return only exists on the processing path) and
+		// tanks FPS until the machine actually starts running.
+		if (getSpeed() == 0) {
+			if (timer != 0 || lastRecipe != null) {
 				timer = 0;
 				lastRecipe = null;
+				sendData();
 			}
+			return;
+		}
 
+		if (timer > 0) {
 			if (lastRecipe != null && Mth.abs(getSpeed()) < lastRecipe.minimalRPM) {
 				timer = lastRecipe.getProcessingDuration();
+				return;
 			}
 
 			if (lastRecipe != null) {
